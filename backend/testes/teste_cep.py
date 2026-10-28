@@ -76,8 +76,11 @@ async def teste_queda_nao_vira_cep_inexistente(simulador, http):
     simulador.get(BRASILAPI).mock(httpx.Response(503))
     simulador.get(VIACEP).mock(httpx.Response(503))
     servico = ServicoCep(http, 60, 10)
-    with pytest.raises(ErroExterno):
+    with pytest.raises(ErroExterno) as erro:
         await servico.consultar("30130010")
+    assert "brasilapi.com.br: HTTP 503" in str(erro.value)
+    assert "viacep.com.br: HTTP 503" in str(erro.value)
+    assert isinstance(erro.value.__cause__, ErroExterno)
     endereco = await servico.resolver("30130-010")
     assert endereco.cep == "30130010" and endereco.cidade is None
 

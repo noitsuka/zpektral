@@ -54,20 +54,22 @@ class ServicoCep:
     async def _buscar(self, cep: str) -> Endereco:
         tarefas = [asyncio.create_task(funcao(cep)) for funcao in (self._brasilapi, self._viacep)]
         nao_achados = 0
+        falhas: list[ErroExterno] = []
         try:
             for proximo in asyncio.as_completed(tarefas):
                 try:
                     return await proximo
                 except CepNaoEncontrado:
                     nao_achados += 1
-                except ErroExterno:
-                    pass
+                except ErroExterno as erro:
+                    falhas.append(erro)
         finally:
             for tarefa in tarefas:
                 tarefa.cancel()
         if nao_achados == len(tarefas):
             raise CepNaoEncontrado(cep)
-        raise ErroExterno("serviços de CEP indisponíveis")
+        motivos = "; ".join(map(str, falhas))
+        raise ErroExterno(f"serviços de CEP indisponíveis ({motivos})") from falhas[-1]
 
     async def _brasilapi(self, cep: str) -> Endereco:
         resposta = await self._http.requisitar(
