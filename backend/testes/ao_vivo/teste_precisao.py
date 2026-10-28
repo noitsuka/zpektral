@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import random
 import time
 from typing import Any
@@ -15,6 +16,7 @@ from app.modelos import Endereco, Loja, Oferta, StatusFrete
 from testes.conftest import contexto
 
 pytestmark = pytest.mark.live
+log = logging.getLogger("zpektral.precisao")
 
 CONSULTAS = ["smart tv 55", "geladeira frost free", "air fryer", "notebook", "fralda"]
 CEPS = {
@@ -81,10 +83,15 @@ async def teste_totais_exatos_batem_com_o_checkout_da_loja(consulta, cidade, con
 
     exatas = [o for o in trabalho.ofertas if o.total_exato]
     vtex_ok = sum(r.status == "ok" for r in trabalho.relatorios)
-    print(
-        f"\n{consulta!r} em {cidade}: {len(trabalho.ofertas)} ofertas, "
-        f"{len(exatas)} com total exato, "
-        f"{vtex_ok}/{len(fontes)} lojas ok, {trabalho.tempo_decorrido_ms} ms"
+    log.info(
+        "%r em %s: %d ofertas, %d com total exato, %d/%d lojas ok, %d ms",
+        consulta,
+        cidade,
+        len(trabalho.ofertas),
+        len(exatas),
+        vtex_ok,
+        len(fontes),
+        trabalho.tempo_decorrido_ms,
     )
     assert vtex_ok >= len(fontes) * 0.8
     for o in exatas:
@@ -111,7 +118,7 @@ async def teste_totais_exatos_batem_com_o_checkout_da_loja(consulta, cidade, con
         for o, dados in zip(amostra, respostas, strict=True)
         if (agora := total_independente(dados)) is not None and agora != o.total
     )
-    print(f"   {len(amostra)} conferidas, {mudaram} mudaram na loja desde a busca")
+    log.info("%d conferidas, %d mudaram na loja desde a busca", len(amostra), mudaram)
 
 
 @pytest.mark.parametrize("consulta", ["rtx 4060", "ssd 1tb", "monitor gamer"])
