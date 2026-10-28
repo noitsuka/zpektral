@@ -35,7 +35,9 @@ function instantaneo(): BuscaRecente[] {
 function gravar(lista: BuscaRecente[]) {
   try {
     window.localStorage.setItem(CHAVE, JSON.stringify(lista));
-  } catch {}
+  } catch {
+    // Sem localStorage (aba anônima, cota cheia) as buscas recentes só não ficam salvas.
+  }
   ouvintes.forEach((o) => o());
 }
 

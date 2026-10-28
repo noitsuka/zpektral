@@ -23,7 +23,9 @@ export function useCepSalvo(): [string, (cep: string) => void] {
   const salvar = useCallback((cep: string) => {
     try {
       localStorage.setItem(CHAVE, cep);
-    } catch {}
+    } catch {
+      // Sem localStorage (aba anônima, cota cheia) o CEP só não fica lembrado.
+    }
     ouvintes.forEach((l) => l());
   }, []);
   return [cep, salvar];
