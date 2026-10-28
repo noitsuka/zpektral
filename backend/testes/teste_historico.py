@@ -121,14 +121,22 @@ async def teste_erro_do_banco_nunca_chega_na_busca(config, tmp_path):
     await motor.dispose()
 
 
+ASYNCPG = "postgresql+asyncpg"
+
+
+def url_postgres(esquema: str, consulta: str = "") -> str:
+    usuario, senha = "usuario", "senha-ficticia"
+    return f"{esquema}://{usuario}:{senha}@host/banco{consulta}"
+
+
 @pytest.mark.parametrize(
     ("bruto", "esperadas"),
     [
-        ("postgres://u:p@h/db?sslmode=require", "postgresql+asyncpg://u:p@h/db?ssl=require"),
-        ("postgresql://u:p@h/db", "postgresql+asyncpg://u:p@h/db"),
+        (url_postgres("postgres", "?sslmode=require"), url_postgres(ASYNCPG, "?ssl=require")),
+        (url_postgres("postgresql"), url_postgres(ASYNCPG)),
         (
-            "postgresql://u:p@h/db?sslmode=verify-full&channel_binding=require",
-            "postgresql+asyncpg://u:p@h/db?ssl=verify-full",
+            url_postgres("postgresql", "?sslmode=verify-full&channel_binding=require"),
+            url_postgres(ASYNCPG, "?ssl=verify-full"),
         ),
         ("sqlite+aiosqlite:///x.db", "sqlite+aiosqlite:///x.db"),
     ],
