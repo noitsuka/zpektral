@@ -1,0 +1,1668 @@
+{
+ "items": [
+  {
+   "id": "340396977",
+   "quantity": 1,
+   "seller": "1",
+   "price": 319900,
+   "listPrice": 339372,
+   "sellingPrice": 319900,
+   "availability": "available"
+  }
+ ],
+ "paymentData": {
+  "installmentOptions": [
+   {
+    "paymentSystem": "1",
+    "bin": null,
+    "paymentName": "American Express",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 319900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 319900,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 319900,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 159950,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 159950,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 106633,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 106633,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 79975,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 79975,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 63980,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 63980,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 53316,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 53316,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 45700,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 45700,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 39987,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 39987,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 35544,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 9,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 35544,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 31990,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 10,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 31990,
+        "total": 319900
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "2",
+    "bin": null,
+    "paymentName": "Visa",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 319900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 319900,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 319900,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 159950,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 159950,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 106633,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 106633,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 79975,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 79975,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 63980,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 63980,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 53316,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 53316,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 45700,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 45700,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 39987,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 39987,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 35544,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 9,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 35544,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 31990,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 10,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 31990,
+        "total": 319900
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "3",
+    "bin": null,
+    "paymentName": "Diners",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 319900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 319900,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 319900,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 159950,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 159950,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 106633,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 106633,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 79975,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 79975,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 63980,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 63980,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 53316,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 53316,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 45700,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 45700,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 39987,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 39987,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 35544,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 9,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 35544,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 31990,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 10,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 31990,
+        "total": 319900
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "4",
+    "bin": null,
+    "paymentName": "Mastercard",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 319900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 319900,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 319900,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 159950,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 159950,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 106633,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 106633,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 79975,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 79975,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 63980,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 63980,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 53316,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 53316,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 45700,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 45700,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 39987,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 39987,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 35544,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 9,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 35544,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 31990,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 10,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 31990,
+        "total": 319900
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "9",
+    "bin": null,
+    "paymentName": "Elo",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 319900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 319900,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 319900,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 159950,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 159950,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 106633,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 106633,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 79975,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 79975,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 63980,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 63980,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 53316,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 53316,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 45700,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 45700,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 39987,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 39987,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 35544,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 9,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 35544,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 31990,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 10,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 31990,
+        "total": 319900
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "16",
+    "bin": null,
+    "paymentName": "Vale",
+    "paymentGroupName": "giftCardPaymentGroup",
+    "value": 319900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 319900,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 319900,
+        "total": 319900
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "125",
+    "bin": null,
+    "paymentName": "Pix",
+    "paymentGroupName": "instantPaymentPaymentGroup",
+    "value": 319900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 303905,
+      "total": 303905,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 303905,
+        "total": 303905
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "401",
+    "bin": null,
+    "paymentName": "Cartão Carrefour",
+    "paymentGroupName": "customPrivate_401PaymentGroup",
+    "value": 319900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 319900,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 319900,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 159950,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 159950,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 106633,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 106633,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 79975,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 79975,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 63980,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 63980,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 53316,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 53316,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 45700,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 45700,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 39987,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 39987,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 35544,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 9,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 35544,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 31990,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 10,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 31990,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 12,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 26658,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 12,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 26658,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 15,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 21326,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 15,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 21326,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 20,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 15995,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 20,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 15995,
+        "total": 319900
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "405",
+    "bin": null,
+    "paymentName": "Cartão Atacadão",
+    "paymentGroupName": "customPrivate_405PaymentGroup",
+    "value": 319900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 319900,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 319900,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 159950,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 159950,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 106633,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 106633,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 79975,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 79975,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 63980,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 63980,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 53316,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 53316,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 45700,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 45700,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 39987,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 39987,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 35544,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 9,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 35544,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 31990,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 10,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 31990,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 12,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 26658,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 12,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 26658,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 15,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 21326,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 15,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 21326,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 20,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 15995,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 20,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 15995,
+        "total": 319900
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "406",
+    "bin": null,
+    "paymentName": "Cartão Sam's Club",
+    "paymentGroupName": "customPrivate_406PaymentGroup",
+    "value": 319900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 319900,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 319900,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 159950,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 159950,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 106633,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 106633,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 79975,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 79975,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 63980,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 63980,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 53316,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 53316,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 45700,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 45700,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 39987,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 39987,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 35544,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 9,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 35544,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 31990,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 10,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 31990,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 12,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 26658,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 12,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 26658,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 15,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 21326,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 15,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 21326,
+        "total": 319900
+       }
+      ]
+     },
+     {
+      "count": 20,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 15995,
+      "total": 319900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "CARREFOURBR",
+        "count": 20,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 15995,
+        "total": 319900
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "logisticsInfo": [
+  {
+   "itemIndex": 0,
+   "slas": []
+  }
+ ],
+ "postalCode": null,
+ "totals": [
+  {
+   "id": "Items",
+   "name": "Total dos Itens",
+   "value": 319900
+  }
+ ]
+}

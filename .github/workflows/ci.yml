@@ -1,0 +1,72 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: zpektral
+          POSTGRES_PASSWORD: zpektral
+          POSTGRES_DB: zpektral
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U zpektral" --health-interval 3s --health-retries 20
+    env:
+      DATABASE_URL: postgresql+asyncpg://zpektral:zpektral@localhost:5432/zpektral
+      URL_BANCO_TESTE: postgresql+asyncpg://zpektral:zpektral@localhost:5432/zpektral
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - run: pip install -e ".[dev]"
+      - name: estilo
+        run: ruff check . && ruff format --check .
+      - name: migracoes
+        run: alembic upgrade head && alembic check && alembic downgrade base && alembic upgrade head
+      - name: testes
+        run: pytest -q
+
+  site:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: estilo
+        run: npm run lint
+      - name: tipos
+        run: npx next typegen && npx tsc --noEmit
+      - name: testes
+        run: npm test
+      - name: build
+        run: npm run build
+
+  imagens:
+    needs: [api, site]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build

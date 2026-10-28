@@ -1,0 +1,45 @@
+name: zpektral
+
+services:
+  banco:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: zpektral
+      POSTGRES_PASSWORD: zpektral
+      POSTGRES_DB: zpektral
+    volumes:
+      - dados-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zpektral -d zpektral"]
+      interval: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://zpektral:zpektral@banco:5432/zpektral
+      ORIGENS_CORS: '["http://localhost:3000"]'
+      ML_ID_CLIENTE: ${ML_ID_CLIENTE:-}
+      ML_SEGREDO_CLIENTE: ${ML_SEGREDO_CLIENTE:-}
+      ML_TOKEN_RENOVACAO: ${ML_TOKEN_RENOVACAO:-}
+      SHOPEE_ID_APP: ${SHOPEE_ID_APP:-}
+      SHOPEE_SEGREDO: ${SHOPEE_SEGREDO:-}
+      URL_WEBHOOK_ALERTA: ${URL_WEBHOOK_ALERTA:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      banco:
+        condition: service_healthy
+
+  site:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_URL_API: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  dados-postgres:

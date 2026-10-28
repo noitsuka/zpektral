@@ -1,0 +1,24 @@
+{
+ "items": [
+  {
+   "id": "340396977",
+   "quantity": 1,
+   "seller": "1",
+   "price": 319900,
+   "listPrice": 339372,
+   "sellingPrice": 319900,
+   "availability": "cannotBeDelivered"
+  }
+ ],
+ "paymentData": {
+  "installmentOptions": []
+ },
+ "logisticsInfo": [
+  {
+   "itemIndex": 0,
+   "slas": []
+  }
+ ],
+ "postalCode": "69900000",
+ "totals": []
+}

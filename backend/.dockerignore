@@ -1,0 +1,11 @@
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+.hypothesis
+*.egg-info
+testes
+scripts
+.env
+*.db
+.ml-token.json

@@ -1,0 +1,1082 @@
+[
+ {
+  "productId": "4143154",
+  "productName": "Bancada para Tv até 55 Polegadas Atlanta",
+  "brand": "Não Disponível",
+  "brandId": 918,
+  "brandImageUrl": null,
+  "linkText": "bancada-para-tv-ate-55-polegadas-atlanta-7507117752",
+  "productReference": "7507117752",
+  "productReferenceCode": "7507117752",
+  "categoryId": "3513",
+  "link": "https://www.americanas.com.br/bancada-para-tv-ate-55-polegadas-atlanta-7507117752/p",
+  "googleshopping-labels": [
+   ";;3P;;"
+  ],
+  "facebook-labels": [
+   ";;3P;;"
+  ],
+  "items": [
+   {
+    "itemId": "4418675",
+    "name": "Bancada para Tv até 55 Polegadas Atlanta",
+    "nameComplete": "Bancada para Tv até 55 Polegadas Atlanta",
+    "ean": "7909903892466",
+    "images": [
+     {
+      "imageId": "23418971",
+      "imageLabel": "extraLarge",
+      "imageTag": "<img src=\"~/arquivos/ids/23418971-#width#-#height#/7507117752_1_xlarge.jpg?v=638755313335370000\" width=\"#width#\" height=\"#height#\" alt=\"\" id=\"\" />",
+      "imageUrl": "https://americanas.vteximg.com.br/arquivos/ids/23418971/7507117752_1_xlarge.jpg?v=638755313335370000",
+      "imageText": null,
+      "imageLastModified": "2025-02-19T03:08:53.5370000Z"
+     }
+    ],
+    "sellers": [
+     {
+      "sellerId": "TALD93177736486215",
+      "sellerName": "Madeira Madeira",
+      "sellerDefault": true,
+      "commertialOffer": {
+       "Price": 258.8,
+       "ListPrice": 362.32,
+       "PriceWithoutDiscount": 258.8,
+       "AvailableQuantity": 1,
+       "Installments": [
+        {
+         "Value": 258.8,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 258.8,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa à vista"
+        },
+        {
+         "Value": 129.4,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 258.8,
+         "NumberOfInstallments": 2,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 2 vezes sem juros"
+        },
+        {
+         "Value": 86.26,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 258.8,
+         "NumberOfInstallments": 3,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 3 vezes sem juros"
+        },
+        {
+         "Value": 64.7,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 258.8,
+         "NumberOfInstallments": 4,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 4 vezes sem juros"
+        },
+        {
+         "Value": 51.76,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 258.8,
+         "NumberOfInstallments": 5,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 5 vezes sem juros"
+        },
+        {
+         "Value": 45.95,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 275.7,
+         "NumberOfInstallments": 6,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 6 vezes com juros"
+        },
+        {
+         "Value": 39.74,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 278.18,
+         "NumberOfInstallments": 7,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 7 vezes com juros"
+        },
+        {
+         "Value": 35.08,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 280.64,
+         "NumberOfInstallments": 8,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 8 vezes com juros"
+        },
+        {
+         "Value": 31.46,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 283.14,
+         "NumberOfInstallments": 9,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 9 vezes com juros"
+        },
+        {
+         "Value": 28.57,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 285.7,
+         "NumberOfInstallments": 10,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 10 vezes com juros"
+        },
+        {
+         "Value": 26.2,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 288.2,
+         "NumberOfInstallments": 11,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 11 vezes com juros"
+        },
+        {
+         "Value": 24.23,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 290.76,
+         "NumberOfInstallments": 12,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 12 vezes com juros"
+        },
+        {
+         "Value": 258.8,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 258.8,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Pix",
+         "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+         "Name": "Pix à vista"
+        }
+       ]
+      }
+     },
+     {
+      "sellerId": "1",
+      "sellerName": "AMERICANAS SA",
+      "sellerDefault": false,
+      "commertialOffer": {
+       "Price": 0.0,
+       "ListPrice": 0.0,
+       "PriceWithoutDiscount": 0.0,
+       "AvailableQuantity": 0,
+       "Installments": []
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "492278",
+  "productName": "Painel para Tv até 55 Polegadas Brasil",
+  "brand": "Não Disponível",
+  "brandId": 918,
+  "brandImageUrl": null,
+  "linkText": "painel-para-tv-ate-55-polegadas-brasil-7490590201",
+  "productReference": "7490590201",
+  "productReferenceCode": "7490590201",
+  "categoryId": "3512",
+  "link": "https://www.americanas.com.br/painel-para-tv-ate-55-polegadas-brasil-7490590201/p",
+  "googleshopping-labels": [
+   ";;3P;;"
+  ],
+  "facebook-labels": [
+   ";;3P;;"
+  ],
+  "items": [
+   {
+    "itemId": "523948",
+    "name": "Painel para Tv até 55 Polegadas Brasil",
+    "nameComplete": "Painel para Tv até 55 Polegadas Brasil",
+    "ean": "7909903576519",
+    "images": [
+     {
+      "imageId": "12383198",
+      "imageLabel": "extraLarge",
+      "imageTag": "<img src=\"~/arquivos/ids/12383198-#width#-#height#/7490590201_1_xlarge.jpg?v=638754290337900000\" width=\"#width#\" height=\"#height#\" alt=\"\" id=\"\" />",
+      "imageUrl": "https://americanas.vteximg.com.br/arquivos/ids/12383198/7490590201_1_xlarge.jpg?v=638754290337900000",
+      "imageText": null,
+      "imageLastModified": "2025-02-17T22:43:53.7900000Z"
+     }
+    ],
+    "sellers": [
+     {
+      "sellerId": "TALD93177736486215",
+      "sellerName": "Madeira Madeira",
+      "sellerDefault": true,
+      "commertialOffer": {
+       "Price": 517.62,
+       "ListPrice": 724.66,
+       "PriceWithoutDiscount": 517.62,
+       "AvailableQuantity": 1,
+       "Installments": [
+        {
+         "Value": 517.62,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 517.62,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa à vista"
+        },
+        {
+         "Value": 258.81,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 517.62,
+         "NumberOfInstallments": 2,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 2 vezes sem juros"
+        },
+        {
+         "Value": 172.54,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 517.62,
+         "NumberOfInstallments": 3,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 3 vezes sem juros"
+        },
+        {
+         "Value": 129.4,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 517.62,
+         "NumberOfInstallments": 4,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 4 vezes sem juros"
+        },
+        {
+         "Value": 103.52,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 517.62,
+         "NumberOfInstallments": 5,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 5 vezes sem juros"
+        },
+        {
+         "Value": 86.27,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 517.62,
+         "NumberOfInstallments": 6,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 6 vezes sem juros"
+        },
+        {
+         "Value": 73.94,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 517.62,
+         "NumberOfInstallments": 7,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 7 vezes sem juros"
+        },
+        {
+         "Value": 64.7,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 517.62,
+         "NumberOfInstallments": 8,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 8 vezes sem juros"
+        },
+        {
+         "Value": 62.93,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 566.37,
+         "NumberOfInstallments": 9,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 9 vezes com juros"
+        },
+        {
+         "Value": 57.14,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 571.4,
+         "NumberOfInstallments": 10,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 10 vezes com juros"
+        },
+        {
+         "Value": 52.4,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 576.4,
+         "NumberOfInstallments": 11,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 11 vezes com juros"
+        },
+        {
+         "Value": 48.46,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 581.52,
+         "NumberOfInstallments": 12,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 12 vezes com juros"
+        },
+        {
+         "Value": 517.62,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 517.62,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Pix",
+         "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+         "Name": "Pix à vista"
+        }
+       ]
+      }
+     },
+     {
+      "sellerId": "1",
+      "sellerName": "AMERICANAS SA",
+      "sellerDefault": false,
+      "commertialOffer": {
+       "Price": 0.0,
+       "ListPrice": 0.0,
+       "PriceWithoutDiscount": 0.0,
+       "AvailableQuantity": 0,
+       "Installments": []
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "4403797",
+  "productName": "Painel para Tv até 55 Polegadas Tucson",
+  "brand": "Não Disponível",
+  "brandId": 918,
+  "brandImageUrl": null,
+  "linkText": "painel-para-tv-ate-55-polegadas-tucson-7492203700",
+  "productReference": "7492203700",
+  "productReferenceCode": "7492203700",
+  "categoryId": "3512",
+  "link": "https://www.americanas.com.br/painel-para-tv-ate-55-polegadas-tucson-7492203700/p",
+  "googleshopping-labels": [
+   ";;3P;;"
+  ],
+  "facebook-labels": [
+   ";;3P;;"
+  ],
+  "items": [
+   {
+    "itemId": "4696337",
+    "name": "Painel para Tv até 55 Polegadas Tucson",
+    "nameComplete": "Painel para Tv até 55 Polegadas Tucson",
+    "ean": "7909903607282",
+    "images": [
+     {
+      "imageId": "4697760",
+      "imageLabel": "extraLarge",
+      "imageTag": "<img src=\"~/arquivos/ids/4697760-#width#-#height#/7492203700_1_xlarge.jpg?v=638751291246970000\" width=\"#width#\" height=\"#height#\" alt=\"\" id=\"\" />",
+      "imageUrl": "https://americanas.vteximg.com.br/arquivos/ids/4697760/7492203700_1_xlarge.jpg?v=638751291246970000",
+      "imageText": null,
+      "imageLastModified": "2025-02-14T11:25:24.6970000Z"
+     }
+    ],
+    "sellers": [
+     {
+      "sellerId": "TALD93177736486215",
+      "sellerName": "Madeira Madeira",
+      "sellerDefault": true,
+      "commertialOffer": {
+       "Price": 349.98,
+       "ListPrice": 489.97,
+       "PriceWithoutDiscount": 349.98,
+       "AvailableQuantity": 1,
+       "Installments": [
+        {
+         "Value": 349.98,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 349.98,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa à vista"
+        },
+        {
+         "Value": 174.99,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 349.98,
+         "NumberOfInstallments": 2,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 2 vezes sem juros"
+        },
+        {
+         "Value": 116.66,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 349.98,
+         "NumberOfInstallments": 3,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 3 vezes sem juros"
+        },
+        {
+         "Value": 87.49,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 349.98,
+         "NumberOfInstallments": 4,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 4 vezes sem juros"
+        },
+        {
+         "Value": 69.99,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 349.98,
+         "NumberOfInstallments": 5,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 5 vezes sem juros"
+        },
+        {
+         "Value": 58.33,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 349.98,
+         "NumberOfInstallments": 6,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 6 vezes sem juros"
+        },
+        {
+         "Value": 49.99,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 349.98,
+         "NumberOfInstallments": 7,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 7 vezes sem juros"
+        },
+        {
+         "Value": 47.44,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 379.52,
+         "NumberOfInstallments": 8,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 8 vezes com juros"
+        },
+        {
+         "Value": 42.55,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 382.95,
+         "NumberOfInstallments": 9,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 9 vezes com juros"
+        },
+        {
+         "Value": 38.63,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 386.3,
+         "NumberOfInstallments": 10,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 10 vezes com juros"
+        },
+        {
+         "Value": 35.43,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 389.73,
+         "NumberOfInstallments": 11,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 11 vezes com juros"
+        },
+        {
+         "Value": 32.76,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 393.12,
+         "NumberOfInstallments": 12,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 12 vezes com juros"
+        },
+        {
+         "Value": 349.98,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 349.98,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Pix",
+         "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+         "Name": "Pix à vista"
+        }
+       ]
+      }
+     },
+     {
+      "sellerId": "1",
+      "sellerName": "AMERICANAS SA",
+      "sellerDefault": false,
+      "commertialOffer": {
+       "Price": 0.0,
+       "ListPrice": 0.0,
+       "PriceWithoutDiscount": 0.0,
+       "AvailableQuantity": 0,
+       "Installments": []
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "6270031",
+  "productName": "Rack para Tv até 55 Polegadas com LED",
+  "brand": "Não Disponível",
+  "brandId": 918,
+  "brandImageUrl": null,
+  "linkText": "rack-para-tv-ate-55-polegadas-com-led-7513171123",
+  "productReference": "7513171123",
+  "productReferenceCode": "7513171123",
+  "categoryId": "3513",
+  "link": "https://www.americanas.com.br/rack-para-tv-ate-55-polegadas-com-led-7513171123/p",
+  "googleshopping-labels": [
+   ";;3P;;"
+  ],
+  "facebook-labels": [
+   ";;3P;;"
+  ],
+  "items": [
+   {
+    "itemId": "6685359",
+    "name": "Rack para Tv até 55 Polegadas com LED",
+    "nameComplete": "Rack para Tv até 55 Polegadas com LED",
+    "ean": "7900288025159",
+    "images": [
+     {
+      "imageId": "1685080",
+      "imageLabel": "extraLarge",
+      "imageTag": "<img src=\"~/arquivos/ids/1685080-#width#-#height#/7513171123_1_xlarge.jpg?v=638750977581500000\" width=\"#width#\" height=\"#height#\" alt=\"\" id=\"\" />",
+      "imageUrl": "https://americanas.vteximg.com.br/arquivos/ids/1685080/7513171123_1_xlarge.jpg?v=638750977581500000",
+      "imageText": null,
+      "imageLastModified": "2025-02-14T02:42:38.1500000Z"
+     }
+    ],
+    "sellers": [
+     {
+      "sellerId": "TALD93177736486215",
+      "sellerName": "Madeira Madeira",
+      "sellerDefault": true,
+      "commertialOffer": {
+       "Price": 635.27,
+       "ListPrice": 889.37,
+       "PriceWithoutDiscount": 635.27,
+       "AvailableQuantity": 1,
+       "Installments": [
+        {
+         "Value": 635.27,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 635.27,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa à vista"
+        },
+        {
+         "Value": 317.63,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 635.27,
+         "NumberOfInstallments": 2,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 2 vezes sem juros"
+        },
+        {
+         "Value": 211.75,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 635.27,
+         "NumberOfInstallments": 3,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 3 vezes sem juros"
+        },
+        {
+         "Value": 158.81,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 635.27,
+         "NumberOfInstallments": 4,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 4 vezes sem juros"
+        },
+        {
+         "Value": 127.05,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 635.27,
+         "NumberOfInstallments": 5,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 5 vezes sem juros"
+        },
+        {
+         "Value": 105.87,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 635.27,
+         "NumberOfInstallments": 6,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 6 vezes sem juros"
+        },
+        {
+         "Value": 90.75,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 635.27,
+         "NumberOfInstallments": 7,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 7 vezes sem juros"
+        },
+        {
+         "Value": 79.4,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 635.27,
+         "NumberOfInstallments": 8,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 8 vezes sem juros"
+        },
+        {
+         "Value": 77.23,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 695.07,
+         "NumberOfInstallments": 9,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 9 vezes com juros"
+        },
+        {
+         "Value": 70.13,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 701.3,
+         "NumberOfInstallments": 10,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 10 vezes com juros"
+        },
+        {
+         "Value": 64.32,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 707.52,
+         "NumberOfInstallments": 11,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 11 vezes com juros"
+        },
+        {
+         "Value": 59.48,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 713.76,
+         "NumberOfInstallments": 12,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 12 vezes com juros"
+        },
+        {
+         "Value": 635.27,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 635.27,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Pix",
+         "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+         "Name": "Pix à vista"
+        }
+       ]
+      }
+     },
+     {
+      "sellerId": "1",
+      "sellerName": "AMERICANAS SA",
+      "sellerDefault": false,
+      "commertialOffer": {
+       "Price": 0.0,
+       "ListPrice": 0.0,
+       "PriceWithoutDiscount": 0.0,
+       "AvailableQuantity": 0,
+       "Installments": []
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "1409617",
+  "productName": "Complemento Central de Painel TV 55 Polegadas 140x30cm",
+  "brand": "Não Disponível",
+  "brandId": 918,
+  "brandImageUrl": null,
+  "linkText": "complemento-central-de-painel-tv-55-polegadas-140x30cm-7461385960",
+  "productReference": "7461385960",
+  "productReferenceCode": "7461385960",
+  "categoryId": "3513",
+  "link": "https://www.americanas.com.br/complemento-central-de-painel-tv-55-polegadas-140x30cm-7461385960/p",
+  "googleshopping-labels": [
+   "sellers_assistidos_vtex;;3P;;"
+  ],
+  "facebook-labels": [
+   "sellers_assistidos_vtex;;3P;;"
+  ],
+  "items": [
+   {
+    "itemId": "1501246",
+    "name": "Complemento Central de Painel TV 55 Polegadas 140x30cm",
+    "nameComplete": "Complemento Central de Painel TV 55 Polegadas 140x30cm",
+    "ean": "7909903334393",
+    "images": [
+     {
+      "imageId": "28161869",
+      "imageLabel": "extraLarge",
+      "imageTag": "<img src=\"~/arquivos/ids/28161869-#width#-#height#/7461385960_1_xlarge.jpg?v=638755674010570000\" width=\"#width#\" height=\"#height#\" alt=\"\" id=\"\" />",
+      "imageUrl": "https://americanas.vteximg.com.br/arquivos/ids/28161869/7461385960_1_xlarge.jpg?v=638755674010570000",
+      "imageText": null,
+      "imageLastModified": "2025-02-19T13:10:01.0570000Z"
+     }
+    ],
+    "sellers": [
+     {
+      "sellerId": "TALD93177736486215",
+      "sellerName": "Madeira Madeira",
+      "sellerDefault": true,
+      "commertialOffer": {
+       "Price": 305.86,
+       "ListPrice": 428.2,
+       "PriceWithoutDiscount": 305.86,
+       "AvailableQuantity": 1,
+       "Installments": [
+        {
+         "Value": 305.86,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 305.86,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa à vista"
+        },
+        {
+         "Value": 152.93,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 305.86,
+         "NumberOfInstallments": 2,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 2 vezes sem juros"
+        },
+        {
+         "Value": 101.95,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 305.86,
+         "NumberOfInstallments": 3,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 3 vezes sem juros"
+        },
+        {
+         "Value": 76.46,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 305.86,
+         "NumberOfInstallments": 4,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 4 vezes sem juros"
+        },
+        {
+         "Value": 61.17,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 305.86,
+         "NumberOfInstallments": 5,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 5 vezes sem juros"
+        },
+        {
+         "Value": 50.97,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 305.86,
+         "NumberOfInstallments": 6,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 6 vezes sem juros"
+        },
+        {
+         "Value": 46.96,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 328.72,
+         "NumberOfInstallments": 7,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 7 vezes com juros"
+        },
+        {
+         "Value": 41.46,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 331.68,
+         "NumberOfInstallments": 8,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 8 vezes com juros"
+        },
+        {
+         "Value": 37.18,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 334.62,
+         "NumberOfInstallments": 9,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 9 vezes com juros"
+        },
+        {
+         "Value": 33.76,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 337.6,
+         "NumberOfInstallments": 10,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 10 vezes com juros"
+        },
+        {
+         "Value": 30.96,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 340.56,
+         "NumberOfInstallments": 11,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 11 vezes com juros"
+        },
+        {
+         "Value": 28.63,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 343.56,
+         "NumberOfInstallments": 12,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 12 vezes com juros"
+        },
+        {
+         "Value": 305.86,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 305.86,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Pix",
+         "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+         "Name": "Pix à vista"
+        }
+       ]
+      }
+     },
+     {
+      "sellerId": "1",
+      "sellerName": "AMERICANAS SA",
+      "sellerDefault": false,
+      "commertialOffer": {
+       "Price": 0.0,
+       "ListPrice": 0.0,
+       "PriceWithoutDiscount": 0.0,
+       "AvailableQuantity": 0,
+       "Installments": []
+      }
+     }
+    ]
+   }
+  ]
+ },
+ {
+  "productId": "1383009",
+  "productName": "Rack para Tv até 55 Polegadas San Diego",
+  "brand": "Não Disponível",
+  "brandId": 918,
+  "brandImageUrl": null,
+  "linkText": "rack-para-tv-ate-55-polegadas-san-diego-7492204098",
+  "productReference": "7492204098",
+  "productReferenceCode": "7492204098",
+  "categoryId": "3513",
+  "link": "https://www.americanas.com.br/rack-para-tv-ate-55-polegadas-san-diego-7492204098/p",
+  "googleshopping-labels": [
+   ";;3P;;"
+  ],
+  "facebook-labels": [
+   ";;3P;;"
+  ],
+  "items": [
+   {
+    "itemId": "1472805",
+    "name": "Rack para Tv até 55 Polegadas San Diego",
+    "nameComplete": "Rack para Tv até 55 Polegadas San Diego",
+    "ean": "7909903609873",
+    "images": [
+     {
+      "imageId": "15791932",
+      "imageLabel": "extraLarge",
+      "imageTag": "<img src=\"~/arquivos/ids/15791932-#width#-#height#/7492204098_1_xlarge.jpg?v=638754626529300000\" width=\"#width#\" height=\"#height#\" alt=\"\" id=\"\" />",
+      "imageUrl": "https://americanas.vteximg.com.br/arquivos/ids/15791932/7492204098_1_xlarge.jpg?v=638754626529300000",
+      "imageText": null,
+      "imageLastModified": "2025-02-18T08:04:12.9300000Z"
+     }
+    ],
+    "sellers": [
+     {
+      "sellerId": "TALD93177736486215",
+      "sellerName": "Madeira Madeira",
+      "sellerDefault": true,
+      "commertialOffer": {
+       "Price": 337.48,
+       "ListPrice": 472.47,
+       "PriceWithoutDiscount": 337.48,
+       "AvailableQuantity": 1,
+       "Installments": [
+        {
+         "Value": 337.48,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 337.48,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa à vista"
+        },
+        {
+         "Value": 168.74,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 337.48,
+         "NumberOfInstallments": 2,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 2 vezes sem juros"
+        },
+        {
+         "Value": 112.49,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 337.48,
+         "NumberOfInstallments": 3,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 3 vezes sem juros"
+        },
+        {
+         "Value": 84.37,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 337.48,
+         "NumberOfInstallments": 4,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 4 vezes sem juros"
+        },
+        {
+         "Value": 67.49,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 337.48,
+         "NumberOfInstallments": 5,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 5 vezes sem juros"
+        },
+        {
+         "Value": 56.24,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 337.48,
+         "NumberOfInstallments": 6,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 6 vezes sem juros"
+        },
+        {
+         "Value": 51.82,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 362.74,
+         "NumberOfInstallments": 7,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 7 vezes com juros"
+        },
+        {
+         "Value": 45.75,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 366.0,
+         "NumberOfInstallments": 8,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 8 vezes com juros"
+        },
+        {
+         "Value": 41.03,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 369.27,
+         "NumberOfInstallments": 9,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 9 vezes com juros"
+        },
+        {
+         "Value": 37.25,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 372.5,
+         "NumberOfInstallments": 10,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 10 vezes com juros"
+        },
+        {
+         "Value": 34.16,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 375.76,
+         "NumberOfInstallments": 11,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 11 vezes com juros"
+        },
+        {
+         "Value": 31.59,
+         "InterestRate": 1.84,
+         "TotalValuePlusInterestRate": 379.08,
+         "NumberOfInstallments": 12,
+         "PaymentSystemName": "Visa",
+         "PaymentSystemGroupName": "creditCardPaymentGroup",
+         "Name": "Visa 12 vezes com juros"
+        },
+        {
+         "Value": 337.48,
+         "InterestRate": 0.0,
+         "TotalValuePlusInterestRate": 337.48,
+         "NumberOfInstallments": 1,
+         "PaymentSystemName": "Pix",
+         "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+         "Name": "Pix à vista"
+        }
+       ]
+      }
+     },
+     {
+      "sellerId": "1",
+      "sellerName": "AMERICANAS SA",
+      "sellerDefault": false,
+      "commertialOffer": {
+       "Price": 0.0,
+       "ListPrice": 0.0,
+       "PriceWithoutDiscount": 0.0,
+       "AvailableQuantity": 0,
+       "Installments": []
+      }
+     }
+    ]
+   }
+  ]
+ }
+]

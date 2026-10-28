@@ -1,0 +1,286 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--fonte-texto), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--fonte-leitura), ui-monospace, "SFMono-Regular", monospace;
+}
+
+@theme {
+  --color-fundo: #070707;
+  --color-painel: #0e0e0d;
+  --color-relevo: #171716;
+  --color-tinta: #f2f3f1;
+  --color-apagado: #a1a6a2;
+  --color-tenue: #6c726e;
+  --color-traco: rgb(255 255 255 / 0.08);
+  --color-traco-forte: #272a29;
+  --color-ouro: #e9c46a;
+  --color-ouro-suave: rgb(233 196 106 / 0.12);
+  --color-exato: #7ee2a8;
+  --color-exato-suave: rgb(126 226 168 / 0.1);
+  --color-alerta: #f2b84b;
+  --color-alerta-suave: rgb(242 184 75 / 0.1);
+  --color-falha: #f07a6a;
+  --color-falha-suave: rgb(240 122 106 / 0.1);
+
+  --radius-peca: 2px;
+  --radius-quadro: 3px;
+
+  --ease-saida: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-surgir: surgir 0.6s var(--ease-saida) both;
+  --animate-aparecer: aparecer 0.35s ease both;
+
+  @keyframes surgir {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scrollbar-color: var(--color-traco-forte) transparent;
+    scrollbar-width: thin;
+    color-scheme: dark;
+    background: var(--color-fundo);
+    color: var(--color-tinta);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: var(--color-ouro);
+    color: var(--color-fundo);
+  }
+  :focus-visible {
+    outline: 1px solid var(--color-ouro);
+    outline-offset: 3px;
+  }
+  input[type="number"]::-webkit-inner-spin-button {
+    appearance: none;
+  }
+}
+
+@layer components {
+  .rotulo {
+    font-size: 12.5px;
+    letter-spacing: 0.01em;
+  }
+
+  .botao-ouro {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    transition:
+      filter 0.25s ease,
+      transform 0.15s ease;
+  }
+  .botao-ouro::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      110deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.5) 50%,
+      transparent 65%
+    );
+    transform: translateX(-120%);
+    transition: transform 0.8s var(--ease-saida);
+  }
+  .botao-ouro:hover {
+    filter: brightness(1.06);
+  }
+  .botao-ouro:hover::after,
+  .botao-ouro:focus-visible::after {
+    transform: translateX(120%);
+  }
+  .botao-ouro:active {
+    transform: scale(0.97);
+  }
+
+  .linha-oferta {
+    position: relative;
+    animation: entrar 0.45s var(--ease-saida) both;
+    animation-delay: calc(min(var(--i, 0), 12) * 35ms);
+    transition: background-color 0.3s ease;
+  }
+  .linha-oferta::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 2px;
+    background: var(--color-ouro);
+    transform: scaleY(0);
+    transition: transform 0.35s var(--ease-saida);
+  }
+  .linha-oferta:hover,
+  .linha-oferta:focus-within {
+    background-color: rgb(255 255 255 / 0.018);
+  }
+  .linha-oferta:hover::before,
+  .linha-oferta:focus-within::before {
+    transform: scaleY(1);
+  }
+  .foto-oferta {
+    transition: transform 0.5s var(--ease-saida);
+  }
+  .linha-oferta:hover .foto-oferta {
+    transform: scale(1.05);
+  }
+
+  .botao-loja {
+    transition:
+      border-color 0.25s ease,
+      background-color 0.25s ease;
+  }
+  .botao-loja:hover {
+    border-color: rgb(233 196 106 / 0.55);
+    background-color: rgb(233 196 106 / 0.06);
+  }
+  .botao-loja .seta {
+    transition: transform 0.3s var(--ease-saida);
+  }
+  .botao-loja:hover .seta {
+    transform: translate(2px, -2px);
+  }
+
+  .botao-conta {
+    transition: color 0.2s ease;
+  }
+  .botao-conta:hover,
+  .botao-conta[aria-expanded="true"] {
+    color: var(--color-tinta);
+  }
+
+  .gaveta {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.4s var(--ease-saida);
+  }
+  .gaveta > div {
+    overflow: hidden;
+  }
+  .gaveta[data-aberta="true"] {
+    grid-template-rows: 1fr;
+  }
+  .gaveta[data-aberta="true"] .conta-linha {
+    animation: imprimir 0.4s var(--ease-saida) both;
+    animation-delay: calc(var(--i, 0) * 45ms + 80ms);
+  }
+
+  .gaveta[data-aberta="true"] .linha-grafico {
+    stroke-dasharray: 1;
+    animation: desenhar 1.1s var(--ease-saida) 0.25s both;
+  }
+
+  .etiqueta {
+    border: 1px solid var(--color-traco-forte);
+    border-radius: var(--radius-peca);
+    padding: 0 0.35rem;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+
+  .barra-progresso {
+    position: relative;
+    height: 2px;
+    overflow: hidden;
+    background: var(--color-traco);
+  }
+  .barra-progresso-cheia {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgb(233 196 106 / 0.2), var(--color-ouro));
+    transform-origin: left;
+    transition: transform 0.7s var(--ease-saida);
+  }
+  .barra-progresso-cheia::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
+    background-size: 30% 100%;
+    background-repeat: no-repeat;
+    animation: reluzir 1.4s ease-in-out infinite;
+  }
+
+  .esqueleto {
+    background-color: rgb(255 255 255 / 0.035);
+    background-image: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.05), transparent);
+    background-size: 50% 100%;
+    background-repeat: no-repeat;
+    animation: reluzir 1.6s ease-in-out infinite;
+  }
+
+  .preso {
+    box-shadow: 0 14px 24px -16px rgb(0 0 0 / 0.9);
+  }
+
+  @keyframes reluzir {
+    from {
+      background-position: -60% 0;
+    }
+    to {
+      background-position: 160% 0;
+    }
+  }
+  @keyframes entrar {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes desenhar {
+    from {
+      stroke-dashoffset: 1;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  @keyframes imprimir {
+    from {
+      opacity: 0;
+      clip-path: inset(0 100% 0 0);
+    }
+    to {
+      opacity: 1;
+      clip-path: inset(0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .linha-oferta {
+    animation-name: aparecer;
+  }
+  .foto-oferta,
+  .botao-loja .seta,
+  .botao-ouro:active {
+    transform: none !important;
+  }
+  .esqueleto,
+  .barra-progresso-cheia::after {
+    animation: none;
+  }
+}

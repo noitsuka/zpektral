@@ -1,0 +1,36 @@
+{
+ "products": [],
+ "recordsFiltered": 0,
+ "fuzzy": "0",
+ "operator": "and",
+ "redirect": "/categoria/tv-e-home-theater/tv/smart-tv",
+ "translated": false,
+ "pagination": {
+  "count": 1,
+  "current": {
+   "index": 0
+  },
+  "before": [],
+  "after": [],
+  "perPage": 0,
+  "next": {
+   "index": 0
+  },
+  "previous": {
+   "index": 0
+  },
+  "first": {
+   "index": 0
+  },
+  "last": {
+   "index": 0
+  }
+ },
+ "options": {
+  "sorts": [],
+  "counts": [],
+  "deliveryPromisesEnabled": false,
+  "dpStatus": "not_requested"
+ },
+ "searchId": "c4cb39c5e7ef40568a1c0739997b4837"
+}
