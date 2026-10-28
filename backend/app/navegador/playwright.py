@@ -91,13 +91,18 @@ class PaginaPlaywright:
         return await self._primeiro_visivel(seletores, tempo_ms) is not None
 
     async def aguardar(self, condicao: Callable[[str], bool], tempo_ms: int) -> bool:
+        from playwright.async_api import Error as ErroPlaywright
+
         fim = time.monotonic() + tempo_ms / 1000
         while True:
             try:
-                if condicao(await self._pagina.content()):
+                html = await self._pagina.content()
+            except ErroPlaywright as erro:
+                # content() falha enquanto a página está navegando; tenta de novo no próximo passo.
+                log.debug("conteúdo indisponível durante a espera: %s", erro)
+            else:
+                if condicao(html):
                     return True
-            except Exception:
-                pass
             if time.monotonic() >= fim:
                 return False
             await asyncio.sleep(PASSO_AGUARDAR_S)
