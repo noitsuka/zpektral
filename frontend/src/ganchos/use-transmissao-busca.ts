@@ -4,7 +4,6 @@ import { useEffect, useReducer } from "react";
 
 import { urlTransmissao } from "@/nucleo/api";
 import { INICIAL, reduzir, type AcaoTransmissao } from "@/nucleo/transmissao";
-import type { Filtros } from "@/nucleo/tipos";
 
 const EVENTOS: Record<string, (dados: never) => AcaoTransmissao> = {
   inicio: (dados) => ({ tipo: "inicio", dados }),
@@ -13,18 +12,13 @@ const EVENTOS: Record<string, (dados: never) => AcaoTransmissao> = {
   fim: (dados) => ({ tipo: "fim", dados }),
 };
 
-export function useTransmissaoBusca(
-  q: string,
-  cep: string | null,
-  filtros: Filtros,
-  tentativa = 0,
-) {
+export function useTransmissaoBusca(q: string, cep: string | null, tentativa = 0) {
   const [estado, despachar] = useReducer(reduzir, INICIAL);
 
   useEffect(() => {
     if (!q) return;
     despachar({ tipo: "iniciar" });
-    const fonte = new EventSource(urlTransmissao(q, cep, filtros));
+    const fonte = new EventSource(urlTransmissao(q, cep));
     let terminou = false;
 
     for (const [nome, paraAcao] of Object.entries(EVENTOS)) {
@@ -51,7 +45,6 @@ export function useTransmissaoBusca(
       });
     };
     return () => fonte.close();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, cep, tentativa]);
 
   return estado;

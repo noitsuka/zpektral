@@ -95,6 +95,59 @@ async def teste_trabalho_que_falhou_inteiro_expira_rapido(config):
     assert expira - asyncio.get_running_loop().time() < 20
 
 
+def _validade(svc, consulta):
+    expira, _ = svc._trabalhos._dados[chave_cache(consulta, None)]
+    return expira - asyncio.get_running_loop().time()
+
+
+async def teste_trabalho_com_metade_das_lojas_fora_expira_rapido(config):
+    svc = servico(
+        config,
+        FonteFalsa("a", [("tv", 1)]),
+        FonteFalsa("b", erro=ErroExterno("down")),
+        FonteFalsa("c", erro=ErroExterno("down")),
+        FonteFalsa("off", ativa=False),
+    )
+    trabalho, _ = svc.iniciar("tv", None)
+    await trabalho.aguardar()
+    assert _validade(svc, "tv") < 20
+
+
+async def teste_trabalho_com_poucas_falhas_fica_no_cache(config):
+    svc = servico(
+        config,
+        FonteFalsa("a", [("tv", 1)]),
+        FonteFalsa("b", [("tv", 2)]),
+        FonteFalsa("c", erro=ErroExterno("down")),
+    )
+    trabalho, _ = svc.iniciar("tv", None)
+    await trabalho.aguardar()
+    assert _validade(svc, "tv") > 200
+
+
+async def teste_historico_e_gravado_antes_do_fim_da_busca(config):
+    ordem = []
+
+    async def gravar(trabalho):
+        await asyncio.sleep(0.01)
+        ordem.append("gravou")
+
+    svc = ServicoBusca([FonteFalsa("a", [("tv", 1)])], config, ao_concluir=gravar)
+    trabalho, _ = svc.iniciar("tv", None)
+    await trabalho.aguardar()
+    ordem.append("terminou")
+    assert ordem == ["gravou", "terminou"]
+
+
+async def teste_historico_lento_nao_segura_a_busca(config):
+    async def gravar(trabalho):
+        await asyncio.sleep(30)
+
+    svc = ServicoBusca([FonteFalsa("a", [("tv", 1)])], config, ao_concluir=gravar)
+    trabalho, _ = svc.iniciar("tv", None)
+    assert await trabalho.aguardar(8)
+
+
 async def teste_acompanhar_repete_e_depois_transmite_ao_vivo(config):
     rapida = FonteFalsa("fast", [("tv", 1)])
     lenta = FonteFalsa("slow", [("tv", 2)], atraso=0.1)

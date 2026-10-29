@@ -55,11 +55,3 @@ export function filtrarAoVivo(ofertas: Oferta[], f: Filtros): Oferta[] {
     return true;
   });
 }
-
-export function usarPaginaDoServidor(
-  pagina: { pronto: boolean; total: number } | null,
-  ofertasAoVivo: number,
-): boolean {
-  if (!pagina?.pronto) return false;
-  return pagina.total > 0 || ofertasAoVivo === 0;
-}

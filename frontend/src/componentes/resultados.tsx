@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BotaoFiltros, ChipsFiltros } from "@/componentes/painel-filtros";
 import { Logo, Simbolo } from "@/componentes/logo";
 import { LinhaOferta } from "@/componentes/linha-oferta";
-import { filtrarAoVivo, rebaixarMuitoAbaixo, usarPaginaDoServidor } from "@/nucleo/ao-vivo";
+import { filtrarAoVivo, rebaixarMuitoAbaixo } from "@/nucleo/ao-vivo";
 import { comparadoAoTipico, precosTipicos } from "@/nucleo/referencia";
 import { FormularioBusca } from "@/componentes/formulario-busca";
 import { StatusBusca } from "@/componentes/status-busca";
@@ -38,7 +38,8 @@ function useAtrasado<T>(valor: T, ms: number): T {
   return atual;
 }
 
-const LIMITE_AO_VIVO = 40;
+const POR_VEZ = 40;
+const ESPERA_MS = 15_000;
 
 export function Resultados() {
   const params = useSearchParams();
@@ -50,10 +51,11 @@ export function Resultados() {
   const assentado = useAtrasado(filtros, 250);
 
   const [tentativa, setTentativa] = useState(0);
-  const transmissao = useTransmissaoBusca(q, cep, filtros, tentativa);
+  const transmissao = useTransmissaoBusca(q, cep, tentativa);
   const [pagina, setPagina] = useState<PaginaResultados | null>(null);
   const [extra, setExtra] = useState<Oferta[]>([]);
   const [proximaPagina, setProximaPagina] = useState(2);
+  const [visiveis, setVisiveis] = useState({ chave: "", quantas: POR_VEZ });
   const [erro, setErro] = useState<string | null>(null);
   const [carregandoMais, setCarregandoMais] = useState(false);
   useAtalhoBusca();
@@ -82,17 +84,13 @@ export function Resultados() {
     [pathname, router],
   );
 
-  const transmissaoTerminou = transmissao.fase === "concluida";
   const transmissaoFalhou = transmissao.fase === "falhou";
   useEffect(() => {
-    if (!q || !(transmissaoTerminou || transmissaoFalhou)) return;
+    if (!q || !transmissaoFalhou) return;
     requisicao.current?.abort();
     const controlador = new AbortController();
     requisicao.current = controlador;
-    const pedir = (esperaMs: number) =>
-      buscarPagina(q, cep, assentado, 1, { signal: controlador.signal, esperaMs });
-    pedir(transmissaoFalhou ? 15000 : 0)
-      .then((resultado) => (resultado.pronto ? resultado : pedir(15000)))
+    buscarPagina(q, cep, assentado, 1, { signal: controlador.signal, esperaMs: ESPERA_MS })
       .then((resultado) => {
         setPagina(resultado);
         setExtra([]);
@@ -103,15 +101,17 @@ export function Resultados() {
         if (e.name !== "AbortError") setErro(e instanceof ErroApi ? e.message : "Algo deu errado.");
       });
     return () => controlador.abort();
-  }, [q, cep, assentado, transmissaoTerminou, transmissaoFalhou]);
+  }, [q, cep, assentado, transmissaoFalhou]);
 
   const transmitido = useMemo(() => todasOfertas(transmissao), [transmissao]);
   const aoVivo = useMemo(
     () => rankingAoVivo(filtrarAoVivo(rebaixarMuitoAbaixo(transmitido), filtros), filtros),
     [transmitido, filtros],
   );
-  const final = usarPaginaDoServidor(pagina, aoVivo.length) ? pagina : null;
-  const ofertas = final ? [...final.ofertas, ...extra] : aoVivo.slice(0, LIMITE_AO_VIVO);
+  const chaveVisiveis = `${q}|${cep}|${JSON.stringify(filtros)}`;
+  const quantasVisiveis = visiveis.chave === chaveVisiveis ? visiveis.quantas : POR_VEZ;
+  const final = transmissaoFalhou ? pagina : null;
+  const ofertas = final ? [...final.ofertas, ...extra] : aoVivo.slice(0, quantasVisiveis);
   const tipicos = useMemo(
     () => precosTipicos(transmitido, filtros.pagamento),
     [transmitido, filtros.pagamento],
@@ -131,15 +131,21 @@ export function Resultados() {
   const { responderam, total } = progresso(transmissao);
   const endereco = transmissao.inicio?.endereco ?? final?.endereco ?? null;
   const facetasAoVivo = useMemo(() => facetasDe(transmitido, filtros), [transmitido, filtros]);
-  const facetas = final?.facetas ?? transmissao.fim?.facetas ?? facetasAoVivo;
+  const facetas = final?.facetas ?? facetasAoVivo;
   const totalResultados = final?.total ?? aoVivo.length;
 
   async function carregarMais() {
-    if (!final) return;
+    if (!final) {
+      setVisiveis({ chave: chaveVisiveis, quantas: quantasVisiveis + POR_VEZ });
+      return;
+    }
     setCarregandoMais(true);
     try {
       const signal = requisicao.current?.signal;
-      const proximo = await buscarPagina(q, cep, assentado, proximaPagina, { signal });
+      const proximo = await buscarPagina(q, cep, assentado, proximaPagina, {
+        signal,
+        esperaMs: ESPERA_MS,
+      });
       if (signal?.aborted) return;
       setExtra((anterior) => [...anterior, ...proximo.ofertas]);
       setProximaPagina((n) => n + 1);
@@ -167,7 +173,9 @@ export function Resultados() {
 
   const ocultas = ocultasPorCondicao(facetas, filtros);
 
-  const podeCarregarMais = final !== null && final.ofertas.length + extra.length < final.total;
+  const podeCarregarMais = final
+    ? final.ofertas.length + extra.length < final.total
+    : aoVivo.length > quantasVisiveis;
 
   return (
     <div className="min-h-dvh">
@@ -317,7 +325,7 @@ export function Resultados() {
             >
               {carregandoMais
                 ? "Carregando"
-                : `Mais ofertas (${plural(final!.total - ofertas.length, "restante", "restantes")})`}
+                : `Mais ofertas (${plural(totalResultados - ofertas.length, "restante", "restantes")})`}
             </button>
           )}
         </div>

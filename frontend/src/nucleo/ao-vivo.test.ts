@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { filtrarAoVivo, rebaixarMuitoAbaixo, usarPaginaDoServidor } from "@/nucleo/ao-vivo";
+import { filtrarAoVivo, rebaixarMuitoAbaixo } from "@/nucleo/ao-vivo";
 import { FILTROS_PADRAO } from "@/nucleo/filtros";
 import type { Oferta } from "@/nucleo/tipos";
 
@@ -89,27 +89,5 @@ describe("filtros aplicados enquanto as lojas respondem", () => {
     expect(ids(filtrarAoVivo(base, { ...FILTROS_PADRAO, condicao: ["novo", "usado"] }))).toContain(
       "e:1",
     );
-  });
-});
-
-describe("troca da lista ao vivo pela página do servidor", () => {
-  const pagina = (pronto: boolean, total: number) => ({ pronto, total });
-
-  it("usa a página quando a busca no servidor está completa", () => {
-    expect(usarPaginaDoServidor(pagina(true, 12), 30)).toBe(true);
-    expect(usarPaginaDoServidor(pagina(true, 0), 0)).toBe(true);
-  });
-
-  it("mantém a lista ao vivo quando a página chega incompleta", () => {
-    expect(usarPaginaDoServidor(pagina(false, 0), 30)).toBe(false);
-    expect(usarPaginaDoServidor(pagina(false, 4), 30)).toBe(false);
-  });
-
-  it("mantém a lista ao vivo quando a página vem vazia e a transmissão trouxe ofertas", () => {
-    expect(usarPaginaDoServidor(pagina(true, 0), 30)).toBe(false);
-  });
-
-  it("sem página, fica na lista ao vivo", () => {
-    expect(usarPaginaDoServidor(null, 30)).toBe(false);
   });
 });

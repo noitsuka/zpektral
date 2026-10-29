@@ -22,6 +22,7 @@ from app.navegador.playwright import NavegadorPlaywright
 from app.saude import PainelSaude
 
 log = logging.getLogger("zpektral")
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 def criar_app(config: Configuracoes | None = None) -> FastAPI:

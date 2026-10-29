@@ -25,6 +25,7 @@ from app.saude import PainelSaude
 log = logging.getLogger("zpektral.busca")
 
 SEGUNDOS_TRABALHO_FALHO = 15
+SEGUNDOS_GRAVACAO = 5
 PRECO_MAXIMO_CENTAVOS = 100_000_000
 TITULO_MAXIMO = 300
 URL_MAXIMA = 2048
@@ -236,14 +237,23 @@ class ServicoBusca:
             for fonte, resultado in zip(ativas, resultados, strict=True):
                 if isinstance(resultado, Exception):
                     log.error("execução de %s falhou: %r", fonte.id, resultado)
+            await self._gravar(trabalho)
         finally:
             trabalho.concluir()
-        if ativas and not any(
-            b.relatorio.status is StatusFonte.OK for b in trabalho.definitivo.values()
-        ):
+        falhas = sum(
+            b.relatorio.status in (StatusFonte.ERRO, StatusFonte.TEMPO_ESGOTADO)
+            for b in trabalho.definitivo.values()
+        )
+        if ativas and falhas * 2 >= len(ativas):
             self._trabalhos.guardar(chave, trabalho, validade=SEGUNDOS_TRABALHO_FALHO)
-        if self._ao_concluir is not None:
-            await self._ao_concluir(trabalho)
+
+    async def _gravar(self, trabalho: TrabalhoBusca) -> None:
+        if self._ao_concluir is None:
+            return
+        try:
+            await asyncio.wait_for(self._ao_concluir(trabalho), SEGUNDOS_GRAVACAO)
+        except Exception as excecao:
+            log.warning("histórico da busca não gravado: %r", excecao)
 
     async def _executar_fonte(
         self, fonte: Fonte, ctx: ContextoBusca, trabalho: TrabalhoBusca

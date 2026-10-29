@@ -1,4 +1,4 @@
-import { filtrosParaParametros } from "@/nucleo/filtros";
+import { FILTROS_PADRAO, filtrosParaParametros } from "@/nucleo/filtros";
 import type { Filtros, HistoricoOfertas, PaginaResultados } from "@/nucleo/tipos";
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API ?? "http://localhost:8000").replace(/\/$/, "");
@@ -63,8 +63,13 @@ export function buscarPagina(
   return obter<PaginaResultados>(`/busca?${params}`, signal);
 }
 
-export function urlTransmissao(q: string, cep: string | null, filtros: Filtros): string {
-  return `${URL_API}/busca/transmissao?${parametrosDaBusca(q, cep, filtros)}`;
+const TODAS_AS_OFERTAS: Filtros = {
+  ...FILTROS_PADRAO,
+  condicao: ["novo", "recondicionado", "usado"],
+};
+
+export function urlTransmissao(q: string, cep: string | null): string {
+  return `${URL_API}/busca/transmissao?${parametrosDaBusca(q, cep, TODAS_AS_OFERTAS)}`;
 }
 
 export function historicoDasOfertas(
