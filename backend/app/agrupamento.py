@@ -23,21 +23,6 @@ _BTU = re.compile(r"\b(\d{4,5})\s*btus?\b")
 RAZAO_FORA_DA_CURVA = 0.5
 
 
-def normalizar_ean(bruto: object) -> str | None:
-    if not isinstance(bruto, str | int):
-        return None
-    digitos = str(bruto).strip()
-    if not digitos.isdigit() or not 8 <= len(digitos) <= 14:
-        return None
-    gtin = digitos.zfill(14)
-    if len(set(gtin.lstrip("0"))) <= 1:
-        return None
-    soma = sum(int(d) * (3 if i % 2 == 0 else 1) for i, d in enumerate(reversed(gtin[:-1])))
-    if (10 - soma % 10) % 10 != int(gtin[-1]):
-        return None
-    return gtin.lstrip("0").zfill(13)
-
-
 @dataclass(frozen=True, slots=True)
 class Especificacoes:
     modelos: frozenset[str]

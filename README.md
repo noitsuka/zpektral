@@ -41,7 +41,7 @@ O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produ
 - Conta aberta de cada oferta: desconto no Pix, frete e o custo dos juros do parcelamento em reais
 - Aviso quando a oferta está abaixo ou acima do preço típico do produto entre as lojas
 - Histórico do preço na própria loja, com o aviso "menor preço desta loja em N dias" quando for o caso
-- Busca que entende nomes diferentes para o mesmo produto, como "máquina de lavar louça" e "lava-louças", e corrige erros de digitação e acentos esquecidos, como "geladiera" e "fogao"
+- Busca que entende nomes diferentes para o mesmo produto, como "máquina de lavar louça" e "lava-louças", corrige erros de digitação e acentos esquecidos, como "geladiera" e "fogao", e aceita o código de barras (EAN) do produto
 - Separação entre o produto e as peças dele: o cesto da air fryer não aparece como air fryer
 - Filtros por voltagem, condição e forma de pagamento
 - Buscas recentes guardadas só no navegador
@@ -50,12 +50,12 @@ O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produ
 
 - O valor exibido vem do carrinho da loja, sem estimativa; o que a loja não informa aparece como não informado
 - Parte das cotações é refeita em paralelo, e o vendedor que devolve valores diferentes para o mesmo carrinho perde o selo de preço exato
-- Nenhum bloqueio das lojas contra robôs é contornado
+- Nenhum bloqueio das lojas contra robôs é contornado, e a loja que passa a proibir o acesso no robots.txt sai da lista (`pytest -m live` confere)
 - O histórico guarda só os cinco primeiros dígitos do CEP e apaga registros com mais de 180 dias
 
 ## Lojas
 
-64 lojas da plataforma VTEX (Carrefour, Americanas, Atacadão, Casa&Video, WebContinental, Drogaria São Paulo, Época Cosméticos, Asics, Obramax e outras de eletro, casa, construção, moda, esporte, beleza, farmácia e mercado), mais Amazon, KaBuM! e Buscapé. Mercado Livre, Shopee e eBay estão integrados pelas APIs oficiais e entram quando as credenciais são configuradas.
+58 lojas da plataforma VTEX (Carrefour, Americanas, Atacadão, WebContinental, Quero-Quero, Drogaria São Paulo, Época Cosméticos, Asics, Obramax e outras de eletro, casa, construção, moda, esporte, beleza, farmácia e mercado), mais Amazon, KaBuM! e Buscapé. Mercado Livre, Shopee e eBay estão integrados pelas APIs oficiais e entram quando as credenciais são configuradas.
 
 O frete é cotado no carrinho das lojas VTEX e dos vendedores dentro delas. Amazon, KaBuM! e Buscapé entram com o preço e o frete que mostram publicamente. Produtos do eBay vindos do exterior aparecem com o imposto de importação estimado e uma marca própria.
 
@@ -160,6 +160,7 @@ Migrações: `alembic upgrade head` com `DATABASE_URL` apontando para o banco de
 ## Limitações e próximos passos
 
 - Magazine Luiza, Casas Bahia e outras lojas que bloqueiam acesso automatizado aparecem só pelo Buscapé, com preço e sem frete.
+- Leroy Merlin, MadeiraMadeira, Tok&Stok e Mobly não têm API pública que dê para usar ou proíbem o acesso no robots.txt.
 - KaBuM! e Amazon entram sem cotação de frete por CEP.
 - O total de produtos do eBay é estimado, porque o imposto final é definido pela Receita na chegada.
 - Próximo passo: feeds de afiliados para Casas Bahia, Centauro e Netshoes, e Redis para rodar mais de um processo.

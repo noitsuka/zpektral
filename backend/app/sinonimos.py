@@ -62,6 +62,7 @@ SINONIMOS = (
     Sinonimo("console", None, ("console", "videogame", "video game")),
     Sinonimo("cafeteira", None, ("cafeteira", "máquina de café")),
     Sinonimo("roboaspirador", None, ("robô aspirador", "aspirador robô")),
+    Sinonimo("estante", "estante", ("estante", "livreiro")),
 )
 
 PALAVRAS_DE_PRODUTO = """

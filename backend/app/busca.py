@@ -12,14 +12,18 @@ from app.agrupamento import (
     atribuir_grupos,
     chave_propria,
     marcar_fora_da_curva,
-    normalizar_ean,
     rebaixar_muito_abaixo,
 )
 from app.cache import CacheComValidade
 from app.configuracao import Configuracoes
 from app.fontes.base import ContextoBusca, Fonte
 from app.modelos import Endereco, Frete, Oferta, RelatorioFonte, StatusFonte
-from app.relevancia import interpretar_consulta, normalizar, texto_para_lojas
+from app.relevancia import (
+    interpretar_consulta,
+    normalizar,
+    normalizar_ean,
+    texto_para_lojas,
+)
 from app.saude import PainelSaude
 
 log = logging.getLogger("zpektral.busca")

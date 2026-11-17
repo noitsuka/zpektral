@@ -2,10 +2,12 @@ import re
 import unicodedata
 from dataclasses import dataclass
 from functools import lru_cache
+from importlib import resources
 
 from app.sinonimos import PALAVRAS_DE_PRODUTO, SINONIMOS, Sinonimo
 
 _NAO_ALFANUMERICO = re.compile(r"[^a-z0-9]+")
+_CONTAGEM = re.compile(r"\b(?:[2-9]|[1-9]\d) ([a-z]+s)\b")
 _LETRA_DIGITO = re.compile(r"(?<=[a-z])(?=\d)|(?<=\d)(?=[a-z])")
 _MARCA_POLEGADA = re.compile(r"(\d)\s*(?:\"|\u201d|'')")
 
@@ -31,7 +33,38 @@ PALAVRAS_BRINQUEDO = frozenset(
     {"brinquedo", "toy", "infantil", "kid", "miniatura", "jr", "divertido", "divertida"}
 )
 
-UNIDADES = {"litro": "l", "lt": "l", "polegada": "pol", "volt": "v", "watt": "w"}
+EQUIVALENTES = {
+    "litro": "l",
+    "lt": "l",
+    "polegada": "pol",
+    "volt": "v",
+    "watt": "w",
+    "dois": "2",
+    "duas": "2",
+    "tres": "3",
+    "quatro": "4",
+    "cinco": "5",
+    "seis": "6",
+    "sete": "7",
+    "oito": "8",
+    "nove": "9",
+    "dez": "10",
+    "branca": "branco",
+    "preta": "preto",
+    "vermelha": "vermelho",
+    "amarela": "amarelo",
+    "dourada": "dourado",
+    "prateado": "prata",
+    "prateada": "prata",
+    "roxa": "roxo",
+}
+CORES = frozenset(
+    """
+    branco preto cinza prata dourado rosa azul verde vermelho amarelo laranja roxo lilas bege
+    marrom menta grafite inox nude caramelo vinho creme cobre bronze turquesa coral chumbo
+    carvalho nogueira freijo cinamomo imbuia castanho
+    """.split()
+)
 LETRAS_UNIDADE = frozenset("lvwkgx")
 
 
@@ -65,8 +98,8 @@ def _termos_brutos(texto: str) -> list[str]:
     saida = []
     for bruto in normalizar(_MARCA_POLEGADA.sub(r"\1 pol ", texto)).split():
         for peca in _separar_codigo(bruto):
-            palavra = _singular(peca)
-            saida.append(UNIDADES.get(palavra, palavra))
+            palavra = EQUIVALENTES.get(peca) or _singular(peca)
+            saida.append(EQUIVALENTES.get(palavra, palavra))
     return saida
 
 
@@ -97,6 +130,26 @@ _VOCABULARIO = {
     ]
     if " " not in (chave := normalizar(palavra))
 }
+# gerada por scripts/gerar_palavras.py a partir de títulos reais: o corretor não mexe nelas
+_PALAVRAS_REAIS = frozenset(
+    resources.files("app").joinpath("dados/palavras.txt").read_text("utf-8").split()
+)
+
+
+_TECLADO = ("qwertyuiop", "asdfghjkl", "zxcvbnm")
+_TECLA = {
+    c: (linha, coluna + linha / 2)
+    for linha, teclas in enumerate(_TECLADO)
+    for coluna, c in enumerate(teclas)
+}
+
+
+def _troca(a: str, b: str) -> int:
+    if a == b:
+        return 0
+    (la, ca), (lb, cb) = _TECLA.get(a, (9, 0)), _TECLA.get(b, (-9, 0))
+    vizinhas = (la == lb and abs(ca - cb) == 1) or (abs(la - lb) == 1 and abs(ca - cb) <= 0.5)
+    return 1 if vizinhas else 2
 
 
 def _distancia(a: str, b: str) -> int:
@@ -105,7 +158,7 @@ def _distancia(a: str, b: str) -> int:
     for i, ca in enumerate(a, 1):
         atual = [i]
         for j, cb in enumerate(b, 1):
-            custo = min(anterior[j] + 1, atual[j - 1] + 1, anterior[j - 1] + (ca != cb))
+            custo = min(anterior[j] + 1, atual[j - 1] + 1, anterior[j - 1] + _troca(ca, cb))
             if i > 1 and j > 1 and ca == b[j - 2] and a[i - 2] == cb:
                 custo = min(custo, anterior2[j - 2] + 1)
             atual.append(custo)
@@ -120,7 +173,7 @@ def _corrigir_palavra(palavra: str) -> str:
         return palavra
     if (certa := _VOCABULARIO.get(chave)) is not None:
         return palavra if palavra.casefold() == certa else certa
-    if len(chave) < 6:
+    if len(chave) < 6 or chave in _PALAVRAS_REAIS:
         return palavra
     limite = 2 if len(chave) >= 9 else 1
     distancias = {
@@ -149,6 +202,8 @@ def termos_do_texto(texto: str) -> tuple[str, ...]:
 
 
 def texto_para_lojas(texto: str) -> str:
+    if gtin := _gtin(texto):
+        return gtin
     palavras = corrigir(texto).split()
     termos: list[str] = []
     dono: list[int] = []
@@ -179,6 +234,7 @@ class Consulta:
     termos: tuple[str, ...]
     pesos: tuple[float, ...]
     pede_acessorio: bool
+    gtin: str | None = None
 
     @property
     def esta_vazia(self) -> bool:
@@ -197,8 +253,17 @@ def interpretar_consulta(texto: str) -> Consulta:
     pesos = tuple(
         2.0 if _tem_numero(t) else float(max(1, palavras_do_produto.get(t, 1))) for t in termos
     )
-    especiais = PALAVRAS_ACESSORIO | PALAVRAS_BRINQUEDO
-    return Consulta(texto, termos, pesos, any(t in especiais for t in termos))
+    especiais = (PALAVRAS_ACESSORIO | PALAVRAS_BRINQUEDO) - _contados(corrigido)
+    return Consulta(texto, termos, pesos, any(t in especiais for t in termos), _gtin(texto))
+
+
+def _gtin(texto: str) -> str | None:
+    return next((g for p in texto.split() if 12 <= len(p) <= 14 and (g := normalizar_ean(p))), None)
+
+
+@lru_cache(maxsize=65_536)
+def _contados(texto: str) -> frozenset[str]:
+    return frozenset(_singular(p) for p in _CONTAGEM.findall(normalizar(texto)))
 
 
 def _tem_numero(termo: str) -> bool:
@@ -254,6 +319,10 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
             falta_numero = True
 
     resultado = casado / total * 95
+    cores = CORES.intersection(consulta.termos)
+    no_titulo = CORES.intersection(palavras_titulo)
+    if cores and no_titulo and not cores & no_titulo:
+        resultado = min(resultado, 40)
     if falta_numero:
         resultado = min(resultado, 40)
     if palavras and not palavras_achadas:
@@ -267,17 +336,37 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
     if (
         not consulta.pede_acessorio
         and casado
-        and eh_secundario(palavras_titulo, primeira_palavra, consulta)
+        and eh_secundario(palavras_titulo, primeira_palavra, consulta, _contados(titulo))
     ):
         resultado *= 0.3
     return round(resultado)
 
 
+def normalizar_ean(bruto: object) -> str | None:
+    if not isinstance(bruto, str | int):
+        return None
+    digitos = str(bruto).strip()
+    if not digitos.isdigit() or not 8 <= len(digitos) <= 14:
+        return None
+    gtin = digitos.zfill(14)
+    if len(set(gtin.lstrip("0"))) <= 1:
+        return None
+    soma = sum(int(d) * (3 if i % 2 == 0 else 1) for i, d in enumerate(reversed(gtin[:-1])))
+    if (10 - soma % 10) % 10 != int(gtin[-1]):
+        return None
+    return gtin.lstrip("0").zfill(13)
+
+
 def eh_secundario(
-    palavras_titulo: tuple[str, ...], primeiro_acerto: int, consulta: Consulta
+    palavras_titulo: tuple[str, ...],
+    primeiro_acerto: int,
+    consulta: Consulta,
+    contados: frozenset[str],
 ) -> bool:
-    inicio = palavras_titulo[:3]
-    if any(t in PALAVRAS_ACESSORIO for t in inicio):
+    if any(
+        t in PALAVRAS_ACESSORIO and not (i > primeiro_acerto and t in contados)
+        for i, t in enumerate(palavras_titulo[:3])
+    ):
         return True
     antes = palavras_titulo[:primeiro_acerto]
     if any(t in PALAVRAS_PARA for t in antes):

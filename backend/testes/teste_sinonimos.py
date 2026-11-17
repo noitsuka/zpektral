@@ -95,3 +95,33 @@ def teste_consulta_com_erro_casa_com_o_titulo_certo():
 def teste_erros_compartilham_a_mesma_busca():
     assert chave_cache("fogao 4 bocas", None) == chave_cache("Fogão 4 bocas", None)
     assert chave_cache("geladiera", None) == chave_cache("geladeira", None)
+
+
+@pytest.mark.parametrize(
+    "consulta",
+    [
+        "estante para livros multy 4 prateleiras menta",
+        "estante livros multy",
+        "pratos fundos",
+        "livros infantis",
+        "copos de vidro",
+        "multy menta",
+        "brocas para concreto",
+        "colcha casal",
+        "camiseta masculina",
+        "balança eletrônica",
+        "gaiola para pássaro",
+    ],
+)
+def teste_palavras_reais_nao_sao_trocadas(consulta):
+    assert texto_para_lojas(consulta) == consulta
+
+
+def teste_erro_de_tecla_vizinha_e_corrigido():
+    assert texto_para_lojas("geladrira frost free") == "geladeira frost free"
+
+
+def teste_livreiro_e_estante():
+    assert chave_cache("livreiro multy verde", None) == chave_cache("estante multy verde", None)
+    q = interpretar_consulta("livreiro multy verde")
+    assert pontuar(q, "Estante Multy Verde Menta") >= 95

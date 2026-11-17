@@ -7,7 +7,7 @@ from typing import Any, Protocol
 
 from app.modelos import Endereco, Frete, Oferta, OpcaoFrete, StatusFrete
 from app.navegador.base import CotacaoNavegador, StatusCotacao
-from app.relevancia import Consulta, pontuar_com_vendedor
+from app.relevancia import Consulta, normalizar_ean, pontuar_com_vendedor
 
 log = logging.getLogger("zpektral.fontes")
 
@@ -20,7 +20,9 @@ class ContextoBusca:
     consulta: Consulta
     endereco: Endereco | None
 
-    def relevancia_de(self, titulo: str, vendedor: str | None = None) -> int:
+    def relevancia_de(self, titulo: str, vendedor: str | None = None, ean: object = None) -> int:
+        if self.consulta.gtin and normalizar_ean(ean) == self.consulta.gtin:
+            return 100
         return pontuar_com_vendedor(self.consulta, titulo, vendedor)
 
     def frete_calculando(self) -> Frete:

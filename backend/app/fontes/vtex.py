@@ -208,7 +208,9 @@ class FonteVtex:
                             else None,
                             preco_pix=pix,
                             parcelamento=parcelamentos,
-                            relevancia=self._relevancia(ctx, titulo, vendedor.get("sellerName")),
+                            relevancia=self._relevancia(
+                                ctx, titulo, vendedor.get("sellerName"), item.get("ean")
+                            ),
                             posicao=posicao,
                         )
                         saida.append(_Candidata(oferta, str(item.get("itemId")), id_vendedor))
@@ -216,8 +218,10 @@ class FonteVtex:
                         log.info("%s: oferta malformada ignorada (%r)", self.id, excecao)
         return saida
 
-    def _relevancia(self, ctx: ContextoBusca, titulo: str, vendedor: str | None) -> int:
-        resultado = ctx.relevancia_de(titulo, vendedor)
+    def _relevancia(
+        self, ctx: ContextoBusca, titulo: str, vendedor: str | None, ean: object
+    ) -> int:
+        resultado = ctx.relevancia_de(titulo, vendedor, ean)
         if self._loja.segmento == "brinquedos":
             resultado = pontuar_loja_brinquedos(ctx.consulta, resultado)
         return resultado

@@ -190,13 +190,13 @@ def teste_conjuntos_pequenos_ou_misturados_ficam_como_estao():
     ],
 )
 def teste_ean_so_vale_com_digito_verificador_e_forma_unica(bruto, esperado):
-    from app.agrupamento import normalizar_ean
+    from app.relevancia import normalizar_ean
 
     assert normalizar_ean(bruto) == esperado
 
 
 def teste_ean_falso_nao_junta_produtos_diferentes():
-    from app.agrupamento import normalizar_ean
+    from app.relevancia import normalizar_ean
 
     ofertas = [
         oferta("a", "Geladeira Brastemp", ean="0000000000000"),

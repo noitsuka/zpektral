@@ -198,3 +198,51 @@ def teste_nota_de_loja_de_brinquedo_respeita_busca_por_brinquedo():
 
     assert pontuar_loja_brinquedos(interpretar_consulta("geladeira"), 100) == 60
     assert pontuar_loja_brinquedos(interpretar_consulta("geladeira brinquedo"), 100) == 100
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        ("estante multy menta", "Estante 4 Prateleiras Multy Artely Menta Peça"),
+        ("comoda branca", "Cômoda 4 Gavetas Branca Atualle"),
+        ("estante livros multy 4 prateleiras", "Estante Livros 4 Prateleiras Multy Menta"),
+    ],
+)
+def teste_quantidade_de_prateleiras_e_gavetas_descreve_o_movel(consulta, titulo):
+    assert s(consulta, titulo) >= 90
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        ("iphone", "iPhone 13 Capa Silicone Preta"),
+        ("iphone 13", "Kit 2 Capas para iPhone 13"),
+        ("geladeira", "Prateleira 2 Gavetas para Geladeira"),
+    ],
+)
+def teste_numero_antes_de_peca_nao_livra_acessorio(consulta, titulo):
+    assert s(consulta, titulo) <= 30
+
+
+@pytest.mark.parametrize(
+    ("titulo", "baixo", "alto"),
+    [
+        ("Estante Para Livros Com 4 Prateleiras Multy Menta Artely Menta", 95, 100),
+        ("Estante para Livros 5 Prateleiras Multy Menta", 0, 40),
+        ("Estante Para Livros Com 4 Prateleiras Multy Branco Artely Branco", 0, 40),
+        ("Estante Multy Verde Menta", 0, 69),
+    ],
+)
+def teste_estante_multy_menta_respeita_modelo_cor_e_prateleiras(titulo, baixo, alto):
+    assert baixo <= s("estante para livros multy 4 prateleiras menta", titulo) <= alto
+
+
+def teste_cor_diferente_da_pedida_fica_escondida():
+    assert s("geladeira inox", "Geladeira Brastemp Frost Free Branca") <= 40
+    assert s("geladeira inox", "Geladeira Brastemp Frost Free 375L") > 40
+    assert s("tenis preto", "Tênis Olympikus Preto e Branco") >= 95
+
+
+def teste_numero_por_extenso_casa_com_o_digito():
+    assert s("estante multy quatro prateleiras", "Estante 4 Prateleiras Multy Artely") >= 95
+    assert s("fogao cinco bocas", "Fogão 5 Bocas Atlas") >= 95

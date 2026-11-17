@@ -3,12 +3,12 @@ from decimal import Decimal
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from app.agrupamento import normalizar_ean
 from app.busca import PRECO_MAXIMO_CENTAVOS, chave_cache, sanear
 from app.dinheiro import ler_reais
 from app.importacao import estimar_importacao
 from app.modelos import Frete, Loja, Oferta, Pagamento, StatusFrete
 from app.ordenacao import Filtros, Ordem, aplicar, certeza
+from app.relevancia import normalizar_ean
 
 centavos = st.integers(min_value=0, max_value=10**10)
 

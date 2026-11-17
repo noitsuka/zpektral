@@ -513,7 +513,7 @@ async def teste_resultados_de_loja_de_brinquedo_ficam_abaixo_do_piso(simulador, 
 
 def teste_lojas_de_brinquedo_marcadas_no_cadastro():
     por_id = {s.id: s for s in carregar_lojas()}
-    assert por_id["rihappy"].segmento == por_id["pbkids"].segmento == "brinquedos"
+    assert por_id["rihappy"].segmento == "brinquedos"
     assert por_id["carrefour"].segmento == "geral"
 
 

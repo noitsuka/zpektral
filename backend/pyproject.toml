@@ -34,7 +34,7 @@ dev = [
 packages = ["app", "app.api", "app.api.rotas", "app.fontes", "app.navegador"]
 
 [tool.setuptools.package-data]
-app = ["dados/*.json"]
+app = ["dados/*.json", "dados/*.txt"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
