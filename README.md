@@ -139,7 +139,7 @@ Requisitos: Docker, ou Python 3.12+ e Node.js 24.
 docker compose up --build
 ```
 
-Site em `http://localhost:3000` e API em `http://localhost:8000` (documentação em `/docs`). Sem Docker, a API sobe com `uvicorn app.main:app` dentro de `backend` e o site com `npm run dev` dentro de `frontend`. Sem banco configurado, o histórico vai para um arquivo SQLite local.
+Site em `http://localhost:3000` e API em `http://localhost:8000` (documentação em `/docs`). Sem Docker, a API sobe com `uvicorn app.main:app` dentro de `backend` e o site com `npm run dev` dentro de `frontend`. Sem banco configurado, o histórico vai para um arquivo SQLite local. O passo a passo sem Docker, com PostgreSQL portátil no Windows, está em [docs/desenvolvimento.md](docs/desenvolvimento.md).
 
 ## Deploy
 
