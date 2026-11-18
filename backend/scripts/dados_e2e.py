@@ -132,7 +132,7 @@ async def gravar(nome: str, consulta: str, endereco: Endereco | None, lojas: lis
     servico = ServicoBusca(lojas, Configuracoes(_env_file=None))
     trabalho, _ = servico.iniciar(consulta, endereco)
     await trabalho.aguardar()
-    filtros = Filtros(condicoes=frozenset(Condicao))
+    filtros = Filtros(condicoes=frozenset(Condicao), apenas_disponiveis=False)
     corpo = b"".join(
         [e async for e in eventos_da_busca(trabalho, endereco, info_das_fontes(servico), filtros)]
     )

@@ -1,0 +1,12 @@
+event: inicio
+data: {"consulta":"xyzzy quasar","endereco":null,"fontes":[{"id":"alfa","nome":"Loja Alfa","ativa":true,"saude":{"id":"alfa","nome":"Loja Alfa","estado":"saudavel","falhas_seguidas":0,"taxa_sucesso":1.0,"tempo_medio_ms":0,"ultimo_erro":null,"ultimo_sucesso":1795004877.5122085}},{"id":"beta","nome":"Loja Beta","ativa":true,"saude":{"id":"beta","nome":"Loja Beta","estado":"saudavel","falhas_seguidas":0,"taxa_sucesso":1.0,"tempo_medio_ms":0,"ultimo_erro":null,"ultimo_sucesso":1795004877.5122812}}],"pagamento":"melhor","ordem":"relevancia"}
+
+event: lote
+data: {"fonte":{"id":"alfa","nome":"Loja Alfa","status":"ok","tempo_ms":0,"ofertas":0,"mensagem":null},"fase":"final","ofertas":[],"melhor_total":null}
+
+event: lote
+data: {"fonte":{"id":"beta","nome":"Loja Beta","status":"ok","tempo_ms":0,"ofertas":0,"mensagem":null},"fase":"final","ofertas":[],"melhor_total":null}
+
+event: fim
+data: {"tempo_ms":2,"total":0,"grupos_por_oferta":{},"facetas":{"lojas":[],"voltagens":{},"condicoes":{},"preco_min":null,"preco_max":null,"com_total_exato":0,"frete_gratis":0,"origens":{}},"fontes":[{"id":"alfa","nome":"Loja Alfa","status":"ok","tempo_ms":0,"ofertas":0,"mensagem":null},{"id":"beta","nome":"Loja Beta","status":"ok","tempo_ms":0,"ofertas":0,"mensagem":null}]}
+

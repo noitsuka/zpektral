@@ -1,0 +1,12 @@
+event: inicio
+data: {"consulta":"geladeira frost free","endereco":null,"fontes":[{"id":"alfa","nome":"Loja Alfa","ativa":true,"saude":{"id":"alfa","nome":"Loja Alfa","estado":"sem_dados","falhas_seguidas":1,"taxa_sucesso":0.0,"tempo_medio_ms":null,"ultimo_erro":"a loja não respondeu como esperado","ultimo_sucesso":null}},{"id":"beta","nome":"Loja Beta","ativa":true,"saude":{"id":"beta","nome":"Loja Beta","estado":"bloqueada","falhas_seguidas":1,"taxa_sucesso":0.0,"tempo_medio_ms":null,"ultimo_erro":"a loja recusou o acesso automatizado","ultimo_sucesso":null}}],"pagamento":"melhor","ordem":"relevancia"}
+
+event: falha_fonte
+data: {"fonte":{"id":"alfa","nome":"Loja Alfa","status":"erro","tempo_ms":0,"ofertas":0,"mensagem":"a loja não respondeu como esperado"}}
+
+event: falha_fonte
+data: {"fonte":{"id":"beta","nome":"Loja Beta","status":"bloqueada","tempo_ms":0,"ofertas":0,"mensagem":"a loja recusou o acesso automatizado"}}
+
+event: fim
+data: {"tempo_ms":1,"total":0,"grupos_por_oferta":{},"facetas":{"lojas":[],"voltagens":{},"condicoes":{},"preco_min":null,"preco_max":null,"com_total_exato":0,"frete_gratis":0,"origens":{}},"fontes":[{"id":"alfa","nome":"Loja Alfa","status":"erro","tempo_ms":0,"ofertas":0,"mensagem":"a loja não respondeu como esperado"},{"id":"beta","nome":"Loja Beta","status":"bloqueada","tempo_ms":0,"ofertas":0,"mensagem":"a loja recusou o acesso automatizado"}]}
+

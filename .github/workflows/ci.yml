@@ -63,6 +63,8 @@ jobs:
         run: npm test
       - name: build
         run: npm run build
+      - name: ponta a ponta
+        run: npx playwright test
 
   imagens:
     needs: [api, site]
