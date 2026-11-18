@@ -1,6 +1,6 @@
 import re
 import unicodedata
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
 from importlib import resources
 
@@ -241,6 +241,16 @@ class Consulta:
     pede_acessorio: bool
     gtin: str | None = None
     palavras: tuple[tuple[str, tuple[str, ...]], ...] = ()
+    numeros: tuple[bool, ...] = field(init=False)
+    pares: tuple[tuple[str, str, str, bool], ...] = field(init=False)
+    cores: frozenset[str] = field(init=False)
+
+    # o que só depende da consulta sai daqui uma vez, e não a cada título pontuado
+    def __post_init__(self) -> None:
+        pares = ((a, b, a + b) for a, b in zip(self.termos, self.termos[1:], strict=False))
+        object.__setattr__(self, "numeros", tuple(map(_tem_numero, self.termos)))
+        object.__setattr__(self, "pares", tuple((*p, len(p[2]) >= 6) for p in pares))
+        object.__setattr__(self, "cores", CORES.intersection(self.termos))
 
     @property
     def esta_vazia(self) -> bool:
@@ -331,19 +341,20 @@ def _acertos(consulta: Consulta, palavras_titulo: tuple[str, ...]) -> dict[str, 
     for termo in consulta.termos:
         if termo in posicoes:
             achados[termo] = posicoes[termo]
-    for a, b in zip(consulta.termos, consulta.termos[1:], strict=False):
-        par = a + b
+    for a, b, par, prefixo in consulta.pares:
+        if a in achados and b in achados:
+            continue
         for i, t in enumerate(palavras_titulo):
-            if t == par or (len(par) >= 6 and t.startswith(par)):
+            if t == par or (prefixo and t.startswith(par)):
                 achados.setdefault(a, i)
                 achados.setdefault(b, i)
                 break
-    colado = "".join(palavras_titulo)
-    for termo in consulta.termos:
-        if termo in achados or len(termo) < 4:
-            continue
-        if termo in colado and not any(termo in t for t in palavras_titulo):
-            achados[termo] = len(palavras_titulo)
+    faltam = [t for t in consulta.termos if t not in achados and len(t) >= 4]
+    if faltam:
+        colado = "".join(palavras_titulo)
+        for termo in faltam:
+            if termo in colado and not any(termo in t for t in palavras_titulo):
+                achados[termo] = len(palavras_titulo)
     return achados
 
 
@@ -358,9 +369,8 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
     falta_numero = False
     palavras, palavras_achadas = 0, 0
     primeira_palavra = len(palavras_titulo)
-    for termo, peso in zip(consulta.termos, consulta.pesos, strict=True):
+    for termo, peso, numero in zip(consulta.termos, consulta.pesos, consulta.numeros, strict=True):
         consumir = termo in achados
-        numero = _tem_numero(termo)
         if not numero:
             palavras += 1
             palavras_achadas += consumir
@@ -372,9 +382,11 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
             falta_numero = True
 
     resultado = casado / total * 95
-    cores = CORES.intersection(consulta.termos)
-    no_titulo = CORES.intersection(palavras_titulo)
-    if cores and no_titulo and not cores & no_titulo:
+    if (
+        consulta.cores
+        and (no_titulo := CORES.intersection(palavras_titulo))
+        and not consulta.cores & no_titulo
+    ):
         resultado = min(resultado, 40)
     if falta_numero:
         resultado = min(resultado, 40)
@@ -389,7 +401,7 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
     if (
         not consulta.pede_acessorio
         and casado
-        and eh_secundario(palavras_titulo, primeira_palavra, consulta, _contados(titulo))
+        and eh_secundario(palavras_titulo, primeira_palavra, consulta, titulo)
     ):
         resultado *= 0.3
     return round(resultado)
@@ -414,10 +426,10 @@ def eh_secundario(
     palavras_titulo: tuple[str, ...],
     primeiro_acerto: int,
     consulta: Consulta,
-    contados: frozenset[str],
+    titulo: str,
 ) -> bool:
     if any(
-        t in PALAVRAS_ACESSORIO and not (i > primeiro_acerto and t in contados)
+        t in PALAVRAS_ACESSORIO and not (i > primeiro_acerto and t in _contados(titulo))
         for i, t in enumerate(palavras_titulo[:3])
     ):
         return True
