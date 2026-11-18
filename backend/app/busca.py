@@ -35,6 +35,10 @@ SEGUNDOS_TRABALHO_FALHO = 15
 SEGUNDOS_GRAVACAO = 5
 PRECO_MAXIMO_CENTAVOS = 100_000_000
 TITULO_MAXIMO = 300
+# o que algumas lojas põem no campo de marca quando não há marca
+MARCAS_VAZIAS = frozenset(
+    {"nao disponivel", "generico", "generica", "sem marca", "outros", "outras", "n a"}
+)
 URL_MAXIMA = 2048
 _TAG_HTML = re.compile(r"<[^>]{0,200}>")
 CARACTERES_CONTROLE = re.compile(r"[\x00-\x1f\x7f\u200b-\u200f\u202a-\u202e\u2066-\u2069]")
@@ -169,6 +173,8 @@ def sanear(ofertas: list[Oferta]) -> list[Oferta]:
         o.link_carrinho = url_segura(o.link_carrinho)
         o.imagem = url_segura(o.imagem)
         o.ean = normalizar_ean(o.ean)
+        if isinstance(o.marca, str) and normalizar(o.marca) in MARCAS_VAZIAS:
+            o.marca = None
         if o.id in vistos or not 0 < o.preco <= PRECO_MAXIMO_CENTAVOS or not o.titulo or not o.link:
             continue
         if o.frete.valor is not None and o.frete.valor < 0:

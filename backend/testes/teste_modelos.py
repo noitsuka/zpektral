@@ -44,3 +44,16 @@ def teste_oferta_nasce_com_o_instante_da_leitura_em_utc():
     assert lido.utcoffset() == timedelta(0)
     assert antes <= lido <= datetime.now(UTC)
     assert oferta.promocoes == [] and oferta.preco_valido_ate is None
+
+
+def teste_nome_interno_de_regra_nao_vira_promocao():
+    nomes = nomes_de_promocao(
+        [
+            "Plan Vendas > Frete Grátis - FG BR - NAL 29434",
+            "regra_interna_pix",
+            "Cupom | parceiro",
+            "Black Friday 2026",
+            "SUPEROFERTA",
+        ]
+    )
+    assert nomes == ["Black Friday 2026", "SUPEROFERTA"]

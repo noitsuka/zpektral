@@ -321,3 +321,23 @@ async def teste_ofertas_dizem_que_termo_da_busca_faltou(config):
     assert [o.termos_ausentes for o in previa.ofertas] == [["110v"], []]
     assert [o.termos_ausentes for o in final.ofertas] == [["110v"], []]
     assert orjson.loads(orjson.dumps(final.ofertas[0]))["termos_ausentes"] == ["110v"]
+
+
+def teste_sanear_tira_marca_que_nao_e_marca():
+    from app.busca import sanear
+    from app.modelos import Loja, Oferta
+
+    def montar(id, marca):
+        return Oferta(
+            id=id,
+            titulo="Air Fryer 4L",
+            link="https://loja.com/p",
+            loja=Loja("s", "S"),
+            preco=100,
+            marca=marca,
+        ).consolidar()
+
+    ofertas = sanear(
+        [montar("a", "Não Disponível"), montar("b", "GENÉRICO"), montar("c", "Mondial")]
+    )
+    assert [o.marca for o in ofertas] == [None, None, "Mondial"]

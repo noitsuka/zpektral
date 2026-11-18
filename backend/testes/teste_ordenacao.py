@@ -84,11 +84,11 @@ def teste_menor_total_empatado_prefere_o_total_conferido():
     assert ids(resultado) == ["exact", "no_shipping"]
 
 
-def teste_relevancia_empatada_vai_pelo_preco_e_nao_pelo_frete_cotado():
+def teste_relevancia_empatada_poe_total_confirmado_antes_de_quem_nao_tem_frete():
     caro_cotado = oferta("quoted", 15000, frete=cotada(0))
     barato_sem_frete = oferta("cheap", 9000)
     resultado, _ = aplicar([caro_cotado, barato_sem_frete], Filtros())
-    assert ids(resultado) == ["cheap", "quoted"]
+    assert ids(resultado) == ["quoted", "cheap"]
 
 
 def teste_sem_cep_menor_total_e_por_preco():

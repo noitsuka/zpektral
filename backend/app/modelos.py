@@ -147,6 +147,10 @@ def instante_iso(momento: datetime) -> str:
     return momento.astimezone(UTC).isoformat(timespec="seconds")
 
 
+# "Plan Vendas > Frete Grátis - FG BR - NAL 29434" é o nome da regra no sistema da loja
+_NOME_INTERNO = re.compile(r"[>|_#]|\d{5,}")
+
+
 def nomes_de_promocao(brutos: Iterable[object]) -> list[str]:
     nomes: dict[str, str] = {}
     for bruto in brutos:
@@ -154,7 +158,7 @@ def nomes_de_promocao(brutos: Iterable[object]) -> list[str]:
             continue
         nome = " ".join(_MARCACAO.sub(" ", html.unescape(bruto)).split())
         nome = nome[:TAMANHO_MAXIMO_PROMOCAO].rstrip()
-        if nome:
+        if nome and not _NOME_INTERNO.search(nome):
             nomes.setdefault(nome.casefold(), nome)
     return list(nomes.values())[:PROMOCOES_MAXIMAS]
 

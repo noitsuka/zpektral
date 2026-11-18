@@ -172,11 +172,11 @@ describe("ranking ao vivo", () => {
     oferta("c:1", 200, { relevancia: 100, total_exato: false }),
   ];
 
-  it("ordena por relevância e, no empate, pelo menor total mesmo sem frete cotado", () => {
+  it("ordena por relevância e, no empate, total confirmado antes de quem não tem frete", () => {
     const barata = oferta("d:1", 50, { relevancia: 100, total_exato: false });
     expect(rankingAoVivo([...ofertas, barata], FILTROS_PADRAO).map((o) => o.id)).toEqual([
-      "d:1",
       "b:1",
+      "d:1",
       "c:1",
       "a:1",
     ]);

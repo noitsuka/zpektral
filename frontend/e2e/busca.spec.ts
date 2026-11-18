@@ -19,6 +19,8 @@ test("pesquisa, filtra, ordena e abre a loja", async ({ page, isMobile }) => {
   await expect(irParaLoja).toHaveAttribute("href", /^https:\/\/beta\.example\/produto\/0/);
   await expect(irParaLoja).toHaveAttribute("target", "_blank");
 
+  // pelo preço do produto, a oferta sem frete cotado é a primeira; o filtro a tira
+  await page.getByLabel(/ordenar/i).selectOption("menor_preco");
   const semCotacao = page.getByText("Geladeira Frost Free Consul 340L Branca 110V");
   await expect(semCotacao.first()).toBeVisible();
   await page.getByText("Só total confirmado").click();
