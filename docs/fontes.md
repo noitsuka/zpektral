@@ -40,6 +40,8 @@ A entrada e a saída de `degradada` e de `bloqueada` disparam o webhook de alert
 | Shopee | API de afiliados | preço e link de afiliado; frete só pelo navegador opcional | `desativada`, sem credenciais |
 | eBay | API Browse | preço em dólar, frete para o Brasil e imposto estimado | `desativada`, sem credenciais |
 
+Amazon na Vercel (`gru1`), em 18/11/2026: 8 de 8 buscas pela API de homologação trouxeram a Amazon com `ok`, entre 1,0 e 2,8 s (47 e 48 ofertas nas duas primeiras). As falhas vistas antes foram intermitentes, e o plano Hobby guarda os logs da função só por 30 minutos, então a causa delas não ficou registrada. Página 200 sem nenhum resultado devolve zero ofertas (antes quebrava a leitura e virava `erro`), e o 503 com a página de robô da Amazon sai como `bloqueada`.
+
 ### Lojas VTEX por segmento
 
 | Segmento | Lojas | Nomes |
@@ -138,6 +140,8 @@ Lida nas páginas oficiais em novembro de 2026. Onde a página recusou leitura a
 
 - A página oficial de afiliados respondeu 403 à leitura automatizada, e o perfil do anunciante na Awin só abre com login. Pela busca na web, o programa roda na Awin.
 - A Awin documenta feeds de produto para publishers, com comparadores de preço citados como o público principal. As colunas incluem `price`, `product_price_old`, `in_stock`, `stock_quantity`, `delivery_cost`, `delivery_time`, `ean`, `deep_link` e `last_updated`; o frete é um valor fixo, sem CEP ([colunas](https://help.awin.com/developers/docs/hosting-feeds), [feeds](https://help.awin.com/developers/docs/product-feed-publisher-guide-intro.md)).
+- `robots.txt`, lido num navegador em 18/11/2026 e igual nas três lojas: libera `*/b` (a busca por caminho, como `/geladeira-frost-free-559l/b`, com os produtos no `__NEXT_DATA__`) e proíbe `*/b?q` e `*/pdp-api`. A Brastemp BRO85 aparece nessa página.
+- Sem conector direto: o Akamai Bot Manager responde 403 a todo cliente que não passa no desafio de JavaScript, até no `robots.txt` e com o agente do zpektral. Só um navegador de verdade chega à página, e passar disso seria contornar a proteção.
 - Não verificado: se a Casas Bahia publica feed na Awin e o que os termos dela dizem sobre comparadores.
 - Passo do dono: criar conta de publisher na Awin, pedir entrada no programa da Casas Bahia e conferir no painel se há feed de produtos. Com feed, as ofertas entrariam sem frete por CEP, como o Buscapé.
 
