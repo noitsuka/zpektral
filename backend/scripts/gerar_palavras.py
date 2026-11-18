@@ -43,7 +43,7 @@ def main() -> None:
     palavras = sorted(
         p for p, n in contagem.items() if n >= args.minimo and p.isalpha() and len(p) >= 6
     )
-    DESTINO.write_text("\n".join(palavras) + "\n", "utf-8")
+    DESTINO.write_text("\n".join(palavras) + "\n", "utf-8", newline="\n")
     print(f"{len(palavras)} palavras em {DESTINO}")
 
 
