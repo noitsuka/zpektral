@@ -24,7 +24,7 @@ PALAVRAS_ACESSORIO = frozenset(
     puxador motoventilador termostato resistencia controle pulseira tampa painel rack
     acessorio cesto cuba botao copo jarra lamina helice mangueira valvula bico vedacao
     engrenagem correia parafuso rodizio limpa limpador fusivel lampada armario grelha
-    amortecedor tapete assadeira pe pes
+    amortecedor tapete assadeira pe pes bandeja forma papel
     """.split()
 )
 

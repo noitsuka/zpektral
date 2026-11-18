@@ -65,6 +65,8 @@ def teste_falta_de_palavra_ou_numero_limita_a_nota(titulo, teto):
         ("air fryer", "Assadeira de Silicone para Air Fryer 20cm"),
         ("air fryer", "Tapete Antiaderente Air Fryer Kit 2"),
         ("geladeira", "Pés Niveladores para Geladeira Consul"),
+        ("air fryer", "Bandeja Forma Airfryer Walita AI551"),
+        ("air fryer", "Papel Descartável Air Fryer 50 Unidades"),
     ],
 )
 def teste_acessorios_ficam_abaixo_do_produto(consulta, titulo):
@@ -83,6 +85,8 @@ def teste_acessorios_ficam_abaixo_do_produto(consulta, titulo):
         ("air fryer brinquedo", "Air Fryer de Brinquedo Divertida"),
         ("grelha eletrica", "Grelha Elétrica Mondial Smart Grill 1000W"),
         ("assadeira", "Assadeira Retangular Antiaderente Tramontina"),
+        ("forma de bolo", "Forma de Bolo Antiaderente 24cm"),
+        ("bandeja de servir", "Bandeja de Servir Inox Retangular"),
     ],
 )
 def teste_o_proprio_produto_nao_e_confundido_com_peca(consulta, titulo):
