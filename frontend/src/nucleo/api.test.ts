@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { urlTransmissao } from "@/nucleo/api";
+import { parametrosDaBusca, urlTransmissao } from "@/nucleo/api";
+import { FILTROS_PADRAO } from "@/nucleo/filtros";
 
 describe("transmissão da busca", () => {
   it("pede todas as condições para que os filtros funcionem no navegador", () => {
@@ -15,5 +16,17 @@ describe("transmissão da busca", () => {
 
   it("funciona sem CEP", () => {
     expect(new URL(urlTransmissao("tv", null)).searchParams.has("cep")).toBe(false);
+  });
+});
+
+describe("página da busca no servidor", () => {
+  it("não manda ao servidor o que só o navegador sabe calcular", () => {
+    const params = parametrosDaBusca("tv", null, {
+      ...FILTROS_PADRAO,
+      ordem: "economia_verificada",
+      queda_verificada: true,
+    });
+    expect(params.has("ordem")).toBe(false);
+    expect(params.has("queda")).toBe(false);
   });
 });

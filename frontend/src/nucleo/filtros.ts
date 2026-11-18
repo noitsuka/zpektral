@@ -19,6 +19,7 @@ export const FILTROS_PADRAO: Filtros = {
   voltagem: [],
   voltagem_estrita: false,
   frete: "todos",
+  queda_verificada: false,
 };
 
 export const ORDENS: { valor: Ordem; rotulo: string }[] = [
@@ -26,10 +27,13 @@ export const ORDENS: { valor: Ordem; rotulo: string }[] = [
   { valor: "menor_total", rotulo: "Menor total" },
   { valor: "custo_beneficio", rotulo: "Custo-benefício" },
   { valor: "entrega_rapida", rotulo: "Entrega mais rápida" },
-  { valor: "maior_desconto", rotulo: "Maior desconto" },
+  { valor: "economia_verificada", rotulo: "Maior economia verificada" },
   { valor: "menor_preco", rotulo: "Menor preço do produto" },
   { valor: "maior_preco", rotulo: "Maior preço do produto" },
 ];
+
+// Ordens calculadas só no navegador, com o histórico de cada oferta.
+export const ORDENS_LOCAIS = new Set<Ordem>(["economia_verificada"]);
 
 export const PAGAMENTOS: { valor: Pagamento; rotulo: string; dica: string }[] = [
   { valor: "melhor", rotulo: "Melhor forma", dica: "o menor entre Pix e cartão" },
@@ -87,6 +91,7 @@ export function filtrosDosParametros(params: URLSearchParams): Filtros {
     ),
     voltagem_estrita: params.get("voltagem_estrita") === "true",
     frete: VALORES_FRETE.has(frete) ? frete : FILTROS_PADRAO.frete,
+    queda_verificada: params.get("queda") === "1",
   };
 }
 
@@ -109,6 +114,7 @@ export function filtrosParaParametros(
   definir("voltagem", filtros.voltagem.join(","), "");
   definir("voltagem_estrita", filtros.voltagem_estrita ? "true" : null, null);
   definir("frete", filtros.frete, d.frete);
+  definir("queda", filtros.queda_verificada ? "1" : null, null);
   return destino;
 }
 
@@ -117,6 +123,7 @@ export function contarFiltrosAtivos(f: Filtros): number {
     (f.preco_min !== null ? 1 : 0) +
     (f.preco_max !== null ? 1 : 0) +
     (f.frete !== FILTROS_PADRAO.frete ? 1 : 0) +
+    (f.queda_verificada ? 1 : 0) +
     f.lojas.length +
     f.voltagem.length +
     (f.condicao.join() !== FILTROS_PADRAO.condicao.join() ? 1 : 0)

@@ -36,7 +36,11 @@ function freteGratis(o: Oferta): boolean {
   );
 }
 
-export function filtrarAoVivo(ofertas: Oferta[], f: Filtros): Oferta[] {
+export function filtrarAoVivo(
+  ofertas: Oferta[],
+  f: Filtros,
+  quedaVerificada: (o: Oferta) => boolean = () => false,
+): Oferta[] {
   return ofertas.filter((o) => {
     if (o.relevancia < f.relevancia_min) return false;
     if (!o.disponivel || o.frete.status === "nao_entrega") return false;
@@ -52,6 +56,7 @@ export function filtrarAoVivo(ofertas: Oferta[], f: Filtros): Oferta[] {
     }
     if (f.frete === "calculado" && !o.total_exato) return false;
     if (f.frete === "gratis" && !freteGratis(o)) return false;
+    if (f.queda_verificada && !quedaVerificada(o)) return false;
     return true;
   });
 }

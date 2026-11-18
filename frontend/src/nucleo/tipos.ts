@@ -25,7 +25,7 @@ export type Ordem =
   | "menor_preco"
   | "maior_preco"
   | "entrega_rapida"
-  | "maior_desconto";
+  | "economia_verificada";
 export type FiltroFrete = "todos" | "gratis" | "calculado";
 export type Alerta =
   | "prazo_longo"
@@ -92,9 +92,13 @@ export type Oferta = {
   grupo: string | null;
   link_carrinho: string | null;
   importacao: Importacao | null;
+  consultado_em?: string;
+  promocoes?: string[];
+  preco_valido_ate?: string | null;
+  termos_ausentes?: string[];
 };
 
-type StatusFonte = "ok" | "erro" | "tempo_esgotado" | "desativada";
+export type StatusFonte = "ok" | "erro" | "tempo_esgotado" | "desativada" | "bloqueada";
 
 export type RelatorioFonte = {
   id: string;
@@ -159,6 +163,7 @@ export type Filtros = {
   voltagem: string[];
   voltagem_estrita: boolean;
   frete: FiltroFrete;
+  queda_verificada: boolean;
 };
 
 export type EventoInicio = {
@@ -182,3 +187,21 @@ export type EventoFim = {
   facetas: Facetas;
   fontes: RelatorioFonte[];
 };
+
+export type QuedaPreco = {
+  oferta: string;
+  titulo: string;
+  loja: Loja;
+  link: string;
+  imagem: string | null;
+  preco: number;
+  preco_original: number | null;
+  mediana: number;
+  menor: number;
+  maior: number;
+  dias_observados: number;
+  variacao: number;
+  visto_em: string;
+};
+
+export type RespostaQuedas = { janela_dias: number; gerado_em: string; itens: QuedaPreco[] };

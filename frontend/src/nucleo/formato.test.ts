@@ -17,6 +17,7 @@ import {
   hojeEmBrasilia,
   diaAbreviado,
   segundos,
+  haQuanto,
 } from "@/nucleo/formato";
 
 describe("dinheiro", () => {
@@ -55,6 +56,20 @@ describe("datas e horários", () => {
   });
 });
 
+describe("quando o preço foi consultado", () => {
+  const agora = new Date("2026-11-17T15:00:00Z");
+  it("diz há quanto tempo, em minutos ou horas", () => {
+    expect(haQuanto("2026-11-17T14:59:40Z", agora)).toBe("há menos de 1 min");
+    expect(haQuanto("2026-11-17T14:57:00Z", agora)).toBe("há 3 min");
+    expect(haQuanto("2026-11-17T12:10:00Z", agora)).toBe("há 2 h");
+  });
+  it("passa a dizer o dia depois de 24 horas e ignora datas ruins", () => {
+    expect(haQuanto("2026-11-15T12:00:00Z", agora)).toBe("em 15 de nov");
+    expect(haQuanto("lixo", agora)).toBeNull();
+    expect(haQuanto("2026-11-17T15:05:00Z", agora)).toBe("há menos de 1 min");
+  });
+});
+
 describe("filtros na URL", () => {
   it("vai e volta sem perder nada e omite os padrões", () => {
     expect(filtrosParaParametros(FILTROS_PADRAO).toString()).toBe("");
@@ -66,6 +81,7 @@ describe("filtros na URL", () => {
       preco_max: 300000,
       voltagem: ["220V"],
       condicao: ["novo" as const, "recondicionado" as const],
+      queda_verificada: true,
     };
     expect(filtrosDosParametros(filtrosParaParametros(personalizado))).toEqual(personalizado);
   });

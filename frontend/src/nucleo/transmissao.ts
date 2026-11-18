@@ -9,9 +9,10 @@ import type {
   InfoFonte,
 } from "@/nucleo/tipos";
 
-type EstadoFonte = "aguardando" | "catalogo" | "final" | "erro" | "tempo_esgotado" | "desativada";
+export type EstadoFonte =
+  "aguardando" | "catalogo" | "final" | "erro" | "tempo_esgotado" | "bloqueada" | "desativada";
 
-type CelulaFonte = {
+export type CelulaFonte = {
   id: string;
   nome: string;
   situacao: EstadoFonte;
@@ -92,7 +93,10 @@ export function reduzir(estado: EstadoTransmissao, acao: AcaoTransmissao): Estad
         ...estado,
         ofertas: resto,
         fontes: atualizarCelula(estado.fontes, fonte.id, {
-          situacao: fonte.status === "tempo_esgotado" ? "tempo_esgotado" : "erro",
+          situacao:
+            fonte.status === "tempo_esgotado" || fonte.status === "bloqueada"
+              ? fonte.status
+              : "erro",
           tempo_ms: fonte.tempo_ms,
           ofertas: 0,
         }),
@@ -126,11 +130,11 @@ function certeza(o: Oferta): number {
   return o.frete.status === "gratis_anunciado" ? 1 : 2;
 }
 
-function desconto(o: Oferta): number {
-  return o.preco_original ? 1 - o.melhor_preco / o.preco_original : 0;
-}
-
-export function rankingAoVivo(ofertas: Oferta[], filtros: Filtros): Oferta[] {
+export function rankingAoVivo(
+  ofertas: Oferta[],
+  filtros: Filtros,
+  economia: (o: Oferta) => number = () => 0,
+): Oferta[] {
   const pag = filtros.pagamento;
   const total = (o: Oferta) => totalPara(o, pag);
   const chaves: Record<Filtros["ordem"], (o: Oferta) => number[]> = {
@@ -140,7 +144,7 @@ export function rankingAoVivo(ofertas: Oferta[], filtros: Filtros): Oferta[] {
     menor_preco: (o) => [total(o) - (o.frete.valor ?? 0), -o.relevancia],
     maior_preco: (o) => [-(total(o) - (o.frete.valor ?? 0)), -o.relevancia],
     entrega_rapida: (o) => [o.frete.prazo_dias ?? SEM_DIAS, total(o)],
-    maior_desconto: (o) => [-desconto(o), total(o)],
+    economia_verificada: (o) => [-economia(o), total(o)],
   };
   const chave = chaves[filtros.ordem];
   return [...ofertas]

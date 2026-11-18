@@ -90,4 +90,12 @@ describe("filtros aplicados enquanto as lojas respondem", () => {
       "e:1",
     );
   });
+
+  it("só deixa as ofertas com queda verificada quando o filtro pede", () => {
+    const queda = (o: Oferta) => o.id === "f:1";
+    expect(ids(filtrarAoVivo(base, FILTROS_PADRAO, queda))).toEqual(["a:1", "f:1", "g:1"]);
+    expect(ids(filtrarAoVivo(base, { ...FILTROS_PADRAO, queda_verificada: true }, queda))).toEqual([
+      "f:1",
+    ]);
+  });
 });

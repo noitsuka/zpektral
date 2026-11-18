@@ -1,5 +1,5 @@
-import { FILTROS_PADRAO, filtrosParaParametros } from "@/nucleo/filtros";
-import type { Filtros, HistoricoOfertas, PaginaResultados } from "@/nucleo/tipos";
+import { FILTROS_PADRAO, ORDENS_LOCAIS, filtrosParaParametros } from "@/nucleo/filtros";
+import type { Filtros, HistoricoOfertas, PaginaResultados, RespostaQuedas } from "@/nucleo/tipos";
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API ?? "http://localhost:8000").replace(/\/$/, "");
 const LIMITE_MS = 30_000;
@@ -40,8 +40,16 @@ async function obter<T>(caminho: string, signal?: AbortSignal): Promise<T> {
   return corpo as T;
 }
 
-function parametrosDaBusca(q: string, cep: string | null, filtros: Filtros): URLSearchParams {
-  const params = filtrosParaParametros(filtros);
+export function parametrosDaBusca(
+  q: string,
+  cep: string | null,
+  filtros: Filtros,
+): URLSearchParams {
+  const params = filtrosParaParametros({
+    ...filtros,
+    ordem: ORDENS_LOCAIS.has(filtros.ordem) ? FILTROS_PADRAO.ordem : filtros.ordem,
+    queda_verificada: false,
+  });
   params.set("q", q);
   if (cep) params.set("cep", cep);
   return params;
@@ -72,12 +80,18 @@ export function urlTransmissao(q: string, cep: string | null): string {
   return `${URL_API}/busca/transmissao?${parametrosDaBusca(q, cep, TODAS_AS_OFERTAS)}`;
 }
 
+const DIAS_HISTORICO = 180;
+
 export function historicoDasOfertas(
   ids: string[],
   signal?: AbortSignal,
 ): Promise<HistoricoOfertas> {
   return obter<HistoricoOfertas>(
-    `/historico/ofertas?${new URLSearchParams({ ids: ids.join(",") })}`,
+    `/historico/ofertas?${new URLSearchParams({ ids: ids.join(","), dias: String(DIAS_HISTORICO) })}`,
     signal,
   );
+}
+
+export function quedasDePreco(dias: number, signal?: AbortSignal): Promise<RespostaQuedas> {
+  return obter<RespostaQuedas>(`/ofertas/quedas?dias=${dias}&limite=60`, signal);
 }

@@ -86,3 +86,19 @@ export function diaAbreviado(dataIso: string): string {
   const data = new Date(`${dataIso}T12:00:00Z`);
   return Number.isNaN(data.getTime()) ? dataIso : diaCurto.format(data).replace(".", "");
 }
+
+const diaEDiaDoMes = new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  month: "short",
+  timeZone: "America/Sao_Paulo",
+});
+
+export function haQuanto(iso: string, agora: Date = new Date()): string | null {
+  const momento = Date.parse(iso);
+  if (Number.isNaN(momento)) return null;
+  const minutos = Math.floor((agora.getTime() - momento) / 60_000);
+  if (minutos < 1) return "há menos de 1 min";
+  if (minutos < 60) return `há ${minutos} min`;
+  if (minutos < 24 * 60) return `há ${Math.floor(minutos / 60)} h`;
+  return `em ${diaEDiaDoMes.format(momento).replace(".", "")}`;
+}

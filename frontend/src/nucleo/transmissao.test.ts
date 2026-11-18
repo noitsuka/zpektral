@@ -127,6 +127,14 @@ describe("redutor da transmissão", () => {
     expect(s.fontes[1].situacao).toBe("tempo_esgotado");
   });
 
+  it("guarda que a loja bloqueou a consulta e conta como respondida", () => {
+    let s = iniciado();
+    s = reduzir(s, { tipo: "falha_fonte", dados: { fonte: relatorio("a", "bloqueada") } });
+    s = reduzir(s, { tipo: "falha_fonte", dados: { fonte: relatorio("b", "erro") } });
+    expect(s.fontes.map((c) => c.situacao)).toEqual(["bloqueada", "erro", "desativada"]);
+    expect(progresso(s)).toEqual({ responderam: 2, total: 2 });
+  });
+
   it("aplica os grupos finais no fim", () => {
     let s = iniciado();
     s = reduzir(s, {
@@ -194,6 +202,16 @@ describe("ranking ao vivo", () => {
       ordem: "menor_total",
     });
     expect(ordenadas.map((o) => o.id)).toEqual(["x:1", "b:1", "c:1", "a:1"]);
+  });
+
+  it("ordena pela maior economia verificada e desempata pelo total", () => {
+    const economia: Record<string, number> = { "a:1": 0.1, "b:1": 0, "c:1": 0.1 };
+    const ordenadas = rankingAoVivo(
+      ofertas,
+      { ...FILTROS_PADRAO, ordem: "economia_verificada" },
+      (o) => economia[o.id],
+    );
+    expect(ordenadas.map((o) => o.id)).toEqual(["c:1", "a:1", "b:1"]);
   });
 
   it("nunca destaca resultado fraco nem preço com alerta", () => {

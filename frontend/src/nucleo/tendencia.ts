@@ -38,3 +38,25 @@ export function avaliarHistorico(
   else situacao = "estavel";
   return { situacao, variacao, dias, menor, mediana: centro };
 }
+
+export const JANELAS = [7, 30, 90, 180] as const;
+
+export function janelasDisponiveis(pontos: PontoHistorico[], hoje: string): number[] {
+  if (!pontos.length) return [];
+  const alcance = diasEntre(pontos[0].dia, hoje);
+  return JANELAS.filter((janela, i) => i === 0 || alcance >= JANELAS[i - 1]);
+}
+
+export function recortar(pontos: PontoHistorico[], hoje: string, janela: number): PontoHistorico[] {
+  return pontos.filter((p) => diasEntre(p.dia, hoje) < janela);
+}
+
+export function trechos(pontos: PontoHistorico[]): PontoHistorico[][] {
+  const saida: PontoHistorico[][] = [];
+  for (const p of pontos) {
+    const atual = saida.at(-1);
+    if (atual && diasEntre(atual.at(-1)!.dia, p.dia) === 1) atual.push(p);
+    else saida.push([p]);
+  }
+  return saida;
+}
