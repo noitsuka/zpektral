@@ -138,7 +138,7 @@ export function rankingAoVivo(
   const pag = filtros.pagamento;
   const total = (o: Oferta) => totalPara(o, pag);
   const chaves: Record<Filtros["ordem"], (o: Oferta) => number[]> = {
-    relevancia: (o) => [-o.relevancia, certeza(o) > 1 ? 1 : 0, total(o)],
+    relevancia: (o) => [-o.relevancia, o.total_exato ? 0 : 1, total(o)],
     // total sem frete não compete com total confirmado
     menor_total: (o) => [certeza(o) > 1 ? 1 : 0, total(o), -o.relevancia],
     custo_beneficio: (o) => [certeza(o) > 1 ? 1 : 0, total(o), -o.relevancia],

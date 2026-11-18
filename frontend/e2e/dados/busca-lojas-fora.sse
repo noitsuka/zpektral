@@ -8,5 +8,5 @@ event: falha_fonte
 data: {"fonte":{"id":"beta","nome":"Loja Beta","status":"bloqueada","tempo_ms":0,"ofertas":0,"mensagem":"a loja recusou o acesso automatizado"}}
 
 event: fim
-data: {"tempo_ms":2,"total":0,"grupos_por_oferta":{},"facetas":{"lojas":[],"voltagens":{},"condicoes":{},"preco_min":null,"preco_max":null,"com_total_exato":0,"frete_gratis":0,"origens":{}},"fontes":[{"id":"alfa","nome":"Loja Alfa","status":"erro","tempo_ms":0,"ofertas":0,"mensagem":"a loja não respondeu como esperado"},{"id":"beta","nome":"Loja Beta","status":"bloqueada","tempo_ms":0,"ofertas":0,"mensagem":"a loja recusou o acesso automatizado"}]}
+data: {"tempo_ms":0,"total":0,"grupos_por_oferta":{},"facetas":{"lojas":[],"voltagens":{},"condicoes":{},"preco_min":null,"preco_max":null,"com_total_exato":0,"frete_gratis":0,"origens":{}},"fontes":[{"id":"alfa","nome":"Loja Alfa","status":"erro","tempo_ms":0,"ofertas":0,"mensagem":"a loja não respondeu como esperado"},{"id":"beta","nome":"Loja Beta","status":"bloqueada","tempo_ms":0,"ofertas":0,"mensagem":"a loja recusou o acesso automatizado"}]}
 

@@ -121,7 +121,7 @@ def _chave_ordenacao(f: Filtros, conjunto: list[Oferta]) -> Callable[[Oferta], t
     match f.ordem:
         case Ordem.RELEVANCIA:
             # na mesma relevância, total sem frete não passa na frente de total confirmado
-            return lambda o: (-o.relevancia, certeza(o) > 1, o.total_para(pag))
+            return lambda o: (-o.relevancia, not o.total_exato, o.total_para(pag))
         case Ordem.MENOR_TOTAL:
             # total sem frete não compete com total confirmado
             return lambda o: (certeza(o) > 1, o.total_para(pag), -o.relevancia)
