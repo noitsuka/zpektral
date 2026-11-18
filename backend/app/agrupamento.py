@@ -201,8 +201,15 @@ def _rotulo(perfis: set[Especificacoes]) -> str:
     return "/".join(sorted(partes)).lower()
 
 
+@lru_cache(maxsize=65_536)
+def _palavras(titulo: str) -> tuple[str, ...]:
+    return tuple(normalizar(titulo).split())
+
+
 def _marca_no_titulo(titulo: str, conhecidas: frozenset[str]) -> str | None:
-    return next((t for t in normalizar(titulo).split() if t in conhecidas), None)
+    if not conhecidas:
+        return None
+    return next((t for t in _palavras(titulo) if t in conhecidas), None)
 
 
 def atribuir_grupos(ofertas: list[Oferta]) -> None:
