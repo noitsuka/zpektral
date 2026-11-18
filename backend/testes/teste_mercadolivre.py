@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import re
 from urllib.parse import parse_qs
 
@@ -261,8 +262,9 @@ async def teste_vendedor_pelo_apelido(simulador, http, config, tmp_path):
     assert oferta.vendedor == "LOJA_X"
 
 
-@pytest.mark.skip(
-    reason="credentials missing: ML_ID_CLIENTE, ML_SEGREDO_CLIENTE, ML_TOKEN_RENOVACAO"
+@pytest.mark.live
+@pytest.mark.skipif(
+    not os.environ.get("ML_TOKEN_RENOVACAO"), reason="sem credenciais do Mercado Livre"
 )
 async def teste_ao_vivo_mercado_livre(http, config):
     ofertas = await FonteMercadoLivre(http, config).buscar(contexto("iphone 15", "01310100"))

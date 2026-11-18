@@ -216,7 +216,7 @@ def teste_seletores_tem_fallback_em_cada_passo():
         assert estrategias - {Estrategia.CSS}, nome
 
 
-@pytest.mark.skip(reason="browser execution unavailable in current environment")
+@pytest.mark.live
 async def teste_ao_vivo_frete_amazon_com_playwright(config):
     from app.navegador.playwright import NavegadorPlaywright
 

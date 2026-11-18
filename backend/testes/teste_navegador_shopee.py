@@ -143,7 +143,7 @@ async def teste_sem_seletor_de_cep():
     assert destino["shopee:2"].status is StatusCotacao.INTERROMPIDO
 
 
-@pytest.mark.skip(reason="browser execution unavailable in current environment")
+@pytest.mark.live
 async def teste_ao_vivo_frete_shopee_com_playwright():
     from app.navegador.playwright import NavegadorPlaywright
 

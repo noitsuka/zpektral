@@ -1,5 +1,6 @@
 import hashlib
 import json
+import os
 
 import httpx
 import pytest
@@ -185,7 +186,8 @@ async def teste_sem_cep_nao_abre_navegador(simulador, http, config):
     assert frete.pedidos == []
 
 
-@pytest.mark.skip(reason="credentials missing: SHOPEE_ID_APP e SHOPEE_SEGREDO")
+@pytest.mark.live
+@pytest.mark.skipif(not os.environ.get("SHOPEE_SEGREDO"), reason="sem credenciais da Shopee")
 async def teste_ao_vivo_api_de_afiliados(http, config):
     ofertas = await FonteShopee(http, config).buscar(contexto("fone bluetooth jbl"))
     assert ofertas
