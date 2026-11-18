@@ -97,11 +97,8 @@ describe("link da oferta", () => {
     link_carrinho: "https://loja.example/checkout/cart/add?sku=1&seller=X",
   };
 
-  it("abre o carrinho com o vendedor cotado quando a oferta é de parceiro", () => {
-    expect(linkDaOferta({ ...base, origem: "marketplace" } as never)).toBe(base.link_carrinho);
-  });
-
-  it("abre a página do produto para a própria loja e para o comparador", () => {
+  it("abre a página do anúncio, sem passar pelo carrinho, para todas as origens", () => {
+    expect(linkDaOferta({ ...base, origem: "marketplace" } as never)).toBe(base.link);
     expect(linkDaOferta({ ...base, origem: "loja" } as never)).toBe(base.link);
     expect(linkDaOferta({ ...base, origem: "comparador", link_carrinho: null } as never)).toBe(
       base.link,

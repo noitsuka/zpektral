@@ -367,7 +367,8 @@ function Detalhes({
     (s) => s.tipo !== "pix",
   );
   const historicoCurto = selos.some((s) => s.tipo === "historico_insuficiente");
-  const noCarrinho = oferta.origem === "marketplace" && oferta.link_carrinho;
+  // na página do anúncio, a loja costuma mostrar primeiro o próprio vendedor
+  const parceiro = oferta.origem === "marketplace" ? oferta.vendedor : null;
 
   const linhas: { rotulo: string; valor: string; tom?: string; antes?: string }[] = [
     { rotulo: "Produto", valor: reais(oferta.preco) },
@@ -488,24 +489,11 @@ function Detalhes({
             </p>
           )}
         </div>
-        {(noCarrinho || oferta.origem === "comparador") && (
+        {(parceiro || oferta.origem === "comparador") && (
           <p className="mt-4 text-apagado">
-            {noCarrinho ? (
-              <>
-                O botão abre a oferta direto no carrinho da {oferta.loja.nome}.{" "}
-                <a
-                  href={oferta.link}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="text-tinta underline decoration-traco-forte hover:decoration-current"
-                >
-                  Ver a página do produto
-                  <span className="sr-only"> (abre em nova aba)</span>
-                </a>
-              </>
-            ) : (
-              `O preço foi lido no Buscapé, e o botão leva para a página da oferta lá.`
-            )}
+            {parceiro
+              ? `Este preço é do vendedor ${parceiro}, parceiro da ${oferta.loja.nome}. No anúncio, ele pode aparecer entre os outros vendedores.`
+              : `O preço foi lido no Buscapé, e o botão leva para a página da oferta lá.`}
           </p>
         )}
         {fatos.length > 0 && (

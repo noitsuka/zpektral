@@ -199,7 +199,7 @@ export function ocultasPorCondicao(facetas: Facetas | null, f: Filtros): number 
 }
 
 export function linkDaOferta(oferta: Oferta): string {
-  return (oferta.origem === "marketplace" && oferta.link_carrinho) || oferta.link;
+  return oferta.link;
 }
 
 export function totalPara(oferta: Oferta, pagamento: Pagamento): number {
