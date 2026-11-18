@@ -1,5 +1,7 @@
 import { expect, type Page, test } from "@playwright/test";
 
+import { cls, maioresDeslocamentos, registrarDeslocamentos } from "../e2e/cls";
+
 const CEP = "01310100";
 
 function reais(texto: string): number {
@@ -8,10 +10,10 @@ function reais(texto: string): number {
   return Number(valor[1].replaceAll(".", "").replace(",", "."));
 }
 
-async function buscar(page: Page, q: string) {
+async function buscar(page: Page, q: string, cep = CEP) {
   const erros: string[] = [];
   page.on("pageerror", (e) => erros.push(String(e)));
-  await page.goto(`/busca?${new URLSearchParams({ q, cep: CEP })}`);
+  await page.goto(`/busca?${new URLSearchParams({ q, cep })}`);
   await expect(page.getByText(/lojas? (consultadas?|responderam)/).first()).toBeVisible({
     timeout: 60_000,
   });
@@ -67,4 +69,18 @@ test("o histórico de preço responde para as ofertas da busca", async ({ page }
   });
   await buscar(page, "air fryer");
   expect((await historico).status()).toBe(200);
+});
+
+// Medida manual para comparar mudanças: as lojas respondem em ritmos diferentes, e a lista
+// não pode sacudir enquanto isso (CLS de sessão, como o Chrome mede). Outro CEP para a busca
+// não sair do cache: no desktop vem lote a lote; no celular, a mesma busca chega toda de uma vez.
+test("a lista não sacode enquanto as lojas respondem", async ({ page }) => {
+  await registrarDeslocamentos(page);
+  const erros = await buscar(page, "geladeira frost free", "30130010");
+  await page.waitForTimeout(1000);
+  const medido = await cls(page);
+  const maiores = await maioresDeslocamentos(page);
+  test.info().annotations.push({ type: "cls", description: `${medido.toFixed(3)}: ${maiores}` });
+  expect(medido, maiores).toBeLessThan(0.1);
+  expect(erros).toEqual([]);
 });

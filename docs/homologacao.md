@@ -122,7 +122,7 @@ npx playwright test -c playwright.real.config.ts
 Remove-Item Env:SITE_REMOTO
 ```
 
-   Espera-se 6 testes passando (3 no desktop e 3 no celular). Com `SITE_REMOTO`, a suíte não sobe servidor local. Esse caminho foi validado em 18/11/2026 contra servidores locais subidos à parte.
+   Espera-se 8 testes passando (4 no desktop e 4 no celular). Um deles mede o CLS de uma busca ao vivo e exige menos de 0,1. Com `SITE_REMOTO`, a suíte não sobe servidor local. Esse caminho foi validado em 18/11/2026 contra servidores locais subidos à parte.
 
 3. Busca com CEP de outra região (por exemplo `69900-001`, em Rio Branco; o `69900-000` não existe para o serviço de CEP e cai no erro de CEP): quando ninguém entrega, a tela diz "Nenhuma loja entrega no CEP".
 4. `GET https://zpektral-api-homologacao.vercel.app/ofertas/quedas` responde 200 (lista vazia é esperada no começo).

@@ -1,4 +1,6 @@
 import { readFileSync } from "node:fs";
+import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import path from "node:path";
 
 import type { Page } from "@playwright/test";
@@ -15,6 +17,45 @@ function transmissao(nome: string): string {
   return readFileSync(path.join(__dirname, "dados", `${nome}.sse`), "utf-8")
     .replaceAll(/"consultado_em":"[^"]+"/g, `"consultado_em":"${agora.toISOString()}"`)
     .replaceAll(/"preco_valido_ate":"[^"]+"/g, `"preco_valido_ate":"${validade}"`);
+}
+
+export type Evento = { nome: string; dados: Record<string, unknown> };
+
+export function eventos(nome: string): Evento[] {
+  return transmissao(nome)
+    .split("\n\n")
+    .filter(Boolean)
+    .map((bloco) => {
+      const [evento, dados] = bloco.split("\ndata: ");
+      return { nome: evento.replace("event: ", ""), dados: JSON.parse(dados) };
+    });
+}
+
+export type Trecho = Evento & { espera: number; depoisDe?: Promise<unknown> };
+
+// O route.fulfill entrega o SSE inteiro de uma vez. Para ver a lista mudando lote a lote, como
+// com as lojas reais, a transmissão vem de um servidor local que solta cada evento no seu tempo.
+export async function transmitirAosPoucos(page: Page, trechos: Trecho[]) {
+  const servidor = createServer(async (_, resposta) => {
+    resposta.writeHead(200, { ...CORS, "content-type": "text/event-stream" });
+    for (const { nome, dados, espera, depoisDe } of trechos) {
+      await depoisDe;
+      await new Promise((r) => setTimeout(r, espera));
+      if (resposta.destroyed) return;
+      resposta.write(`event: ${nome}\ndata: ${JSON.stringify(dados)}\n\n`);
+    }
+    resposta.end();
+  });
+  await new Promise<void>((pronto) => servidor.listen(0, "127.0.0.1", pronto));
+  const { port } = servidor.address() as AddressInfo;
+  await page.route(
+    (url) => url.pathname === "/busca/transmissao",
+    (rota) => rota.continue({ url: `http://127.0.0.1:${port}/` }),
+  );
+  page.once("close", () => {
+    servidor.closeAllConnections();
+    servidor.close();
+  });
 }
 
 function cenario(q: string | null, cep: string | null): string | null {
