@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, MapPin, RotateCw } from "lucide-react";
+import { ChevronDown, CircleX, MapPin, RotateCw } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -38,7 +38,14 @@ import { avaliarPromocao, type Promocao } from "@/nucleo/promocao";
 import { comparadoAoTipico, precosTipicos } from "@/nucleo/referencia";
 import { rankingAoVivo, todasOfertas } from "@/nucleo/transmissao";
 import type { Filtros, Oferta, PaginaResultados } from "@/nucleo/tipos";
-import { agrupar, fatiar, melhorOferta, motivoDoVazio, separarParecidos } from "@/nucleo/vitrine";
+import {
+  agrupar,
+  fatiar,
+  lojasFora,
+  melhorOferta,
+  motivoDoVazio,
+  separarParecidos,
+} from "@/nucleo/vitrine";
 
 function useAtrasado<T>(valor: T, ms: number): T {
   const [atual, setAtual] = useState(valor);
@@ -255,6 +262,10 @@ export function Resultados() {
   const mensagemDeErro = erro ?? (final ? null : transmissao.erro);
   const esperandoHistorico = precisaDeTudo && terminou && carregandoHistorico;
   const vazio = terminou && !ranqueadas.length && !esperandoHistorico && !mensagemDeErro;
+  const motivo = vazio ? motivoDoVazio({ fontes: transmissao.fontes, ofertas: transmitido }) : null;
+  // Sem nenhuma oferta para filtrar, filtros e ordenação só ocupam espaço.
+  const semFerramentas =
+    (vazio && motivo !== "filtros_escondem") || (!!mensagemDeErro && !ranqueadas.length);
 
   return (
     <div className="min-h-dvh">
@@ -332,9 +343,15 @@ export function Resultados() {
         {mensagemDeErro && (
           <div
             role="alert"
-            className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-etiqueta border border-falha/40 bg-falha-suave px-4 py-3 text-falha"
+            className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-etiqueta border-2 border-falha bg-etiqueta px-4 py-3"
           >
-            <span>{mensagemDeErro}</span>
+            <p className="flex flex-wrap items-center gap-2">
+              <span className="carimbo text-falha">
+                <CircleX className="size-3" strokeWidth={2.5} aria-hidden />
+                Interrompida
+              </span>
+              {mensagemDeErro}
+            </p>
             <button type="button" onClick={tentarDeNovo} className="botao botao-secundario">
               <RotateCw className="size-4" aria-hidden />
               Tentar de novo
@@ -342,16 +359,22 @@ export function Resultados() {
           </div>
         )}
 
-        <div className="mt-5 lg:grid lg:grid-cols-[14.5rem_minmax(0,1fr)] lg:gap-8">
+        <div
+          className={`mt-5 ${semFerramentas ? "" : "lg:grid lg:grid-cols-[14.5rem_minmax(0,1fr)] lg:gap-8"}`}
+        >
           <aside
             aria-label="Filtros"
+            hidden={semFerramentas}
             className="hidden lg:sticky lg:top-[calc(var(--altura-cabecalho,4rem)+1rem)] lg:block lg:max-h-[calc(100dvh-var(--altura-cabecalho,4rem)-2rem)] lg:overflow-y-auto lg:pr-2"
           >
             <PainelFiltros filtros={filtros} facetas={facetas} onChange={setFiltros} />
           </aside>
 
           <div className="min-w-0">
-            <div className="sticky top-[var(--altura-cabecalho,4rem)] z-20 -mx-4 border-b border-fio bg-fundo/95 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+            <div
+              hidden={semFerramentas}
+              className="sticky top-[var(--altura-cabecalho,4rem)] z-20 -mx-4 border-b border-fio bg-fundo/95 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none"
+            >
               <div className="flex items-center gap-2">
                 <p className="numero hidden flex-1 text-[0.9375rem] text-tinta-2 lg:block">
                   {plural(principais.length, "oferta", "ofertas")}
@@ -430,7 +453,7 @@ export function Resultados() {
               ) : !terminou ? (
                 <EsqueletoMelhor />
               ) : cep && principais.length > 0 ? (
-                <p className="rounded-etiqueta border border-fio bg-etiqueta px-4 py-3 text-[0.9375rem] text-tinta-2">
+                <p className="rounded-etiqueta border border-tinta bg-etiqueta px-4 py-3 text-[0.9375rem] text-tinta-2">
                   Nenhuma loja confirmou o frete para este CEP nas ofertas abaixo, então não há um
                   total para recomendar. Os valores mostram o preço sem frete.
                 </p>
@@ -438,7 +461,8 @@ export function Resultados() {
 
               {vazio ? (
                 <Vazio
-                  motivo={motivoDoVazio({ fontes: transmissao.fontes, ofertas: transmitido })}
+                  motivo={motivo ?? "nada_correspondente"}
+                  fora={lojasFora(transmissao.fontes)}
                   q={q}
                   cep={cep}
                   aoTentarDeNovo={tentarDeNovo}
@@ -519,7 +543,7 @@ function Parecidos({
   const mostrados = fatiar(grupos, limite);
   return (
     <details open={abertos} className="gaveta-detalhes group">
-      <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-etiqueta border border-fio bg-etiqueta px-4">
+      <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-etiqueta border border-tinta bg-etiqueta px-4">
         <span>
           <h2 className="inline font-semibold">Parecidos</h2>
           <span className="text-tinta-2">

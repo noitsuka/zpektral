@@ -36,7 +36,7 @@ export function FormularioBusca({
             className="w-full min-w-0 bg-transparent text-base outline-none"
           />
         </label>
-        <label className="flex shrink-0 items-center border-l border-fio px-2.5">
+        <label className="flex shrink-0 items-center border-l border-fio px-2">
           <span className="sr-only">CEP de entrega</span>
           <input
             id={ID_CAMPO_CEP}
@@ -45,7 +45,7 @@ export function FormularioBusca({
             inputMode="numeric"
             autoComplete="postal-code"
             placeholder="CEP"
-            className="numero w-[5.25rem] bg-transparent text-base text-acao outline-none sm:w-[6.25rem]"
+            className="numero w-[9ch] bg-transparent text-base text-acao outline-none sm:w-[6.25rem]"
           />
         </label>
         <button

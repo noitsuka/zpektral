@@ -34,26 +34,19 @@
   --text-rotulo--letter-spacing: 0.04em;
 
   --ease-saida: cubic-bezier(0.22, 1, 0.36, 1);
-  --animate-aparecer: aparecer 0.18s ease-out both;
-
-  @keyframes aparecer {
-    from {
-      opacity: 0;
-    }
-  }
 }
 
 /* Etiqueta clara: papel branco sobre cinza frio, tinta quase preta, azul de caneta para ação. */
 :root {
   color-scheme: light;
-  --fundo: #eef0ec;
+  --fundo: #eceef1;
   --etiqueta: #ffffff;
-  --etiqueta-2: #f6f7f4;
+  --etiqueta-2: #f5f6f8;
   --tinta: #15171a;
   --tinta-2: #4b5058;
   --tinta-3: #60666e;
-  --fio: #dcdfd8;
-  --borda: #858b84;
+  --fio: #d8dce2;
+  --borda: #858a93;
   --acao: #2b3db8;
   --acao-forte: #1f2e94;
   --sobre-acao: #ffffff;
@@ -137,13 +130,15 @@
     font-size: var(--text-rotulo);
     line-height: var(--text-rotulo--line-height);
     letter-spacing: var(--text-rotulo--letter-spacing);
-    font-weight: 600;
-    font-stretch: 88%;
+    font-weight: 700;
+    font-stretch: 80%;
     text-transform: uppercase;
     color: var(--tinta-2);
   }
 
+  /* Números da etiqueta: Archivo estreita, no mesmo eixo tabular em todas as lojas. */
   .numero {
+    font-stretch: 84%;
     font-variant-numeric: tabular-nums lining-nums;
     font-feature-settings:
       "tnum" 1,
@@ -161,7 +156,7 @@
     font-size: 0.6875rem;
     line-height: 1.15rem;
     font-weight: 700;
-    font-stretch: 88%;
+    font-stretch: 80%;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     white-space: nowrap;
@@ -313,6 +308,17 @@
   }
   .dialogo-filtros[open] {
     animation: subir 0.22s var(--ease-saida);
+  }
+
+  /* O carimbo assenta quando o estado do frete chega ou muda; começa visível. */
+  .carimbo {
+    animation: carimbar 0.22s var(--ease-saida);
+  }
+  @keyframes carimbar {
+    from {
+      transform: scale(1.14);
+      opacity: 0.55;
+    }
   }
 
   @keyframes reluzir {

@@ -1,20 +1,21 @@
 "use client";
 
-import { ArrowUpRight, RotateCw } from "lucide-react";
+import { ArrowUpRight, CircleX, RotateCw } from "lucide-react";
 
 import {
   CarimboTotal,
   LinhaOferta,
   ListaSelos,
-  Parcelas,
   rotuloDoTotal,
   textoDoFrete,
   type Contexto,
 } from "@/componentes/linha-oferta";
 import { Foto } from "@/componentes/foto";
 import { linkDaOferta, totalPara } from "@/nucleo/filtros";
+import { textoDoPagamento } from "@/nucleo/pagamento";
 import { dataEntrega, haQuanto, mascararCep, plural, reais } from "@/nucleo/formato";
 import type { Oferta } from "@/nucleo/tipos";
+import type { EstadoFonte } from "@/nucleo/transmissao";
 import { estadoDoTotal, type Grupo, type MelhorOferta, type MotivoVazio } from "@/nucleo/vitrine";
 
 const idDoGrupo = (chave: string) => `produto-${chave.replace(/[^a-z0-9]/gi, "-")}`;
@@ -64,7 +65,7 @@ export function CartaoGrupo({
     <section
       id={id}
       aria-labelledby={`${id}-titulo`}
-      className="scroll-mt-32 overflow-hidden rounded-etiqueta border border-fio bg-etiqueta"
+      className="scroll-mt-32 overflow-hidden rounded-etiqueta border border-tinta bg-etiqueta"
     >
       <header className="flex gap-3 px-4 pt-4 pb-3">
         <Foto imagem={comFoto.imagem} tamanho="size-16" />
@@ -163,9 +164,9 @@ export function EtiquetaMelhor({
         </div>
         <div className="col-span-full sm:col-span-1 sm:text-right">
           <p className="text-[0.8125rem] text-tinta-2">{rotuloDoTotal(estado, oferta)}</p>
-          <p className="numero text-[2rem] leading-none font-bold tracking-tight">{reais(total)}</p>
+          <p className="numero text-[2.25rem] leading-none font-bold">{reais(total)}</p>
           <p className="mt-1 text-[0.8125rem] text-tinta-2">
-            <Parcelas oferta={oferta} />
+            {textoDoPagamento(oferta, contexto.pagamento)}
           </p>
         </div>
         {selos.length > 0 && (
@@ -320,6 +321,7 @@ export function Vazio({
   aoTentarDeNovo,
   aoLimparFiltros,
   hrefSemCep,
+  fora = [],
 }: {
   motivo: MotivoVazio;
   q: string;
@@ -327,10 +329,11 @@ export function Vazio({
   aoTentarDeNovo: () => void;
   aoLimparFiltros: () => void;
   hrefSemCep: string;
+  fora?: { id: string; nome: string; situacao: EstadoFonte }[];
 }) {
   const [titulo, texto] = TEXTOS_VAZIO[motivo](q, cep);
   return (
-    <div className="rounded-etiqueta border border-fio bg-etiqueta px-5 py-8 sm:px-8">
+    <div className="rounded-etiqueta border border-tinta bg-etiqueta px-5 py-7 sm:px-8">
       <h2 className="text-[1.1875rem] font-semibold">{titulo}</h2>
       <p className="mt-1.5 max-w-[60ch] text-tinta-2">{texto}</p>
       <div className="mt-5 flex flex-wrap gap-2">
@@ -351,6 +354,23 @@ export function Vazio({
           </a>
         )}
       </div>
+      {motivo === "nenhuma_loja_respondeu" && fora.length > 0 && (
+        <ul className="mt-4 grid gap-x-6 gap-y-1.5 border-t border-tinta pt-3 text-[0.875rem] sm:grid-cols-2 lg:grid-cols-3">
+          {fora.map((f) => (
+            <li key={f.id} className="flex items-center justify-between gap-2">
+              <span className="truncate">{f.nome}</span>
+              <span className="carimbo text-falha">
+                <CircleX className="size-3" strokeWidth={2.5} aria-hidden />
+                {f.situacao === "bloqueada"
+                  ? "Recusou"
+                  : f.situacao === "tempo_esgotado"
+                    ? "Sem resposta"
+                    : "Erro"}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

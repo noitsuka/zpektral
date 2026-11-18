@@ -144,7 +144,10 @@ export function Quedas() {
         {estado.fase === "carregando" && (
           <ul aria-hidden className="space-y-3">
             {[0, 1, 2, 3].map((i) => (
-              <li key={i} className="flex gap-4 rounded-etiqueta border border-fio bg-etiqueta p-4">
+              <li
+                key={i}
+                className="flex gap-4 rounded-etiqueta border border-tinta bg-etiqueta p-4"
+              >
                 <div className="esqueleto size-16" />
                 <div className="flex-1 space-y-2 pt-1">
                   <div className="esqueleto h-4 w-3/4" />
@@ -159,7 +162,7 @@ export function Quedas() {
         {estado.fase === "erro" && (
           <div
             role="alert"
-            className="rounded-etiqueta border border-falha/40 bg-falha-suave px-5 py-6"
+            className="rounded-etiqueta border-2 border-falha bg-etiqueta px-5 py-6"
           >
             <h2 className="font-semibold text-falha">{estado.mensagem}</h2>
             <p className="mt-1 text-tinta-2">
@@ -188,7 +191,7 @@ export function Quedas() {
                 {filtrados.map((i) => (
                   <li
                     key={i.oferta}
-                    className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-3 rounded-etiqueta border border-fio bg-etiqueta p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
+                    className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-3 rounded-etiqueta border border-tinta bg-etiqueta p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
                   >
                     <Foto imagem={i.imagem} tamanho="size-16" />
                     <div className="min-w-0">
@@ -237,7 +240,7 @@ export function Quedas() {
                 ))}
               </ul>
             ) : (
-              <div className="mt-3 rounded-etiqueta border border-fio bg-etiqueta px-5 py-6">
+              <div className="mt-3 rounded-etiqueta border border-tinta bg-etiqueta px-5 py-6">
                 {temFiltro ? (
                   <>
                     <h2 className="font-semibold">Nenhuma queda com esses filtros</h2>

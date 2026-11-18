@@ -184,19 +184,73 @@ function pagamentoDoTotal(oferta: Oferta, pagamento: Pagamento): string | null {
   return "no cartão";
 }
 
-export function Parcelas({ oferta }: { oferta: Oferta }) {
+function valorDoFrete(oferta: Oferta, estado: EstadoTotal): string {
+  const f = oferta.frete;
+  switch (estado) {
+    case "confirmado":
+      return f.valor ? reais(f.valor) : "grátis";
+    case "estimado":
+      return f.status === "gratis_anunciado" ? "grátis anunciado" : reais(f.valor ?? 0);
+    case "nao_entrega":
+      return "não entrega";
+    case "indisponivel":
+      return "sem estoque";
+    case "calculando":
+      return "calculando";
+    default:
+      return "não incluído";
+  }
+}
+
+function CamposDaLinha({
+  oferta,
+  estado,
+  cep,
+}: {
+  oferta: Oferta;
+  estado: EstadoTotal;
+  cep: string | null;
+}) {
+  const t = oferta.totais;
   const p = oferta.parcelamento;
-  if (!p || p.parcelas < 2) return null;
-  const custo = custoDoParcelamento(oferta.preco, p);
+  const custo = p ? custoDoParcelamento(oferta.preco, p) : null;
   return (
-    <span>
-      ou {p.parcelas}x de {reais(p.valor)}{" "}
-      {custo && custo.mensal > 0 ? (
-        <span className="text-alerta">com juros de {porcentagem(custo.mensal)} ao mês</span>
-      ) : (
-        "sem juros"
-      )}
-    </span>
+    <dl className="grid grid-cols-3 divide-x divide-tinta border-y border-tinta py-1.5 text-[0.875rem]">
+      <div className="min-w-0 pr-2">
+        <dt className="rotulo-campo truncate">{cep ? `Frete ${mascararCep(cep)}` : "Frete"}</dt>
+        <dd className="mt-0.5 space-y-0.5">
+          <CarimboTotal estado={estado} />
+          <span className="numero block font-semibold">{valorDoFrete(oferta, estado)}</span>
+        </dd>
+      </div>
+      <div className="min-w-0 px-2">
+        <dt className="rotulo-campo">No Pix</dt>
+        <dd className="numero mt-0.5 font-semibold">
+          {t?.pix != null && t.pix < t.avista ? (
+            reais(t.pix)
+          ) : (
+            <span className="font-normal text-tinta-2">sem desconto</span>
+          )}
+        </dd>
+      </div>
+      <div className="min-w-0 pl-2">
+        <dt className="rotulo-campo">Parcelas</dt>
+        <dd className="numero mt-0.5 font-semibold">
+          {p && p.parcelas > 1 ? (
+            <>
+              {p.parcelas}x{" "}
+              {custo && custo.mensal > 0 ? (
+                <span className="text-alerta">{porcentagem(custo.mensal)} a.m.</span>
+              ) : (
+                <span className="font-normal text-tinta-2">sem juros</span>
+              )}
+            </>
+          ) : (
+            <span className="font-normal text-tinta-2">não informadas</span>
+          )}
+        </dd>
+      </div>
+    </dl>
   );
 }
 
@@ -224,7 +278,7 @@ export function LinhaOferta({
   return (
     <article
       aria-label={`${oferta.loja.nome}, ${reais(total)}`}
-      className={`grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2 px-4 py-3.5 [grid-template-areas:'loja_total'_'frete_frete'_'acoes_acoes'] sm:grid-cols-[minmax(7.5rem,11rem)_minmax(0,1fr)_auto] sm:gap-x-5 sm:[grid-template-areas:'loja_frete_total'_'loja_frete_acoes'] ${
+      className={`grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2.5 px-4 py-3.5 [grid-template-areas:'loja_total'_'frete_frete'_'acoes_acoes'] sm:grid-cols-[minmax(7.5rem,10rem)_minmax(0,1fr)_auto] sm:gap-x-5 sm:[grid-template-areas:'loja_frete_total'_'loja_frete_acoes'] ${
         destaque ? "bg-acao-suave/60" : ""
       } ${apagada ? "text-tinta-2" : ""}`}
     >
@@ -241,23 +295,24 @@ export function LinhaOferta({
       </div>
 
       <div className="min-w-0 space-y-2 [grid-area:frete]">
-        <div>
-          <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.875rem]">
-            <CarimboTotal estado={estado} />
-            <span>{textoDoFrete(oferta, estado, contexto.cep)}</span>
-          </p>
-          {entrega && <p className="mt-0.5 text-[0.875rem] text-tinta-2">{entrega}</p>}
-        </div>
+        <CamposDaLinha oferta={oferta} estado={estado} cep={contexto.cep} />
+        <p className="text-[0.8125rem] text-tinta-2">
+          {estado === "confirmado" ? entrega : textoDoFrete(oferta, estado, contexto.cep)}
+          {quando && (
+            <span className="text-tinta-3">
+              {estado === "confirmado" && !entrega ? "" : " · "}Preço consultado {quando}
+            </span>
+          )}
+        </p>
         <ListaSelos
           selos={[...seloDoTipico(contexto.tipico(oferta)), ...promocao.selos]}
           alertas={oferta.alertas}
         />
-        {quando && <p className="text-[0.8125rem] text-tinta-3">Preço consultado {quando}</p>}
       </div>
 
       <div className="text-right [grid-area:total]">
         <p className="text-[0.75rem] text-tinta-3">{rotuloDoTotal(estado, oferta)}</p>
-        <p className="numero text-[1.1875rem] leading-tight font-semibold whitespace-nowrap">
+        <p className="numero text-[1.3125rem] leading-tight font-bold whitespace-nowrap">
           {reais(total)}
         </p>
         {forma && estado !== "nao_entrega" && (
