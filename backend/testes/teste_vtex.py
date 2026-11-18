@@ -630,15 +630,22 @@ async def teste_validade_do_catalogo(simulador, http, config, bruto, dias_valido
         assert datetime.fromisoformat(validade) == agora + timedelta(days=dias_validos)
 
 
+def _simulacao_com_promocao() -> dict:
+    # a Pague Menos proíbe o checkout no robots.txt: a promoção vai num checkout permitido
+    dados = gravacao_json("vtex_simulacao_drogariasaopaulo.json")
+    dados["ratesAndBenefitsData"]["rateAndBenefitsIdentifiers"] = [
+        {"id": "x", "name": "SUPEROFERTA", "featured": True},
+        {"id": "y", "name": "Regra interna", "featured": False},
+    ]
+    return dados
+
+
 def teste_checkout_informa_promocao_aplicada_e_instante_da_leitura():
     oferta = oferta_vazia()
-    oferta.preco = 7124
-    aplicar_simulacao(
-        oferta, gravacao_json("vtex_simulacao_paguemenos.json"), tem_cep=False, cotada_em=CAPTURA
-    )
-    assert oferta.preco == 7124
+    oferta.preco = 5759
+    aplicar_simulacao(oferta, _simulacao_com_promocao(), tem_cep=False, cotada_em=CAPTURA)
+    assert oferta.preco == 5759
     assert oferta.promocoes == ["SUPEROFERTA"]
-    assert oferta.preco_valido_ate is None
     assert oferta.consultado_em == "2026-11-17T22:00:00+00:00"
 
 
@@ -669,7 +676,7 @@ def teste_checkout_substitui_promocao_e_validade_do_catalogo():
 def teste_checkout_sem_preco_mantem_o_que_o_catalogo_informou():
     oferta = oferta_vazia()
     oferta.promocoes, oferta.consultado_em = ["SUPEROFERTA"], "2026-11-17T21:55:00+00:00"
-    dados = gravacao_json("vtex_simulacao_paguemenos.json")
+    dados = _simulacao_com_promocao()
     dados["paymentData"]["installmentOptions"] = []
     for chave in ("price", "sellingPrice"):
         dados["items"][0][chave] = None
@@ -678,13 +685,15 @@ def teste_checkout_sem_preco_mantem_o_que_o_catalogo_informou():
     assert oferta.consultado_em == "2026-11-17T21:55:00+00:00"
 
 
-@pytest.mark.parametrize(
-    "gravacao", ["vtex_simulacao_paguemenos.json", "vtex_simulacao_drogariasaopaulo.json"]
-)
-def teste_cotacao_compacta_mantem_promocao_e_validade(gravacao):
+@pytest.mark.parametrize("com_promocao", [True, False])
+def teste_cotacao_compacta_mantem_promocao_e_validade(com_promocao):
     from app.fontes.vtex import compactar
 
-    bruto = gravacao_json(gravacao)
+    bruto = (
+        _simulacao_com_promocao()
+        if com_promocao
+        else gravacao_json("vtex_simulacao_drogariasaopaulo.json")
+    )
     completa, pequeno = oferta_vazia(), oferta_vazia()
     aplicar_simulacao(completa, bruto, tem_cep=False, cotada_em=CAPTURA)
     aplicar_simulacao(pequeno, compactar(bruto), tem_cep=False, cotada_em=CAPTURA)
