@@ -20,7 +20,9 @@ import {
 import { useAtalhoBusca } from "@/ganchos/use-atalho-busca";
 import { useFaviconVivo } from "@/ganchos/use-favicon-vivo";
 import { useHistoricoOfertas } from "@/ganchos/use-historico-ofertas";
+import { useInteracao } from "@/ganchos/use-interacao";
 import { useTransmissaoBusca } from "@/ganchos/use-transmissao-busca";
+import { useVistos } from "@/ganchos/use-vistos";
 import { filtrarAoVivo, rebaixarMuitoAbaixo } from "@/nucleo/ao-vivo";
 import { ErroApi, buscarPagina } from "@/nucleo/api";
 import { REPOUSO, espectroDe } from "@/nucleo/espectro";
@@ -35,6 +37,7 @@ import {
   ocultasPorCondicao,
 } from "@/nucleo/filtros";
 import { hojeEmBrasilia, mascararCep, plural } from "@/nucleo/formato";
+import { destaqueSeguro, foraDeOrdem, ordemEstavel } from "@/nucleo/ordem-estavel";
 import { avaliarPromocao, type Promocao } from "@/nucleo/promocao";
 import { comparadoAoTipico, precosTipicos } from "@/nucleo/referencia";
 import { rankingAoVivo, todasOfertas } from "@/nucleo/transmissao";
@@ -46,6 +49,7 @@ import {
   melhorOferta,
   motivoDoVazio,
   separarParecidos,
+  type MelhorOferta,
 } from "@/nucleo/vitrine";
 
 function useAtrasado<T>(valor: T, ms: number): T {
@@ -93,7 +97,10 @@ export function Resultados() {
   const [visiveis, setVisiveis] = useState({ chave: "", quantas: POR_VEZ });
   const [erro, setErro] = useState<Error | null>(null);
   const [carregandoMais, setCarregandoMais] = useState(false);
+  const [reordenacoes, setReordenacoes] = useState(0);
   const cabecalho = useRef<HTMLElement>(null);
+  const lista = useRef<HTMLElement>(null);
+  const blocoDestaque = useRef<HTMLDivElement>(null);
   const requisicao = useRef<AbortController | null>(null);
   const agora = useAgora(30_000);
   // recalculado a cada render: uma aba aberta que passa da meia-noite muda de dia
@@ -173,15 +180,36 @@ export function Resultados() {
   }, [base, final, filtros, promocaoDe]);
 
   const { principais, parecidos } = useMemo(() => separarParecidos(ranqueadas), [ranqueadas]);
-  const grupos = useMemo(() => agrupar(principais), [principais]);
-  const gruposParecidos = useMemo(() => agrupar(parecidos), [parecidos]);
   const chaveVisiveis = `${q}|${cep}|${JSON.stringify(filtros)}`;
+  // Enquanto as lojas respondem, o que já passou pela tela fica no lugar. Mudar a ordem, um
+  // filtro, a busca ou pedir a ordem atualizada volta ao ranking puro.
+  const vistos = useVistos(lista, varrendo, `${chaveVisiveis}|${tentativa}|${reordenacoes}`);
+  const ordenadas = useMemo(() => ordemEstavel(principais, vistos), [principais, vistos]);
+  const grupos = useMemo(() => agrupar(ordenadas), [ordenadas]);
+  const gruposParecidos = useMemo(() => agrupar(parecidos), [parecidos]);
   const quantas = visiveis.chave === chaveVisiveis ? visiveis.quantas : POR_VEZ;
   const mostrados = fatiar(grupos, quantas);
   const ofertasMostradas = mostrados.reduce((n, g) => n + g.ofertas.length, 0);
   const melhor = useMemo(
     () => melhorOferta(principais, filtros, cep !== null),
     [principais, filtros, cep],
+  );
+  // O destaque só troca de oferta quando ninguém está com o ponteiro ou o foco nele.
+  const interagindo = useInteracao(blocoDestaque);
+  const [exibido, setExibido] = useState<MelhorOferta | null>(null);
+  const destaque = destaqueSeguro(exibido, melhor, interagindo);
+  if (destaque !== exibido) setExibido(destaque);
+  // A oferta do destaque sai da lista, salvo se a pessoa já a viu lá: tirar empurraria o resto.
+  const idDestaque = destaque?.oferta.id;
+  const omitir = idDestaque && !vistos.includes(idDestaque) ? idDestaque : undefined;
+  const foraDoRanking = useMemo(
+    () =>
+      terminou &&
+      foraDeOrdem(
+        ordenadas.filter((o) => o.id !== omitir),
+        principais.filter((o) => o.id !== idDestaque),
+      ),
+    [terminou, ordenadas, principais, omitir, idDestaque],
   );
 
   const precisaDeTudo = filtros.queda_verificada || ORDENS_LOCAIS.has(filtros.ordem);
@@ -190,7 +218,7 @@ export function Resultados() {
       ? base.map((o) => o.id)
       : [
           ...mostrados.flatMap((g) => g.ofertas.map((o) => o.id)),
-          ...(melhor ? [melhor.oferta.id] : []),
+          ...(destaque ? [destaque.oferta.id] : []),
         ]
   ).join(",");
   useEffect(() => {
@@ -213,8 +241,8 @@ export function Resultados() {
     : principais.length;
   const restantes = totalPrincipais - ofertasMostradas;
   const podeCarregarMais = restantes > 0;
-  const grupoDoMelhor = melhor
-    ? mostrados.find((g) => g.ofertas.includes(melhor.oferta))
+  const grupoDoMelhor = destaque
+    ? mostrados.find((g) => g.ofertas.some((o) => o.id === destaque.oferta.id))
     : undefined;
   const outrasLojas = grupoDoMelhor
     ? new Set(grupoDoMelhor.ofertas.map((o) => o.loja.id)).size - 1
@@ -276,6 +304,10 @@ export function Resultados() {
   // Sem nenhuma oferta para filtrar, filtros e ordenação só ocupam espaço.
   const semFerramentas =
     (vazio && motivo !== "filtros_escondem") || (!!mensagemDeErro && !ranqueadas.length);
+
+  // com menos de três grupos na tela, o esqueleto segura o lugar dos que ainda vão chegar
+  const comLinhas = mostrados.filter((g) => g.ofertas.some((o) => o.id !== omitir));
+  const faltam = !terminou || esperandoHistorico ? Math.max(0, 3 - comLinhas.length) : 0;
 
   return (
     <div className="min-h-dvh">
@@ -371,6 +403,20 @@ export function Resultados() {
               terminou={terminou}
               ofertas={principais.length}
               interrompida={transmissaoFalhou && !final}
+              acao={
+                foraDoRanking && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReordenacoes((n) => n + 1);
+                      document.getElementById("ofertas")?.focus({ preventScroll: true });
+                    }}
+                    className="botao-texto shrink-0 text-ouro underline decoration-ouro/40 hover:text-ouro hover:decoration-ouro pointer-coarse:-my-1"
+                  >
+                    Atualizar a ordem
+                  </button>
+                )
+              }
             />
           </>
         )}
@@ -426,22 +472,24 @@ export function Resultados() {
         </div>
 
         <div id="ofertas" tabIndex={-1} className="mt-4 scroll-mt-40 outline-none">
-          {melhor ? (
-            <MelhorTotal
-              melhor={melhor}
-              contexto={contexto}
-              outrasLojas={outrasLojas}
-              chaveGrupo={grupoDoMelhor?.chave ?? ""}
-              provisoria={varrendo}
-            />
-          ) : !terminou ? (
-            <EsqueletoMelhor />
-          ) : cep && principais.length > 0 ? (
-            <p className="text-[0.9375rem] text-apagado">
-              Nenhuma loja confirmou o frete para este CEP nas ofertas abaixo, então não há um total
-              para recomendar. Os valores mostram o preço sem frete.
-            </p>
-          ) : null}
+          <div ref={blocoDestaque}>
+            {destaque ? (
+              <MelhorTotal
+                melhor={destaque}
+                contexto={contexto}
+                outrasLojas={outrasLojas}
+                chaveGrupo={grupoDoMelhor?.chave ?? ""}
+                provisoria={varrendo}
+              />
+            ) : !terminou ? (
+              <EsqueletoMelhor />
+            ) : cep && principais.length > 0 ? (
+              <p className="text-[0.9375rem] text-apagado">
+                Nenhuma loja confirmou o frete para este CEP nas ofertas abaixo, então não há um
+                total para recomendar. Os valores mostram o preço sem frete.
+              </p>
+            ) : null}
+          </div>
 
           {vazio ? (
             <Vazio
@@ -455,22 +503,16 @@ export function Resultados() {
               hrefSemCep={`${pathname}?${semCep}`}
             />
           ) : (
-            <section aria-labelledby="titulo-ofertas">
+            <section ref={lista} aria-labelledby="titulo-ofertas">
               <h2 id="titulo-ofertas" className="sr-only">
                 Ofertas por produto
               </h2>
-              {mostrados.length ? (
-                mostrados.map((g) => (
-                  <GrupoProduto
-                    key={g.chave}
-                    grupo={g}
-                    contexto={contexto}
-                    omitir={melhor?.oferta.id}
-                  />
-                ))
-              ) : !terminou || esperandoHistorico ? (
-                <EsqueletoGrupos />
-              ) : null}
+              {mostrados.map((g) => (
+                // pela primeira oferta: no fim da busca o grupo pode ganhar outra chave, e com a
+                // chave dele o bloco seria remontado e as linhas entrariam de novo
+                <GrupoProduto key={g.ofertas[0].id} grupo={g} contexto={contexto} omitir={omitir} />
+              ))}
+              {faltam > 0 && <EsqueletoGrupos quantos={faltam} />}
 
               {podeCarregarMais && mostrados.length > 0 && (
                 <button

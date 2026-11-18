@@ -1,4 +1,5 @@
 import { ChevronDown } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { plural } from "@/nucleo/formato";
 import type { CelulaFonte, EstadoFonte } from "@/nucleo/transmissao";
@@ -42,11 +43,14 @@ export function StatusBusca({
   terminou,
   ofertas,
   interrompida = false,
+  acao,
 }: {
   fontes: CelulaFonte[];
   terminou: boolean;
   ofertas: number;
   interrompida?: boolean;
+  /** ação discreta no fim da linha; o texto encolhe para a linha não quebrar e empurrar a lista */
+  acao?: ReactNode;
 }) {
   const { ativas, responderam } = contagem(fontes);
   const fora = lojasFora(ativas);
@@ -66,14 +70,14 @@ export function StatusBusca({
       : lojas;
 
   return (
-    <div className="numero text-[0.875rem] text-apagado">
+    <div className="numero flex items-start gap-x-4 text-[0.875rem] text-apagado">
       <p className="sr-only" role="status">
         {terminou ? `Busca concluída. ${texto}.` : "Consultando as lojas."}
       </p>
       {terminou && fora.length > 0 ? (
-        <details className="gaveta-detalhes">
-          <summary className="botao-texto cursor-pointer">
-            {texto}
+        <details className="gaveta-detalhes min-w-0 flex-1">
+          <summary className="botao-texto max-w-full cursor-pointer">
+            <span className="min-w-0 truncate">{texto}</span>
             <span className="sr-only">, ver as que ficaram de fora</span>
             <ChevronDown className="chevron size-4" aria-hidden />
           </summary>
@@ -86,10 +90,11 @@ export function StatusBusca({
           </ul>
         </details>
       ) : (
-        <p className="flex min-h-9 items-center" aria-hidden>
-          {texto}
+        <p className="flex min-h-9 min-w-0 flex-1 items-center" aria-hidden>
+          <span className="truncate">{texto}</span>
         </p>
       )}
+      {acao}
     </div>
   );
 }

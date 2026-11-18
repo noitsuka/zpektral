@@ -180,6 +180,35 @@ function BotaoLoja({ oferta, principal }: { oferta: Oferta; principal: boolean }
 const GRADE =
   "grid-cols-[minmax(0,1fr)_auto] [grid-template-areas:'loja_total'_'info_total'_'conta_cta'_'detalhe_detalhe'] sm:grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)_auto_12.5rem] sm:[grid-template-areas:'loja_info_total_cta'_'loja_conta_total_cta'_'detalhe_detalhe_detalhe_detalhe'] lg:grid-cols-[minmax(6.5rem,9rem)_minmax(0,1fr)_8.5rem_9.5rem_12.5rem] lg:[grid-template-areas:'loja_info_conta_total_cta'_'detalhe_detalhe_detalhe_detalhe_detalhe']";
 
+const barra = (largura: string) => (
+  <span className={`esqueleto inline-block h-[0.8em] align-middle ${largura}`} />
+);
+
+// A mesma grade e as mesmas alturas de texto e de botão da linha real, em todas as larguras,
+// para a oferta que chega ocupar o lugar exato do esqueleto.
+export function EsqueletoLinha() {
+  return (
+    <div className={`grid items-center gap-x-4 py-3 sm:gap-x-5 sm:px-4 lg:py-2.5 ${GRADE}`}>
+      <p className="self-start font-medium [grid-area:loja] lg:self-center">{barra("w-24")}</p>
+      <p className="numero self-start text-[0.875rem] [grid-area:info] lg:self-center">
+        {barra("w-40")}
+        {/* na coluna estreita o frete com o prazo costuma ocupar duas linhas */}
+        <span className="block lg:hidden">{barra("w-24")}</span>
+      </p>
+      <div className="self-start text-right [grid-area:total] sm:self-center">
+        <p className="font-mono text-[1.1875rem] leading-tight">{barra("w-28")}</p>
+        <p className="mt-0.5 text-[0.8125rem] leading-snug">{barra("w-24")}</p>
+      </div>
+      <div className="mt-1 [grid-area:conta] lg:mt-0">
+        <span className="botao-texto">{barra("w-20")}</span>
+      </div>
+      <div className="mt-1 flex justify-end [grid-area:cta] sm:mt-0">
+        <span className="botao esqueleto w-full pointer-fine:min-h-9" />
+      </div>
+    </div>
+  );
+}
+
 export function LinhaOferta({
   oferta,
   contexto,

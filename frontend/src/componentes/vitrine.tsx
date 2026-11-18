@@ -3,7 +3,7 @@
 import { RotateCw } from "lucide-react";
 
 import { Foto } from "@/componentes/foto";
-import { LinhaOferta, type Contexto } from "@/componentes/linha-oferta";
+import { EsqueletoLinha, LinhaOferta, type Contexto } from "@/componentes/linha-oferta";
 import { mascararCep, plural, reais } from "@/nucleo/formato";
 import type { EstadoFonte } from "@/nucleo/transmissao";
 import type { Grupo, MelhorOferta, MotivoVazio } from "@/nucleo/vitrine";
@@ -35,6 +35,7 @@ export function GrupoProduto({
     <section
       id={id}
       aria-labelledby={`${id}-titulo`}
+      data-chaves={JSON.stringify([...linhas.map((o) => o.id), grupo.chave])}
       className="scroll-mt-40 border-t border-traco pt-5 pb-1"
     >
       {/* do tablet para cima a foto fica na coluna do recuo, e a primeira loja encosta no título */}
@@ -84,107 +85,95 @@ export function MelhorTotal({
         {confirmado ? "Menor total no seu CEP" : "Menor preço, ainda sem o frete"}
         {provisoria && <span className="font-normal text-apagado"> até agora</span>}
       </h2>
-      <div className="mt-2 flex items-start gap-4 sm:relative sm:pr-4 sm:pl-20">
-        <Foto imagem={oferta.imagem} tamanho="size-12 sm:absolute sm:top-0 sm:left-4" />
-        <p className="line-clamp-2 pt-0.5 text-[1rem] leading-snug font-medium">{oferta.titulo}</p>
-      </div>
-      <div className="sm:pl-16 [&>article]:pt-2 lg:[&>article]:pt-1">
-        <LinhaOferta
-          oferta={oferta}
-          contexto={contexto}
-          principal
-          antesDaConta={
-            <p>
-              {confirmado
-                ? `É o menor total entre ${plural(melhor.comparadas, "oferta com frete confirmado", "ofertas com frete confirmado")} para este CEP.`
-                : `É o menor preço entre ${plural(melhor.comparadas, "oferta", "ofertas")}. Informe o CEP para comparar com o frete.`}
-              {melhor.segunda && melhor.diferenca !== null && (
-                <>
-                  {" "}
-                  A próxima loja, {melhor.segunda.loja.nome}, cobra{" "}
-                  <span className="numero whitespace-nowrap text-tinta">
-                    {reais(melhor.diferenca)}
-                  </span>{" "}
-                  a mais.
-                </>
-              )}
-              {outrasLojas > 0 && (
-                <>
-                  {" "}
-                  <a
-                    href={`#${idDoGrupo(chaveGrupo)}`}
-                    className="text-tinta underline decoration-traco-forte hover:decoration-current"
-                  >
-                    Comparar em {plural(outrasLojas, "outra loja", "outras lojas")}
-                  </a>
-                </>
-              )}
-            </p>
-          }
-        />
+      {/* oferta nova, bloco novo; o título guarda duas linhas para a troca não mudar a altura */}
+      <div key={oferta.id} className="troca">
+        <div className="mt-2 flex items-start gap-4 sm:relative sm:pr-4 sm:pl-20">
+          <Foto imagem={oferta.imagem} tamanho="size-12 sm:absolute sm:top-0 sm:left-4" />
+          <p className="line-clamp-2 min-h-[calc(2lh+0.125rem)] pt-0.5 text-[1rem] leading-snug font-medium">
+            {oferta.titulo}
+          </p>
+        </div>
+        <div className="sm:pl-16 [&>article]:pt-2 lg:[&>article]:pt-1">
+          <LinhaOferta
+            oferta={oferta}
+            contexto={contexto}
+            principal
+            antesDaConta={
+              <p>
+                {confirmado
+                  ? `É o menor total entre ${plural(melhor.comparadas, "oferta com frete confirmado", "ofertas com frete confirmado")} para este CEP.`
+                  : `É o menor preço entre ${plural(melhor.comparadas, "oferta", "ofertas")}. Informe o CEP para comparar com o frete.`}
+                {melhor.segunda && melhor.diferenca !== null && (
+                  <>
+                    {" "}
+                    A próxima loja, {melhor.segunda.loja.nome}, cobra{" "}
+                    <span className="numero whitespace-nowrap text-tinta">
+                      {reais(melhor.diferenca)}
+                    </span>{" "}
+                    a mais.
+                  </>
+                )}
+                {outrasLojas > 0 && (
+                  <>
+                    {" "}
+                    <a
+                      href={`#${idDoGrupo(chaveGrupo)}`}
+                      className="text-tinta underline decoration-traco-forte hover:decoration-current"
+                    >
+                      Comparar em {plural(outrasLojas, "outra loja", "outras lojas")}
+                    </a>
+                  </>
+                )}
+              </p>
+            }
+          />
+        </div>
       </div>
     </section>
   );
 }
 
-// Mesma estrutura de MelhorTotal nas duas larguras, para a chegada do bloco real não empurrar a lista.
+// Foto, título e uma linha de oferta com a estrutura de GrupoProduto e MelhorTotal, para a
+// chegada do bloco real não empurrar nada.
+function EsqueletoCorpo({ duasLinhas = false }: { duasLinhas?: boolean }) {
+  return (
+    <>
+      <div className="flex items-start gap-4 sm:relative sm:pr-4 sm:pl-20">
+        <div className="esqueleto size-12 shrink-0 sm:absolute sm:top-0 sm:left-4" />
+        <p
+          className={`flex-1 pt-0.5 text-[1rem] leading-snug ${duasLinhas ? "min-h-[calc(2lh+0.125rem)]" : ""}`}
+        >
+          <span className="esqueleto inline-block h-[0.8em] w-3/4 align-middle" />
+        </p>
+      </div>
+      <div className="sm:pl-16 [&>div]:pt-2 lg:[&>div]:pt-1">
+        <EsqueletoLinha />
+      </div>
+    </>
+  );
+}
+
 export function EsqueletoMelhor() {
   return (
     <div aria-hidden className="border-t border-traco pt-4 pb-1">
-      <div className="esqueleto my-[3px] h-3.5 w-40 sm:mx-4" />
-      <div className="mt-2 flex items-start gap-4 sm:relative sm:pr-4 sm:pl-20">
-        <div className="esqueleto size-12 shrink-0 sm:absolute sm:top-0 sm:left-4" />
-        <div className="flex-1 space-y-2 pt-1">
-          <div className="esqueleto h-4 w-3/4" />
-          <div className="esqueleto h-4 w-1/2 sm:hidden" />
-        </div>
-      </div>
-      <div className="flex items-start justify-between gap-4 pt-3 pb-3 sm:pt-2 sm:pr-4 sm:pb-1 sm:pl-16">
-        <div className="space-y-2">
-          <div className="esqueleto h-4 w-28" />
-          <div className="esqueleto h-3.5 w-40" />
-        </div>
-        <div className="flex items-start gap-4">
-          <div className="flex flex-col items-end gap-2">
-            <div className="esqueleto h-6 w-28" />
-            <div className="esqueleto h-3.5 w-24" />
-          </div>
-          <div className="esqueleto hidden h-9 w-40 sm:block" />
-        </div>
-      </div>
-      <div className="flex items-center justify-between gap-4 pb-3 sm:hidden">
-        <div className="esqueleto h-4 w-24" />
-        <div className="esqueleto h-11 w-1/2" />
+      <p className="text-[0.8125rem] sm:px-4">
+        <span className="esqueleto inline-block h-[0.8em] w-40 align-middle" />
+      </p>
+      <div className="mt-2">
+        <EsqueletoCorpo duasLinhas />
       </div>
     </div>
   );
 }
 
-export function EsqueletoGrupos() {
-  return (
-    <div aria-hidden>
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="border-t border-traco pt-5 pb-1 sm:px-4">
-          <div className="flex gap-4">
-            <div className="esqueleto size-12" />
-            <div className="flex-1 space-y-2 pt-1">
-              <div className="esqueleto h-4 w-3/4" />
-              <div className="esqueleto h-3.5 w-1/4" />
-            </div>
-          </div>
-          {[0, 1].map((j) => (
-            <div key={j} className="flex justify-between gap-4 py-4 sm:pl-16">
-              <div className="space-y-2">
-                <div className="esqueleto h-4 w-24" />
-                <div className="esqueleto h-3.5 w-40" />
-              </div>
-              <div className="esqueleto h-6 w-28" />
-            </div>
-          ))}
-        </div>
-      ))}
+// Sem invólucro e com a chave contada do fim: a oferta que chega toma o lugar do esqueleto de
+// cima, e os de baixo não se mexem.
+export function EsqueletoGrupos({ quantos = 3 }: { quantos?: number }) {
+  return Array.from({ length: quantos }, (_, i) => (
+    <div key={quantos - i} aria-hidden className="border-t border-traco pt-5 pb-1">
+      <EsqueletoCorpo />
     </div>
-  );
+  ));
 }
 
 const TEXTOS_VAZIO: Record<MotivoVazio, (q: string, cep: string | null) => [string, string]> = {

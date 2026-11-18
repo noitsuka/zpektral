@@ -228,6 +228,13 @@
     animation-delay: calc(min(var(--i, 0), 8) * 40ms);
     transition: background-color 0.25s ease;
   }
+  /* Quando o menor total troca de oferta, só um esmaecer curto, sem deslizar. */
+  .troca {
+    animation: surgir 0.2s ease-out;
+  }
+  .troca .linha-oferta {
+    animation: none;
+  }
   @media (hover: hover) {
     .linha-oferta[data-realce]:hover,
     .linha-oferta[data-realce]:focus-within {
@@ -351,6 +358,11 @@
     from {
       opacity: 0;
       transform: translateY(6px);
+    }
+  }
+  @keyframes surgir {
+    from {
+      opacity: 0;
     }
   }
   @keyframes reluzir {
