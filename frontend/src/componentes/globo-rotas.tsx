@@ -83,7 +83,7 @@ export function GloboRotas({ className = "" }: { className?: string }) {
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
 
-    // Com movimento reduzido o globo é uma imagem parada: sem giro, sem entrada, sem pacotes.
+    // Com movimento reduzido o globo gira na metade da velocidade e não segue o ponteiro.
     const calmo = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let pontos: Ponto[] = [];
     let linhasGrade: Vetor[][] = [];
@@ -117,15 +117,15 @@ export function GloboRotas({ className = "" }: { className?: string }) {
       if (!inicio) inicio = agora;
       const dt = Math.min(64, agora - (anterior || agora));
       anterior = agora;
-      if (!calmo && !arraste.ativo) {
-        giro += dt * GIRO_POR_MS + embalo;
+      if (!arraste.ativo) {
+        giro += dt * GIRO_POR_MS * (calmo ? 0.5 : 1) + embalo;
         embalo *= 0.93;
       }
       ponteiro.x += (ponteiro.alvoX - ponteiro.x) * 0.05;
       ponteiro.y += (ponteiro.alvoY - ponteiro.y) * 0.05;
 
-      const g = giro + ponteiro.x * 0.12;
-      const inc = INCLINACAO + ponteiro.y * 0.1;
+      const g = giro + (calmo ? 0 : ponteiro.x * 0.12);
+      const inc = INCLINACAO + (calmo ? 0 : ponteiro.y * 0.1);
       const cg = Math.cos(g);
       const sg = Math.sin(g);
       const ci = Math.cos(inc);
@@ -144,7 +144,7 @@ export function GloboRotas({ className = "" }: { className?: string }) {
       };
 
       ctx.clearRect(0, 0, largura, altura);
-      const entrada = calmo ? 1 : Math.min(1, (agora - inicio) / DURACAO_ENTRADA);
+      const entrada = Math.min(1, (agora - inicio) / DURACAO_ENTRADA);
       const suave = 1 - Math.pow(1 - entrada, 3);
 
       const corpo = ctx.createRadialGradient(
@@ -192,7 +192,7 @@ export function GloboRotas({ className = "" }: { className?: string }) {
         ctx.stroke();
       }
 
-      const varredura = calmo ? 0 : agora * 0.00018;
+      const varredura = agora * 0.00018;
       for (const pt of pontos) {
         const local = Math.min(1, Math.max(0, (entrada - pt.atraso) / (1 - pt.atraso)));
         const f = 1 - Math.pow(1 - local, 3);
@@ -237,7 +237,7 @@ export function GloboRotas({ className = "" }: { className?: string }) {
       }
 
       if (entrada < 1) return;
-      const aparece = calmo ? 1 : Math.min(1, (agora - inicio - DURACAO_ENTRADA) / 800);
+      const aparece = Math.min(1, (agora - inicio - DURACAO_ENTRADA) / 800);
       for (const rota of rotas) {
         const projetados = rota.trecho.map((v) => {
           const r = girar(v);
@@ -251,55 +251,52 @@ export function GloboRotas({ className = "" }: { className?: string }) {
           const b = projetados[s + 1];
           const fade = Math.min(a.fade, b.fade);
           if (fade <= 0) continue;
-          ctx.strokeStyle = `rgba(233,196,106,${((calmo ? 0.4 : 0.22) * fade * aparece).toFixed(3)})`;
+          ctx.strokeStyle = `rgba(233,196,106,${(0.22 * fade * aparece).toFixed(3)})`;
           ctx.beginPath();
           ctx.moveTo(a.x, a.y);
           ctx.lineTo(b.x, b.y);
           ctx.stroke();
         }
 
-        if (!calmo) {
-          const ciclo = (agora / PERIODO_PACOTE + rota.fase) % 1;
-          const cabeca = Math.min(1, ciclo * 1.3);
-          const inicioCauda = Math.max(0, cabeca - CAUDA);
-          const i0 = Math.floor(inicioCauda * PASSOS_ARCO);
-          const i1 = Math.floor(cabeca * PASSOS_ARCO);
-          for (let s = i0; s < i1; s++) {
-            const a = projetados[s];
-            const b = projetados[s + 1];
-            if (!a.visivel || !b.visivel) continue;
-            const t = (s - i0) / Math.max(1, i1 - i0);
-            ctx.strokeStyle = `rgba(233,196,106,${(t * 0.95 * Math.min(a.fade, b.fade) * aparece).toFixed(3)})`;
-            ctx.lineWidth = 1 + t * 0.9;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-          const ponta = projetados[i1];
-          if (ponta?.visivel && cabeca < 1) {
-            ctx.fillStyle = `rgba(233,196,106,${(0.18 * aparece).toFixed(3)})`;
-            ctx.beginPath();
-            ctx.arc(ponta.x, ponta.y, 4.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = `rgba(255,236,190,${aparece.toFixed(3)})`;
-            ctx.beginPath();
-            ctx.arc(ponta.x, ponta.y, 1.6, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          const chegada = projetados[PASSOS_ARCO];
+        const ciclo = (agora / PERIODO_PACOTE + rota.fase) % 1;
+        const cabeca = Math.min(1, ciclo * 1.3);
+        const inicioCauda = Math.max(0, cabeca - CAUDA);
+        const i0 = Math.floor(inicioCauda * PASSOS_ARCO);
+        const i1 = Math.floor(cabeca * PASSOS_ARCO);
+        for (let s = i0; s < i1; s++) {
+          const a = projetados[s];
+          const b = projetados[s + 1];
+          if (!a.visivel || !b.visivel) continue;
+          const t = (s - i0) / Math.max(1, i1 - i0);
+          ctx.strokeStyle = `rgba(233,196,106,${(t * 0.95 * Math.min(a.fade, b.fade) * aparece).toFixed(3)})`;
+          ctx.lineWidth = 1 + t * 0.9;
+          ctx.beginPath();
+          ctx.moveTo(a.x, a.y);
+          ctx.lineTo(b.x, b.y);
+          ctx.stroke();
+        }
+        const ponta = projetados[i1];
+        if (ponta?.visivel && cabeca < 1) {
+          ctx.fillStyle = `rgba(233,196,106,${(0.18 * aparece).toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(ponta.x, ponta.y, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = `rgba(255,236,190,${aparece.toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(ponta.x, ponta.y, 1.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        const chegada = projetados[PASSOS_ARCO];
+        if (chegada.visivel) {
           const depois = (ciclo * 1.3 - 1) / 0.3;
-          if (chegada.visivel && depois > 0 && depois < 1) {
+          if (depois > 0 && depois < 1) {
             ctx.strokeStyle = `rgba(233,196,106,${((1 - depois) * 0.8 * aparece).toFixed(3)})`;
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.arc(chegada.x, chegada.y, 2 + depois * 12, 0, Math.PI * 2);
             ctx.stroke();
           }
-        }
-
-        const chegada = projetados[PASSOS_ARCO];
-        if (chegada.visivel) {
           ctx.fillStyle = `rgba(233,196,106,${(0.85 * aparece).toFixed(3)})`;
           ctx.fillRect(chegada.x - 1.2, chegada.y - 1.2, 2.4, 2.4);
         }
@@ -339,10 +336,7 @@ export function GloboRotas({ className = "" }: { className?: string }) {
       arraste.ativo = false;
     };
 
-    const tamanho = new ResizeObserver(() => {
-      redimensionar();
-      if (calmo && pontos.length) desenhar(performance.now());
-    });
+    const tamanho = new ResizeObserver(() => redimensionar());
     const observador = new IntersectionObserver(([e]) => (visivel = e.isIntersecting));
 
     // Os ~20 mil pontos são montados depois que a página ficou pronta, fora do caminho do conteúdo.
@@ -359,10 +353,6 @@ export function GloboRotas({ className = "" }: { className?: string }) {
       redimensionar();
       tamanho.observe(canvas);
       canvas.dataset.pronto = "";
-      if (calmo) {
-        desenhar(performance.now());
-        return;
-      }
       observador.observe(canvas);
       window.addEventListener("pointermove", aoMover, { passive: true });
       canvas.addEventListener("pointerdown", aoPressionar);
