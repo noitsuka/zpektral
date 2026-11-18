@@ -25,13 +25,13 @@ function urlDados(svg: string) {
 
 export function useFaviconVivo(espectro: Espectro, varrendo: boolean) {
   useEffect(() => {
-    if (!varrendo) {
+    if (!varrendo || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setIcone(urlDados(svgSimbolo(espectro)));
       return;
     }
     const id = setInterval(() => {
       const ruido = Array.from({ length: 4 }, () => 0.15 + Math.random() * 0.85) as Espectro;
-      setIcone(urlDados(svgSimbolo(ruido, { dourada: false })));
+      setIcone(urlDados(svgSimbolo(ruido, { destaque: false })));
     }, 220);
     return () => clearInterval(id);
   }, [espectro, varrendo]);

@@ -1,33 +1,43 @@
 "use client";
 
 import { ChevronDown, MapPin, RotateCw } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { BotaoFiltros, ChipsFiltros } from "@/componentes/painel-filtros";
-import { Logo, Simbolo } from "@/componentes/logo";
-import { LinhaOferta } from "@/componentes/linha-oferta";
-import { filtrarAoVivo, rebaixarMuitoAbaixo } from "@/nucleo/ao-vivo";
-import { comparadoAoTipico, precosTipicos } from "@/nucleo/referencia";
-import { FormularioBusca } from "@/componentes/formulario-busca";
+import { FormularioBusca, ID_CAMPO_CEP } from "@/componentes/formulario-busca";
+import type { Contexto } from "@/componentes/linha-oferta";
+import { Logo } from "@/componentes/logo";
+import { BotaoFiltros, ChipsFiltros, PainelFiltros } from "@/componentes/painel-filtros";
 import { StatusBusca } from "@/componentes/status-busca";
-import { useAtalhoBusca } from "@/ganchos/use-atalho-busca";
-import { useHistoricoOfertas } from "@/ganchos/use-historico-ofertas";
-import { useFaviconVivo } from "@/ganchos/use-favicon-vivo";
-import { useTransmissaoBusca } from "@/ganchos/use-transmissao-busca";
-import { ErroApi, buscarPagina } from "@/nucleo/api";
 import {
-  filtrosDosParametros,
+  CartaoGrupo,
+  EsqueletoGrupos,
+  EsqueletoMelhor,
+  EtiquetaMelhor,
+  Vazio,
+} from "@/componentes/vitrine";
+import { useAtalhoBusca } from "@/ganchos/use-atalho-busca";
+import { useFaviconVivo } from "@/ganchos/use-favicon-vivo";
+import { useHistoricoOfertas } from "@/ganchos/use-historico-ofertas";
+import { useTransmissaoBusca } from "@/ganchos/use-transmissao-busca";
+import { filtrarAoVivo, rebaixarMuitoAbaixo } from "@/nucleo/ao-vivo";
+import { ErroApi, buscarPagina } from "@/nucleo/api";
+import { REPOUSO, espectroDe } from "@/nucleo/espectro";
+import {
+  FILTROS_PADRAO,
+  ORDENS,
+  ORDENS_LOCAIS,
   facetasDe,
+  filtrosDosParametros,
   filtrosParaParametros,
   ocultasPorCondicao,
-  ORDENS,
-  PAGAMENTOS,
 } from "@/nucleo/filtros";
-import { hojeEmBrasilia, quantidade, mascararCep, plural } from "@/nucleo/formato";
-import { REPOUSO, espectroDe } from "@/nucleo/espectro";
-import { todasOfertas, rankingAoVivo, progresso } from "@/nucleo/transmissao";
+import { hojeEmBrasilia, mascararCep, plural } from "@/nucleo/formato";
+import { avaliarPromocao, type Promocao } from "@/nucleo/promocao";
+import { rankingAoVivo, todasOfertas } from "@/nucleo/transmissao";
 import type { Filtros, Oferta, PaginaResultados } from "@/nucleo/tipos";
+import { agrupar, fatiar, melhorOferta, motivoDoVazio, separarParecidos } from "@/nucleo/vitrine";
 
 function useAtrasado<T>(valor: T, ms: number): T {
   const [atual, setAtual] = useState(valor);
@@ -38,15 +48,30 @@ function useAtrasado<T>(valor: T, ms: number): T {
   return atual;
 }
 
+function useAgora(ms: number): Date {
+  const [agora, setAgora] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setAgora(new Date()), ms);
+    return () => clearInterval(id);
+  }, [ms]);
+  return agora;
+}
+
 const POR_VEZ = 40;
 const ESPERA_MS = 15_000;
+
+function focarCep() {
+  const campo = document.getElementById(ID_CAMPO_CEP) as HTMLInputElement | null;
+  campo?.focus();
+  campo?.select();
+}
 
 export function Resultados() {
   const params = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
   const q = (params.get("q") ?? "").trim();
-  const cep = params.get("cep");
+  const cep = params.get("cep") || null;
   const [filtros, setEstadoFiltros] = useState(() => filtrosDosParametros(params));
   const assentado = useAtrasado(filtros, 250);
 
@@ -58,22 +83,11 @@ export function Resultados() {
   const [visiveis, setVisiveis] = useState({ chave: "", quantas: POR_VEZ });
   const [erro, setErro] = useState<string | null>(null);
   const [carregandoMais, setCarregandoMais] = useState(false);
-  useAtalhoBusca();
-  const sentinela = useRef<HTMLDivElement>(null);
-  const [preso, setPreso] = useState(false);
-
-  useEffect(() => {
-    const elemento = sentinela.current;
-    if (!elemento) return;
-    const observador = new IntersectionObserver(
-      ([entrada]) => setPreso(!entrada.isIntersecting && entrada.boundingClientRect.top < 120),
-      { rootMargin: "-80px 0px 0px 0px" },
-    );
-    observador.observe(elemento);
-    return () => observador.disconnect();
-  }, []);
   const cabecalho = useRef<HTMLElement>(null);
   const requisicao = useRef<AbortController | null>(null);
+  const agora = useAgora(30_000);
+  const hoje = useMemo(() => hojeEmBrasilia(), []);
+  useAtalhoBusca();
 
   const setFiltros = useCallback(
     (proximo: Filtros) => {
@@ -103,60 +117,6 @@ export function Resultados() {
     return () => controlador.abort();
   }, [q, cep, assentado, transmissaoFalhou]);
 
-  const transmitido = useMemo(() => todasOfertas(transmissao), [transmissao]);
-  const aoVivo = useMemo(
-    () => rankingAoVivo(filtrarAoVivo(rebaixarMuitoAbaixo(transmitido), filtros), filtros),
-    [transmitido, filtros],
-  );
-  const chaveVisiveis = `${q}|${cep}|${JSON.stringify(filtros)}`;
-  const quantasVisiveis = visiveis.chave === chaveVisiveis ? visiveis.quantas : POR_VEZ;
-  const final = transmissaoFalhou ? pagina : null;
-  const ofertas = final ? [...final.ofertas, ...extra] : aoVivo.slice(0, quantasVisiveis);
-  const tipicos = useMemo(
-    () => precosTipicos(transmitido, filtros.pagamento),
-    [transmitido, filtros.pagamento],
-  );
-  const varrendo = transmissao.fase === "transmitindo";
-  const terminou = !varrendo && transmissao.fase !== "parada";
-  const historico = useHistoricoOfertas(
-    ofertas.map((o) => o.id),
-    terminou,
-  );
-  const hoje = useMemo(() => hojeEmBrasilia(), []);
-  const espectro = useMemo(
-    () => (varrendo ? REPOUSO : espectroDe(transmitido, filtros.pagamento)),
-    [varrendo, transmitido, filtros.pagamento],
-  );
-  useFaviconVivo(espectro, varrendo);
-  const { responderam, total } = progresso(transmissao);
-  const endereco = transmissao.inicio?.endereco ?? final?.endereco ?? null;
-  const facetasAoVivo = useMemo(() => facetasDe(transmitido, filtros), [transmitido, filtros]);
-  const facetas = final?.facetas ?? facetasAoVivo;
-  const totalResultados = final?.total ?? aoVivo.length;
-
-  async function carregarMais() {
-    if (!final) {
-      setVisiveis({ chave: chaveVisiveis, quantas: quantasVisiveis + POR_VEZ });
-      return;
-    }
-    setCarregandoMais(true);
-    try {
-      const signal = requisicao.current?.signal;
-      const proximo = await buscarPagina(q, cep, assentado, proximaPagina, {
-        signal,
-        esperaMs: ESPERA_MS,
-      });
-      if (signal?.aborted) return;
-      setExtra((anterior) => [...anterior, ...proximo.ofertas]);
-      setProximaPagina((n) => n + 1);
-    } catch (e) {
-      if ((e as Error).name !== "AbortError")
-        setErro(e instanceof ErroApi ? e.message : "Algo deu errado.");
-    } finally {
-      setCarregandoMais(false);
-    }
-  }
-
   useEffect(() => {
     const elemento = cabecalho.current;
     if (!elemento) return;
@@ -171,19 +131,135 @@ export function Resultados() {
     return () => observador.disconnect();
   }, []);
 
-  const ocultas = ocultasPorCondicao(facetas, filtros);
+  const transmitido = useMemo(() => todasOfertas(transmissao), [transmissao]);
+  const final = transmissaoFalhou ? pagina : null;
+  const varrendo = transmissao.fase === "transmitindo";
+  const terminou = !varrendo && transmissao.fase !== "parada";
+  const { historico, carregando: carregandoHistorico, pedir } = useHistoricoOfertas();
 
-  const podeCarregarMais = final
-    ? final.ofertas.length + extra.length < final.total
-    : aoVivo.length > quantasVisiveis;
+  const base = useMemo(
+    () => (final ? [...final.ofertas, ...extra] : transmitido),
+    [final, extra, transmitido],
+  );
+  const promocaoDe = useMemo(() => {
+    const avaliadas = new Map<string, Promocao>(
+      base.map((o) => [o.id, avaliarPromocao(o, historico[o.id], hoje)]),
+    );
+    return (o: Oferta) => avaliadas.get(o.id) ?? avaliarPromocao(o, historico[o.id], hoje);
+  }, [base, historico, hoje]);
+  const ranqueadas = useMemo(() => {
+    const queda = (o: Oferta) => promocaoDe(o).quedaVerificada;
+    const economia = (o: Oferta) => promocaoDe(o).economiaVerificada;
+    if (final) {
+      const lista = filtros.queda_verificada ? base.filter(queda) : base;
+      return ORDENS_LOCAIS.has(filtros.ordem) ? rankingAoVivo(lista, filtros, economia) : lista;
+    }
+    return rankingAoVivo(
+      filtrarAoVivo(rebaixarMuitoAbaixo(base), filtros, queda),
+      filtros,
+      economia,
+    );
+  }, [base, final, filtros, promocaoDe]);
+
+  const { principais, parecidos } = useMemo(() => separarParecidos(ranqueadas), [ranqueadas]);
+  const grupos = useMemo(() => agrupar(principais), [principais]);
+  const gruposParecidos = useMemo(() => agrupar(parecidos), [parecidos]);
+  const chaveVisiveis = `${q}|${cep}|${JSON.stringify(filtros)}`;
+  const quantas = visiveis.chave === chaveVisiveis ? visiveis.quantas : POR_VEZ;
+  const mostrados = fatiar(grupos, quantas);
+  const ofertasMostradas = mostrados.reduce((n, g) => n + g.ofertas.length, 0);
+  const melhor = useMemo(
+    () => melhorOferta(principais, filtros, cep !== null),
+    [principais, filtros, cep],
+  );
+
+  const precisaDeTudo = filtros.queda_verificada || ORDENS_LOCAIS.has(filtros.ordem);
+  const idsDoHistorico = (
+    precisaDeTudo
+      ? base.map((o) => o.id)
+      : [
+          ...mostrados.flatMap((g) => g.ofertas.map((o) => o.id)),
+          ...(melhor ? [melhor.oferta.id] : []),
+        ]
+  ).join(",");
+  useEffect(() => {
+    if (terminou && idsDoHistorico) pedir(idsDoHistorico.split(","));
+  }, [terminou, idsDoHistorico, pedir]);
+
+  const espectro = useMemo(
+    () => (varrendo ? REPOUSO : espectroDe(transmitido, filtros.pagamento)),
+    [varrendo, transmitido, filtros.pagamento],
+  );
+  useFaviconVivo(espectro, varrendo);
+
+  const endereco = transmissao.inicio?.endereco ?? final?.endereco ?? null;
+  const facetasAoVivo = useMemo(() => facetasDe(transmitido, filtros), [transmitido, filtros]);
+  const facetas = final?.facetas ?? facetasAoVivo;
+  const ocultas = ocultasPorCondicao(facetas, filtros);
+  const totalPrincipais = final
+    ? Math.max(final.total - parecidos.length, principais.length)
+    : principais.length;
+  const restantes = totalPrincipais - ofertasMostradas;
+  const podeCarregarMais = restantes > 0;
+  const grupoDoMelhor = melhor
+    ? mostrados.find((g) => g.ofertas.includes(melhor.oferta))
+    : undefined;
+  const outrasLojas = grupoDoMelhor
+    ? new Set(grupoDoMelhor.ofertas.map((o) => o.loja.id)).size - 1
+    : 0;
+
+  const contexto: Contexto = {
+    pagamento: filtros.pagamento,
+    cep,
+    hoje,
+    agora,
+    historico,
+    promocoes: promocaoDe,
+  };
+
+  async function carregarMais() {
+    if (!final || ofertasMostradas < principais.length) {
+      setVisiveis({ chave: chaveVisiveis, quantas: quantas + POR_VEZ });
+      return;
+    }
+    setCarregandoMais(true);
+    try {
+      const signal = requisicao.current?.signal;
+      const proximo = await buscarPagina(q, cep, assentado, proximaPagina, {
+        signal,
+        esperaMs: ESPERA_MS,
+      });
+      if (signal?.aborted) return;
+      setExtra((anterior) => [...anterior, ...proximo.ofertas]);
+      setProximaPagina((n) => n + 1);
+      setVisiveis({ chave: chaveVisiveis, quantas: quantas + POR_VEZ });
+    } catch (e) {
+      if ((e as Error).name !== "AbortError")
+        setErro(e instanceof ErroApi ? e.message : "Algo deu errado.");
+    } finally {
+      setCarregandoMais(false);
+    }
+  }
+
+  function tentarDeNovo() {
+    setPagina(null);
+    setErro(null);
+    setTentativa((n) => n + 1);
+  }
+
+  const semCep = new URLSearchParams(params);
+  semCep.delete("cep");
+  const mensagemDeErro = erro ?? (final ? null : transmissao.erro);
+  const esperandoHistorico = precisaDeTudo && terminou && carregandoHistorico;
+  const vazio = terminou && !ranqueadas.length && !esperandoHistorico && !mensagemDeErro;
 
   return (
     <div className="min-h-dvh">
       <header
         ref={cabecalho}
-        className="sticky top-0 z-30 border-b border-traco bg-fundo/92 backdrop-blur-md"
+        className="sticky top-0 z-30 border-b border-fio bg-etiqueta/95 backdrop-blur-sm"
       >
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:gap-6 sm:px-6">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 sm:gap-5 sm:px-6">
           <Logo compacto espectro={espectro} />
           <div className="min-w-0 flex-1">
             <FormularioBusca
@@ -192,205 +268,272 @@ export function Resultados() {
               cepInicial={cep ? mascararCep(cep) : undefined}
             />
           </div>
+          <Link
+            href="/ofertas"
+            className="hidden shrink-0 text-[0.875rem] font-medium text-tinta-2 hover:text-tinta lg:block"
+          >
+            Quedas de preço
+          </Link>
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pt-6 pb-24 sm:px-6">
-        <section className="animate-surgir">
-          <div className="min-w-0">
-            <h1 className="text-[1.75rem] leading-tight font-bold tracking-[-0.03em] break-words sm:text-4xl">
-              {q}
-            </h1>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-              {cep ? (
-                <span className="inline-flex items-center gap-1.5 rounded-peca border border-traco px-2.5 py-1 text-apagado">
-                  <MapPin className="size-3.5" aria-hidden />
-                  {endereco?.cidade ? `${endereco.cidade}, ${endereco.uf}` : "CEP"}
-                  <span className="font-mono text-tenue">{mascararCep(cep)}</span>
-                </span>
-              ) : (
-                <span className="rounded-peca border border-alerta/30 bg-alerta-suave px-2.5 py-1 text-alerta">
-                  Sem CEP: os totais não incluem frete
-                </span>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <div className="mt-5">
-          <StatusBusca responderam={responderam} total={total} terminou={terminou} />
+      <main className="mx-auto max-w-6xl px-4 pt-5 pb-24 sm:px-6">
+        <h1 className="text-[1.5rem] leading-tight font-semibold tracking-[-0.01em] break-words sm:text-[1.75rem]">
+          {q}
+        </h1>
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.9375rem]">
+          {cep ? (
+            <p className="inline-flex flex-wrap items-center gap-x-1.5 text-tinta-2">
+              <MapPin className="size-4" aria-hidden />
+              Entrega em {endereco?.cidade ? `${endereco.cidade}, ${endereco.uf}, ` : ""}
+              <span className="numero font-semibold text-acao">CEP {mascararCep(cep)}</span>
+            </p>
+          ) : (
+            <p className="text-tinta-2">Sem CEP de entrega</p>
+          )}
+          <button
+            type="button"
+            onClick={focarCep}
+            className="min-h-11 text-[0.875rem] font-medium text-acao underline sm:min-h-0"
+          >
+            {cep ? "Trocar CEP" : "Informar CEP"}
+          </button>
+        </div>
+        <div className="mt-2">
+          <StatusBusca
+            fontes={transmissao.fontes}
+            terminou={terminou}
+            ofertas={ranqueadas.length}
+          />
         </div>
 
-        {(erro || transmissao.erro) && !final && (
+        {!cep && (
+          <p className="mt-3 rounded-etiqueta border border-alerta/40 bg-alerta-suave px-4 py-3 text-[0.9375rem] text-alerta">
+            Sem CEP, os valores mostram só o preço do produto. Com o CEP, cada loja calcula o frete
+            e o total sai certo.
+          </p>
+        )}
+
+        {mensagemDeErro && (
           <div
             role="alert"
-            className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-quadro border border-falha/30 bg-falha-suave p-4 text-sm"
+            className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-etiqueta border border-falha/40 bg-falha-suave px-4 py-3 text-falha"
           >
-            <span>{erro ?? transmissao.erro}</span>
-            <button
-              type="button"
-              onClick={() => {
-                setPagina(null);
-                setErro(null);
-                setTentativa((n) => n + 1);
-              }}
-              className="inline-flex items-center gap-1.5 rounded-peca border border-traco px-3 py-1.5 text-xs hover:border-tinta/25"
-            >
-              <RotateCw className="size-3.5" aria-hidden /> Tentar de novo
+            <span>{mensagemDeErro}</span>
+            <button type="button" onClick={tentarDeNovo} className="botao botao-secundario">
+              <RotateCw className="size-4" aria-hidden />
+              Tentar de novo
             </button>
           </div>
         )}
 
-        <div ref={sentinela} aria-hidden className="mt-6 h-px" />
-        <div
-          className={`sticky top-[var(--altura-cabecalho,4.5rem)] z-20 -mx-4 border-b border-traco bg-fundo/92 px-4 py-2.5 backdrop-blur-md transition-shadow duration-300 sm:-mx-6 sm:px-6 ${
-            preso ? "preso" : ""
-          }`}
-        >
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs text-apagado">
-              <span className="font-mono text-tinta">{quantidade(totalResultados)}</span>{" "}
-              {totalResultados === 1 ? "oferta" : "ofertas"}
-            </p>
+        <div className="mt-5 lg:grid lg:grid-cols-[14.5rem_minmax(0,1fr)] lg:gap-8">
+          <aside
+            aria-label="Filtros"
+            className="hidden lg:sticky lg:top-[calc(var(--altura-cabecalho,4rem)+1rem)] lg:block lg:max-h-[calc(100dvh-var(--altura-cabecalho,4rem)-2rem)] lg:overflow-y-auto lg:pr-2"
+          >
+            <PainelFiltros filtros={filtros} facetas={facetas} onChange={setFiltros} />
+          </aside>
 
-            <div className="ml-auto flex items-center gap-2">
-              <Seletor
-                rotulo="Pagar com"
-                valor={filtros.pagamento}
-                opcoes={PAGAMENTOS}
-                aoMudar={(valor) => setFiltros({ ...filtros, pagamento: valor })}
-              />
-              <Seletor
-                rotulo="Ordenar"
-                valor={filtros.ordem}
-                opcoes={ORDENS}
-                aoMudar={(valor) => setFiltros({ ...filtros, ordem: valor })}
-              />
-              <BotaoFiltros filtros={filtros} facetas={facetas} onChange={setFiltros} />
+          <div className="min-w-0">
+            <div className="sticky top-[var(--altura-cabecalho,4rem)] z-20 -mx-4 border-b border-fio bg-fundo/95 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+              <div className="flex items-center gap-2">
+                <p className="numero hidden flex-1 text-[0.9375rem] text-tinta-2 lg:block">
+                  {plural(principais.length, "oferta", "ofertas")}
+                  {grupos.length !== principais.length &&
+                    ` de ${plural(grupos.length, "produto", "produtos")}`}
+                </p>
+                <div className="flex flex-1 gap-2 lg:hidden">
+                  <BotaoFiltros
+                    filtros={filtros}
+                    facetas={facetas}
+                    onChange={setFiltros}
+                    visiveis={ranqueadas.length}
+                  />
+                </div>
+                <label className="campo relative flex h-11 flex-1 items-center lg:flex-none">
+                  <span className="sr-only lg:not-sr-only lg:pl-3 lg:text-[0.875rem] lg:text-tinta-2">
+                    Ordenar
+                  </span>
+                  <select
+                    value={filtros.ordem}
+                    onChange={(e) =>
+                      setFiltros({ ...filtros, ordem: e.target.value as Filtros["ordem"] })
+                    }
+                    className="h-full w-full cursor-pointer appearance-none bg-transparent pr-8 pl-3 text-[0.9375rem] font-medium outline-none lg:w-auto lg:pl-1.5"
+                  >
+                    {ORDENS.map((o) => (
+                      <option key={o.valor} value={o.valor}>
+                        {o.rotulo}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    className="pointer-events-none absolute right-2.5 size-4 text-tinta-2"
+                    aria-hidden
+                  />
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-3 space-y-2">
+              <ChipsFiltros filtros={filtros} facetas={facetas} onChange={setFiltros} />
+              {ocultas > 0 && (
+                <p className="text-[0.875rem] text-tinta-2">
+                  {plural(
+                    ocultas,
+                    "oferta usada ou recondicionada está escondida.",
+                    "ofertas usadas ou recondicionadas estão escondidas.",
+                  )}{" "}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFiltros({ ...filtros, condicao: ["novo", "recondicionado", "usado"] })
+                    }
+                    className="font-medium text-acao underline"
+                  >
+                    Mostrar também
+                  </button>
+                </p>
+              )}
+              {esperandoHistorico && (
+                <p role="status" className="text-[0.875rem] text-tinta-2">
+                  Conferindo o histórico de preço das ofertas.
+                </p>
+              )}
+            </div>
+
+            <div className="mt-4 space-y-4">
+              {melhor ? (
+                <EtiquetaMelhor
+                  melhor={melhor}
+                  contexto={contexto}
+                  outrasLojas={outrasLojas}
+                  chaveGrupo={grupoDoMelhor?.chave ?? ""}
+                  provisoria={varrendo}
+                />
+              ) : !terminou ? (
+                <EsqueletoMelhor />
+              ) : cep && principais.length > 0 ? (
+                <p className="rounded-etiqueta border border-fio bg-etiqueta px-4 py-3 text-[0.9375rem] text-tinta-2">
+                  Nenhuma loja confirmou o frete para este CEP nas ofertas abaixo, então não há um
+                  total para recomendar. Os valores mostram o preço sem frete.
+                </p>
+              ) : null}
+
+              {vazio ? (
+                <Vazio
+                  motivo={motivoDoVazio({ fontes: transmissao.fontes, ofertas: transmitido })}
+                  q={q}
+                  cep={cep}
+                  aoTentarDeNovo={tentarDeNovo}
+                  aoLimparFiltros={() =>
+                    setFiltros({
+                      ...FILTROS_PADRAO,
+                      ordem: filtros.ordem,
+                      pagamento: filtros.pagamento,
+                    })
+                  }
+                  hrefSemCep={`${pathname}?${semCep}`}
+                />
+              ) : (
+                <section aria-labelledby="titulo-ofertas">
+                  <h2 id="titulo-ofertas" className="sr-only">
+                    Ofertas por produto
+                  </h2>
+                  {mostrados.length ? (
+                    <div className="space-y-3">
+                      {mostrados.map((g) => (
+                        <CartaoGrupo key={g.chave} grupo={g} contexto={contexto} />
+                      ))}
+                    </div>
+                  ) : !terminou || esperandoHistorico ? (
+                    <EsqueletoGrupos />
+                  ) : null}
+
+                  {podeCarregarMais && mostrados.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={carregarMais}
+                      disabled={carregandoMais}
+                      className="botao botao-secundario mx-auto mt-5 flex"
+                    >
+                      {carregandoMais
+                        ? "Carregando"
+                        : `Mais ofertas (${plural(restantes, "restante", "restantes")})`}
+                    </button>
+                  )}
+                </section>
+              )}
+
+              {gruposParecidos.length > 0 && (
+                <Parecidos
+                  grupos={gruposParecidos}
+                  quantas={parecidos.length}
+                  contexto={contexto}
+                  abertos={!principais.length}
+                />
+              )}
             </div>
           </div>
-        </div>
-
-        <div className="mt-3 flex flex-col gap-2">
-          <ChipsFiltros filtros={filtros} facetas={facetas} onChange={setFiltros} />
-          {ocultas > 0 && (
-            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-peca border border-traco bg-painel/60 px-3 py-2 text-xs text-apagado">
-              <span>
-                {plural(
-                  ocultas,
-                  "oferta usada ou recondicionada está escondida",
-                  "ofertas usadas ou recondicionadas estão escondidas",
-                )}
-                .
-              </span>
-              <button
-                type="button"
-                onClick={() =>
-                  setFiltros({ ...filtros, condicao: ["novo", "recondicionado", "usado"] })
-                }
-                className="font-medium text-ouro underline-offset-4 hover:underline"
-              >
-                Mostrar também
-              </button>
-            </p>
-          )}
-        </div>
-
-        <div className="mt-3">
-          <div className="overflow-hidden rounded-quadro border border-traco bg-painel/40">
-            {ofertas.length ? (
-              ofertas.map((o, i) => (
-                <LinhaOferta
-                  key={o.id}
-                  oferta={o}
-                  pagamento={filtros.pagamento}
-                  cep={cep || null}
-                  diferencaDoTipico={comparadoAoTipico(o, filtros.pagamento, tipicos)}
-                  historico={historico[o.id]}
-                  hoje={hoje}
-                  indice={i}
-                />
-              ))
-            ) : (
-              <Vazio fase={transmissao.fase} />
-            )}
-          </div>
-
-          {podeCarregarMais && (
-            <button
-              type="button"
-              onClick={carregarMais}
-              disabled={carregandoMais}
-              className="mx-auto mt-6 block rounded-peca border border-traco px-5 py-2.5 text-sm text-apagado transition-colors hover:border-tinta/25 hover:text-tinta disabled:opacity-50"
-            >
-              {carregandoMais
-                ? "Carregando"
-                : `Mais ofertas (${plural(totalResultados - ofertas.length, "restante", "restantes")})`}
-            </button>
-          )}
         </div>
       </main>
     </div>
   );
 }
 
-function Seletor<T extends string>({
-  rotulo,
-  valor,
-  opcoes,
-  aoMudar,
-}: {
-  rotulo: string;
-  valor: T;
-  opcoes: { valor: T; rotulo: string }[];
-  aoMudar: (valor: T) => void;
-}) {
-  return (
-    <label className="relative inline-flex h-9 items-center rounded-peca border border-traco text-xs transition-colors focus-within:border-ouro/50 hover:border-tinta/25">
-      <span className="hidden pl-3 text-tenue md:inline">{rotulo}</span>
-      <select
-        value={valor}
-        onChange={(e) => aoMudar(e.target.value as T)}
-        aria-label={rotulo}
-        className="h-full max-w-[9.5rem] cursor-pointer appearance-none bg-transparent pr-7 pl-3 font-medium text-tinta outline-none md:pl-1.5"
-      >
-        {opcoes.map((o) => (
-          <option key={o.valor} value={o.valor} className="bg-painel">
-            {o.rotulo}
-          </option>
-        ))}
-      </select>
-      <ChevronDown
-        className="pointer-events-none absolute right-2 size-3.5 text-tenue"
-        aria-hidden
-      />
-    </label>
-  );
+function motivoDoParecido(ofertas: Oferta[]): string {
+  const termos = [...new Set(ofertas.flatMap((o) => o.termos_ausentes ?? []))];
+  return termos.length
+    ? `Sem ${termos.map((t) => `“${t}”`).join(", ")} no título`
+    : "Pode não ser o produto buscado";
 }
 
-function Vazio({ fase }: { fase: string }) {
-  if (fase === "transmitindo" || fase === "parada") {
-    return (
-      <div className="space-y-px">
-        {Array.from({ length: 5 }, (_, i) => (
-          <div key={i} className="flex gap-4 border-b border-traco p-4">
-            <div className="esqueleto size-16 rounded-peca" />
-            <div className="flex-1 space-y-2 pt-1">
-              <div className="esqueleto h-3 w-3/4 rounded-peca" />
-              <div className="esqueleto h-3 w-1/3 rounded-peca" />
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  }
+function Parecidos({
+  grupos,
+  quantas,
+  contexto,
+  abertos,
+}: {
+  grupos: ReturnType<typeof agrupar>;
+  quantas: number;
+  contexto: Contexto;
+  abertos: boolean;
+}) {
+  const [limite, setLimite] = useState(POR_VEZ);
+  const mostrados = fatiar(grupos, limite);
   return (
-    <div className="flex flex-col items-center p-10 text-center">
-      <Simbolo tamanho={40} className="mb-4 opacity-60" />
-      <p className="font-medium">Nenhuma oferta com esses filtros.</p>
-      <p className="mt-1 text-sm text-tenue">
-        Abra os filtros e tire o limite de preço ou inclua usados.
-      </p>
-    </div>
+    <details open={abertos} className="gaveta-detalhes group">
+      <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-etiqueta border border-fio bg-etiqueta px-4">
+        <span>
+          <h2 className="inline font-semibold">Parecidos</h2>
+          <span className="text-tinta-2">
+            {" "}
+            · {plural(quantas, "oferta que não bate", "ofertas que não batem")} com tudo o que foi
+            buscado
+          </span>
+        </span>
+        <ChevronDown className="seta-detalhes size-5 shrink-0 transition-transform" aria-hidden />
+      </summary>
+      <div className="mt-3 space-y-3">
+        {mostrados.map((g) => (
+          <CartaoGrupo
+            key={g.chave}
+            grupo={g}
+            contexto={contexto}
+            motivo={motivoDoParecido(g.ofertas)}
+          />
+        ))}
+        {mostrados.length < grupos.length && (
+          <button
+            type="button"
+            onClick={() => setLimite((n) => n + POR_VEZ)}
+            className="botao botao-secundario mx-auto flex"
+          >
+            Mais parecidos
+          </button>
+        )}
+      </div>
+    </details>
   );
 }

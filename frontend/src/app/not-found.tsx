@@ -2,10 +2,10 @@ import Link from "next/link";
 
 export default function NaoEncontrada() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
-      <p className="font-mono text-sm text-tenue">404</p>
-      <h1 className="text-2xl font-bold tracking-tight">Página não encontrada</h1>
-      <Link href="/" className="text-sm text-ouro underline-offset-4 hover:underline">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-3 px-4">
+      <h1 className="text-[1.5rem] font-semibold">Página não encontrada</h1>
+      <p className="text-tinta-2">O endereço pode ter mudado ou estar incompleto.</p>
+      <Link href="/" className="botao botao-primario mt-2 self-start">
         Voltar para a busca
       </Link>
     </main>

@@ -1,22 +1,82 @@
+import { ChevronDown } from "lucide-react";
+
+import { plural } from "@/nucleo/formato";
+import type { CelulaFonte, EstadoFonte } from "@/nucleo/transmissao";
+import { lojasFora } from "@/nucleo/vitrine";
+
+const MOTIVO: Partial<Record<EstadoFonte, string>> = {
+  bloqueada: "recusou a consulta",
+  tempo_esgotado: "não respondeu a tempo",
+  erro: "não respondeu como esperado",
+};
+
+function estadoDoTraco(s: EstadoFonte): string {
+  return s === "erro" || s === "tempo_esgotado" || s === "bloqueada" ? "fora" : s;
+}
+
 export function StatusBusca({
-  responderam,
-  total,
+  fontes,
   terminou,
+  ofertas,
 }: {
-  responderam: number;
-  total: number;
+  fontes: CelulaFonte[];
   terminou: boolean;
+  ofertas: number;
 }) {
-  if (terminou || !total) return null;
-  const fracao = Math.max(0.08, responderam / total);
+  const ativas = fontes.filter((f) => f.situacao !== "desativada");
+  const fora = lojasFora(ativas);
+  const responderam = ativas.filter(
+    (f) => f.situacao !== "aguardando" && f.situacao !== "catalogo",
+  );
+  const texto = !ativas.length
+    ? "Preparando a busca"
+    : terminou
+      ? fora.length
+        ? `${responderam.length - fora.length} de ${plural(ativas.length, "loja respondeu", "lojas responderam")}`
+        : `${plural(ativas.length, "loja consultada", "lojas consultadas")}`
+      : `Consultando as lojas: ${responderam.length} de ${ativas.length}`;
+
   return (
-    <div role="status" className="barra-progresso" aria-live="polite">
-      <span className="sr-only">Buscando ofertas</span>
-      <span
-        aria-hidden
-        className="barra-progresso-cheia"
-        style={{ transform: `scaleX(${fracao})` }}
-      />
+    <div className="flex min-h-11 flex-wrap items-center gap-x-4 gap-y-2">
+      <div
+        role="progressbar"
+        aria-label="Lojas que já responderam"
+        aria-valuemin={0}
+        aria-valuemax={ativas.length || 1}
+        aria-valuenow={responderam.length}
+        className="flex h-3.5 w-full max-w-64 items-end gap-0.5 sm:w-64"
+      >
+        {ativas.length
+          ? ativas.map((f) => (
+              <span key={f.id} className="traco-loja" data-estado={estadoDoTraco(f.situacao)} />
+            ))
+          : Array.from({ length: 40 }, (_, i) => (
+              <span key={i} className="traco-loja" data-estado="aguardando" />
+            ))}
+      </div>
+      <p className="text-[0.875rem] text-tinta-2" aria-hidden>
+        {texto}
+      </p>
+      <p className="sr-only" role="status">
+        {terminou
+          ? `Busca concluída. ${texto}. ${plural(ofertas, "oferta encontrada", "ofertas encontradas")}.`
+          : "Consultando as lojas."}
+      </p>
+      {terminou && fora.length > 0 && (
+        <details className="gaveta-detalhes w-full text-[0.875rem] sm:w-auto">
+          <summary className="inline-flex min-h-11 cursor-pointer items-center gap-1 font-medium text-tinta-2 hover:text-tinta sm:min-h-0">
+            {plural(fora.length, "loja ficou de fora", "lojas ficaram de fora")}
+            <ChevronDown className="seta-detalhes size-4 transition-transform" aria-hidden />
+          </summary>
+          <ul className="mt-1 grid gap-x-6 gap-y-0.5 pb-1 text-tinta-2 sm:grid-cols-2">
+            {fora.map((f) => (
+              <li key={f.id}>
+                <span className="font-medium text-tinta">{f.nome}</span> {MOTIVO[f.situacao]}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </div>
   );
 }

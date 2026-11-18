@@ -20,7 +20,7 @@ describe("espectro do símbolo", () => {
     expect(espectroDe([oferta("a", 100), oferta("a", 50)], "melhor")).toEqual(REPOUSO);
   });
 
-  it("põe a loja mais barata na barra dourada, como a mais curta", () => {
+  it("põe a loja mais barata na linha em destaque, como a mais curta", () => {
     const s = espectroDe(
       [oferta("a", 300), oferta("b", 100), oferta("c", 200), oferta("d", 400)],
       "melhor",

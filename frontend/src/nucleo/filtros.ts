@@ -44,8 +44,8 @@ export const PAGAMENTOS: { valor: Pagamento; rotulo: string; dica: string }[] = 
 
 export const FRETES: { valor: FiltroFrete; rotulo: string }[] = [
   { valor: "todos", rotulo: "Todos" },
-  { valor: "calculado", rotulo: "Só total exato" },
-  { valor: "gratis", rotulo: "Frete grátis" },
+  { valor: "calculado", rotulo: "Só total confirmado" },
+  { valor: "gratis", rotulo: "Frete grátis confirmado" },
 ];
 
 export const CONDICOES: { valor: Condicao; rotulo: string }[] = [

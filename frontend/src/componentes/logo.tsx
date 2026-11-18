@@ -41,7 +41,7 @@ export function Simbolo({
           y={l.y}
           width={l.w}
           height={l.h}
-          className={l.dourada ? "fill-ouro" : "fill-tinta/75"}
+          className={l.destaque ? "fill-acao" : "fill-tinta/70"}
           style={{ transformBox: "fill-box", transform: `scaleX(${atuais[i].w / l.w})` }}
         />
       ))}

@@ -12,9 +12,9 @@ const LINHAS_INICIO = 20.4;
 const LINHAS_ALTURA_TOTAL = 7.7;
 const LINHA_MIN = 8;
 const ORDEM = { 4: [0, 2, 3, 1], 3: [0, 2, 1] } as const;
-const DOURADA = 2;
+const DESTAQUE = 2;
 
-type Linha = { x: number; y: number; w: number; h: number; dourada: boolean };
+type Linha = { x: number; y: number; w: number; h: number; destaque: boolean };
 
 function comprimentoLinha(nivel: number): number {
   return LINHA_MIN + Math.max(0, Math.min(1, nivel)) * (FEIXE.w - LINHA_MIN);
@@ -31,7 +31,7 @@ export function formaDoSimbolo(
     y: LINHAS_INICIO + i * passo,
     w: comprimentoLinha(espectro[indice]),
     h,
-    dourada: indice === DOURADA,
+    destaque: indice === DESTAQUE,
   }));
   return { linhas };
 }
@@ -39,19 +39,21 @@ export function formaDoSimbolo(
 export const pontosPrisma = PRISMA.map(([x, y]) => `${x},${y}`).join(" ");
 export const arestasPrisma = `M${PRISMA[0].join(" ")} ${PRISMA[1].join(" ")}M${PRISMA[3].join(" ")} ${PRISMA[2].join(" ")}`;
 
+export const COR_DESTAQUE = "#9eaeff";
+
 export function svgSimbolo(
   espectro: Espectro,
-  { dourada = true, linhas = 3 }: { dourada?: boolean; linhas?: 3 | 4 } = {},
+  { destaque = true, linhas = 3 }: { destaque?: boolean; linhas?: 3 | 4 } = {},
 ): string {
   const retangulo = (x: number, y: number, w: number, h: number, fill: string) =>
     `<rect x="${x}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h}" fill="${fill}"/>`;
   const partes = [
-    retangulo(FEIXE.x, FEIXE.y, FEIXE.w, FEIXE.h, "#edf0ea"),
-    `<polygon points="${pontosPrisma}" fill="#edf0ea" fill-opacity="0.35"/>`,
-    `<path d="${arestasPrisma}" stroke="#edf0ea" stroke-width="0.7" fill="none"/>`,
+    retangulo(FEIXE.x, FEIXE.y, FEIXE.w, FEIXE.h, "#eef0ee"),
+    `<polygon points="${pontosPrisma}" fill="#eef0ee" fill-opacity="0.35"/>`,
+    `<path d="${arestasPrisma}" stroke="#eef0ee" stroke-width="0.7" fill="none"/>`,
     ...formaDoSimbolo(espectro, { linhas }).linhas.map((l) =>
-      retangulo(l.x, l.y, l.w, l.h, l.dourada && dourada ? "#e9c46a" : "#c9cfc7"),
+      retangulo(l.x, l.y, l.w, l.h, l.destaque && destaque ? COR_DESTAQUE : "#c4c9cc"),
     ),
   ];
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="5" fill="#070707"/>${partes.join("")}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="5" fill="#15171a"/>${partes.join("")}</svg>`;
 }

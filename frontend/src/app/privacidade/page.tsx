@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-
-import { Logo } from "@/componentes/logo";
+import { Cabecalho, Rodape } from "@/componentes/moldura";
 
 export const metadata: Metadata = {
   title: "Privacidade",
@@ -22,7 +20,7 @@ const ITENS = [
   {
     titulo: "Histórico de preços",
     texto:
-      "Cada busca grava o preço de cada oferta na própria loja, com frete, total e os 5 primeiros dígitos do CEP, que identificam a região e não o endereço. É isso que permite dizer se o preço de hoje está abaixo ou acima do habitual daquela loja. Nada liga esse registro a quem buscou, e registros com mais de 180 dias são apagados.",
+      "Cada busca grava o preço de cada oferta na própria loja, com frete, total e os 5 primeiros dígitos do CEP, que identificam a região e não o endereço. É isso que permite dizer se o preço de hoje está abaixo ou acima do habitual daquela loja. Nada liga esse registro a quem buscou, e registros com mais de 180 dias são apagados. A página Quedas de preço usa esse mesmo histórico.",
   },
   {
     titulo: "Endereço IP",
@@ -43,29 +41,27 @@ const ITENS = [
 
 export default function Privacidade() {
   return (
-    <div className="min-h-dvh">
-      <header className="border-b border-traco">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3.5 sm:px-6">
-          <Logo />
-          <Link href="/" className="rotulo text-apagado transition-colors hover:text-tinta">
-            Voltar
-          </Link>
-        </div>
-      </header>
-      <main className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
-        <p className="rotulo text-tenue">Privacidade</p>
-        <h1 className="mt-3 text-3xl font-bold tracking-[-0.03em] sm:text-4xl">
+    <div className="flex min-h-dvh flex-col">
+      <Cabecalho />
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-8 pb-16 sm:px-6 sm:pt-14">
+        <h1 className="text-[1.875rem] leading-tight font-semibold tracking-[-0.02em] sm:text-[2.25rem]">
           O que fica guardado, e onde
         </h1>
-        <dl className="mt-10 divide-y divide-traco border-y border-traco">
-          {ITENS.map((item) => (
-            <div key={item.titulo} className="grid gap-2 py-6 sm:grid-cols-[12rem_1fr] sm:gap-8">
-              <dt className="font-semibold">{item.titulo}</dt>
-              <dd className="text-[15px] leading-relaxed text-apagado">{item.texto}</dd>
+        <dl className="mt-8 overflow-hidden rounded-etiqueta border-2 border-tinta bg-etiqueta">
+          {ITENS.map((item, i) => (
+            <div
+              key={item.titulo}
+              className={`grid gap-1.5 px-4 py-5 sm:grid-cols-[11rem_1fr] sm:gap-8 sm:px-6 ${
+                i ? "border-t border-tinta" : ""
+              }`}
+            >
+              <dt className="rotulo-campo pt-0.5">{item.titulo}</dt>
+              <dd className="max-w-[65ch] leading-relaxed text-tinta-2">{item.texto}</dd>
             </div>
           ))}
         </dl>
       </main>
+      <Rodape />
     </div>
   );
 }
