@@ -10,6 +10,7 @@ describe("transmissão da busca", () => {
     expect(url.searchParams.get("q")).toBe("air fryer");
     expect(url.searchParams.get("cep")).toBe("01310100");
     expect(url.searchParams.get("condicao")).toBe("novo,recondicionado,usado");
+    expect(url.searchParams.get("apenas_disponiveis")).toBe("false");
     expect(url.searchParams.has("preco_max")).toBe(false);
     expect(url.searchParams.has("lojas")).toBe(false);
   });

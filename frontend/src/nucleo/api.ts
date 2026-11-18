@@ -77,7 +77,10 @@ const TODAS_AS_OFERTAS: Filtros = {
 };
 
 export function urlTransmissao(q: string, cep: string | null): string {
-  return `${URL_API}/busca/transmissao?${parametrosDaBusca(q, cep, TODAS_AS_OFERTAS)}`;
+  const params = parametrosDaBusca(q, cep, TODAS_AS_OFERTAS);
+  // o navegador esconde quem não entrega, mas precisa saber que existe para dizer o motivo
+  params.set("apenas_disponiveis", "false");
+  return `${URL_API}/busca/transmissao?${params}`;
 }
 
 const DIAS_HISTORICO = 180;
