@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowUpRight, ImageOff, RotateCw } from "lucide-react";
-import { useState } from "react";
+import { ArrowUpRight, RotateCw } from "lucide-react";
 
 import {
   CarimboTotal,
@@ -12,38 +11,13 @@ import {
   textoDoFrete,
   type Contexto,
 } from "@/componentes/linha-oferta";
+import { Foto } from "@/componentes/foto";
 import { linkDaOferta, totalPara } from "@/nucleo/filtros";
 import { dataEntrega, haQuanto, mascararCep, plural, reais } from "@/nucleo/formato";
 import type { Oferta } from "@/nucleo/tipos";
 import { estadoDoTotal, type Grupo, type MelhorOferta, type MotivoVazio } from "@/nucleo/vitrine";
 
-export function Foto({ imagem, tamanho }: { imagem: string | null | undefined; tamanho: string }) {
-  const [falhou, setFalhou] = useState(false);
-  return (
-    <div
-      className={`${tamanho} shrink-0 overflow-hidden rounded-controle border border-fio bg-white`}
-    >
-      {imagem && !falhou ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={imagem}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          onError={() => setFalhou(true)}
-          className="size-full object-contain p-1"
-        />
-      ) : (
-        <div className="grid size-full place-items-center bg-etiqueta-2">
-          <ImageOff className="size-5 text-tinta-3" aria-hidden />
-        </div>
-      )}
-    </div>
-  );
-}
-
-export const idDoGrupo = (chave: string) => `produto-${chave.replace(/[^a-z0-9]/gi, "-")}`;
+const idDoGrupo = (chave: string) => `produto-${chave.replace(/[^a-z0-9]/gi, "-")}`;
 
 function faixaDoGrupo(ofertas: Oferta[], contexto: Contexto): string | null {
   const totais = ofertas

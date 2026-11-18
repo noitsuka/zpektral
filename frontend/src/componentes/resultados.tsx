@@ -35,6 +35,7 @@ import {
 } from "@/nucleo/filtros";
 import { hojeEmBrasilia, mascararCep, plural } from "@/nucleo/formato";
 import { avaliarPromocao, type Promocao } from "@/nucleo/promocao";
+import { comparadoAoTipico, precosTipicos } from "@/nucleo/referencia";
 import { rankingAoVivo, todasOfertas } from "@/nucleo/transmissao";
 import type { Filtros, Oferta, PaginaResultados } from "@/nucleo/tipos";
 import { agrupar, fatiar, melhorOferta, motivoDoVazio, separarParecidos } from "@/nucleo/vitrine";
@@ -192,6 +193,7 @@ export function Resultados() {
   );
   useFaviconVivo(espectro, varrendo);
 
+  const tipicos = useMemo(() => precosTipicos(base, filtros.pagamento), [base, filtros.pagamento]);
   const endereco = transmissao.inicio?.endereco ?? final?.endereco ?? null;
   const facetasAoVivo = useMemo(() => facetasDe(transmitido, filtros), [transmitido, filtros]);
   const facetas = final?.facetas ?? facetasAoVivo;
@@ -215,6 +217,7 @@ export function Resultados() {
     agora,
     historico,
     promocoes: promocaoDe,
+    tipico: (o) => comparadoAoTipico(o, filtros.pagamento, tipicos),
   };
 
   async function carregarMais() {
@@ -301,7 +304,13 @@ export function Resultados() {
             onClick={focarCep}
             className="min-h-11 text-[0.875rem] font-medium whitespace-nowrap text-acao underline"
           >
-            {cep ? "Trocar CEP" : "Informar CEP"}
+            {cep ? (
+              <>
+                Trocar<span className="sr-only sm:not-sr-only"> CEP</span>
+              </>
+            ) : (
+              "Informar CEP"
+            )}
           </button>
         </div>
         <div className="mt-2">
@@ -315,8 +324,8 @@ export function Resultados() {
 
         {!cep && (
           <p className="mt-3 rounded-etiqueta border border-alerta/40 bg-alerta-suave px-4 py-3 text-[0.9375rem] text-alerta">
-            Sem CEP, os valores mostram só o preço do produto. Com o CEP, cada loja calcula o frete
-            e o total sai certo.
+            Sem CEP, os valores mostram só o preço do produto. Informe o CEP para incluir o frete de
+            cada loja no total.
           </p>
         )}
 

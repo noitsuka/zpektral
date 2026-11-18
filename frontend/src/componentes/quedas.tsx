@@ -4,7 +4,7 @@ import { ArrowUpRight, ChevronDown, RotateCw, TrendingDown } from "lucide-react"
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { Foto } from "@/componentes/vitrine";
+import { Foto } from "@/componentes/foto";
 import { ErroApi, quedasDePreco } from "@/nucleo/api";
 import { haQuanto, plural, porcentagem, reais } from "@/nucleo/formato";
 import type { RespostaQuedas } from "@/nucleo/tipos";

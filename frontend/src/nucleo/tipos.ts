@@ -98,7 +98,7 @@ export type Oferta = {
   termos_ausentes?: string[];
 };
 
-export type StatusFonte = "ok" | "erro" | "tempo_esgotado" | "desativada" | "bloqueada";
+type StatusFonte = "ok" | "erro" | "tempo_esgotado" | "desativada" | "bloqueada";
 
 export type RelatorioFonte = {
   id: string;
@@ -188,7 +188,7 @@ export type EventoFim = {
   fontes: RelatorioFonte[];
 };
 
-export type QuedaPreco = {
+type QuedaPreco = {
   oferta: string;
   titulo: string;
   loja: Loja;

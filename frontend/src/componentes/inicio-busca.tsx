@@ -25,7 +25,7 @@ export function InicioBusca() {
         id="titulo-inicio"
         className="max-w-[22ch] text-[1.875rem] leading-[1.12] font-semibold tracking-[-0.02em] sm:text-[2.625rem]"
       >
-        Quanto cada loja cobra de verdade, com o frete até a sua casa.
+        Quanto cada loja cobra, já com o frete até a sua casa.
       </h1>
 
       <form onSubmit={aoEnviar} role="search" noValidate className="mt-6 sm:mt-8">
@@ -64,8 +64,8 @@ export function InicioBusca() {
           </div>
         </div>
         <p id="ajuda-cep" className="mt-2.5 max-w-[62ch] text-[0.9375rem] text-tinta-2">
-          O CEP é opcional. Com ele, cada loja calcula o frete e o total já sai com a entrega; sem
-          ele, você compara só o preço do produto.
+          O CEP é opcional. Com ele, o total inclui o frete que cada loja cobra até você; sem ele, a
+          comparação fica só no preço do produto.
         </p>
         <p role="alert" className="mt-1 min-h-6 text-[0.9375rem] font-medium text-falha">
           {busca.erro}

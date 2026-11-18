@@ -15,7 +15,7 @@ type PropsSimbolo = {
 
 const RECORTE = { x: 5.4, y: 3.4, w: 21.2, h: 25.3 };
 
-export function Simbolo({
+function Simbolo({
   tamanho = 24,
   espectro = REPOUSO,
   recorte = false,

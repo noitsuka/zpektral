@@ -18,10 +18,10 @@ export default function PaginaQuedas() {
           Quedas de preço
         </h1>
         <p className="mt-2 max-w-[65ch] text-tinta-2">
-          Ofertas que estão abaixo do preço habitual da própria loja, comparando com o que o
-          Zpektral viu nas buscas feitas aqui. Só entram produtos que alguém já buscou, então a
-          lista não cobre todas as lojas nem todos os produtos. O preço é o do produto, sem frete; o
-          total no seu CEP aparece quando você busca.
+          Ofertas abaixo do preço habitual da própria loja, segundo o que o Zpektral viu nas buscas
+          feitas aqui. Só entram produtos que alguém já buscou, então a lista não cobre todas as
+          lojas nem todos os produtos. O preço é o do produto, sem frete; o total no seu CEP aparece
+          quando você busca.
         </p>
         <Quedas />
       </main>

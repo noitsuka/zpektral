@@ -39,7 +39,7 @@ export function avaliarHistorico(
   return { situacao, variacao, dias, menor, mediana: centro };
 }
 
-export const JANELAS = [7, 30, 90, 180] as const;
+const JANELAS = [7, 30, 90, 180] as const;
 
 export function janelasDisponiveis(pontos: PontoHistorico[], hoje: string): number[] {
   if (!pontos.length) return [];

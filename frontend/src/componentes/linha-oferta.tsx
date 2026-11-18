@@ -40,6 +40,8 @@ export type Contexto = {
   agora: Date;
   historico: Record<string, PontoHistorico[]>;
   promocoes: (o: Oferta) => Promocao;
+  // Diferença para a mediana das lojas que vendem o mesmo produto, ou null.
+  tipico: (o: Oferta) => number | null;
 };
 
 const CARIMBOS: Record<EstadoTotal, { texto: string; cor: string; Icone: LucideIcon }> = {
@@ -135,6 +137,19 @@ const TOM_SELO: Record<Selo["tom"], string> = {
   alerta: "bg-alerta-suave text-alerta",
   neutro: "bg-etiqueta-2 text-tinta-2",
 };
+
+function seloDoTipico(diferenca: number | null): Selo[] {
+  if (diferenca === null) return [];
+  const abaixo = diferenca < 0;
+  return [
+    {
+      tipo: abaixo ? "abaixo_do_habitual" : "acima_do_habitual",
+      texto: `${porcentagem(Math.abs(diferenca))} ${abaixo ? "abaixo" : "acima"} do preço típico entre as lojas`,
+      evidencia: "mediana do total nas lojas que vendem o mesmo produto",
+      tom: abaixo ? "economia" : "neutro",
+    },
+  ];
+}
 
 export function ListaSelos({ selos, alertas = [] }: { selos: Selo[]; alertas?: Alerta[] }) {
   if (!selos.length && !alertas.length) return null;
@@ -233,7 +248,10 @@ export function LinhaOferta({
           </p>
           {entrega && <p className="mt-0.5 text-[0.875rem] text-tinta-2">{entrega}</p>}
         </div>
-        <ListaSelos selos={promocao.selos} alertas={oferta.alertas} />
+        <ListaSelos
+          selos={[...seloDoTipico(contexto.tipico(oferta)), ...promocao.selos]}
+          alertas={oferta.alertas}
+        />
         {quando && <p className="text-[0.8125rem] text-tinta-3">Preço consultado {quando}</p>}
       </div>
 
