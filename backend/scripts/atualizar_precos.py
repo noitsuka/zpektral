@@ -146,8 +146,9 @@ def main() -> None:
         help=f"máximo de buscas nesta execução (padrão {ORCAMENTO_PADRAO})",
     )
     argumentos = parser.parse_args()
-    if argumentos.orcamento < 1:
-        parser.error("o orçamento precisa ser de pelo menos 1 busca")
+    # cada busca consulta perto de 100 lojas; o teto protege as lojas e o banco
+    if not 1 <= argumentos.orcamento <= 50:
+        parser.error("o orçamento precisa ficar entre 1 e 50 buscas")
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s %(message)s")
     log.setLevel(logging.INFO)
     asyncio.run(executar(argumentos.orcamento))
