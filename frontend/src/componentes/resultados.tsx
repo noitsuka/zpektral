@@ -443,25 +443,6 @@ export function Resultados() {
             </p>
           ) : null}
 
-          {ocultas > 0 && (
-            <p className="border-t border-traco py-3 text-[0.875rem] text-apagado sm:px-4">
-              {plural(
-                ocultas,
-                "oferta usada ou recondicionada está escondida.",
-                "ofertas usadas ou recondicionadas estão escondidas.",
-              )}{" "}
-              <button
-                type="button"
-                onClick={() =>
-                  setFiltros({ ...filtros, condicao: ["novo", "recondicionado", "usado"] })
-                }
-                className="text-ouro underline decoration-ouro/40 hover:decoration-ouro"
-              >
-                Mostrar também
-              </button>
-            </p>
-          )}
-
           {vazio ? (
             <Vazio
               motivo={motivo ?? "nada_correspondente"}
@@ -504,6 +485,26 @@ export function Resultados() {
                 </button>
               )}
             </section>
+          )}
+
+          {/* depois da lista: quando os dados chegam, acima dela este aviso empurrava as ofertas */}
+          {ocultas > 0 && (
+            <p className="mt-6 border-t border-traco py-3 text-[0.875rem] text-apagado sm:px-4">
+              {plural(
+                ocultas,
+                "oferta usada ou recondicionada está escondida.",
+                "ofertas usadas ou recondicionadas estão escondidas.",
+              )}{" "}
+              <button
+                type="button"
+                onClick={() =>
+                  setFiltros({ ...filtros, condicao: ["novo", "recondicionado", "usado"] })
+                }
+                className="text-ouro underline decoration-ouro/40 hover:decoration-ouro"
+              >
+                Mostrar também
+              </button>
+            </p>
           )}
 
           {gruposParecidos.length > 0 && (

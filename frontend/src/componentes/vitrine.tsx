@@ -127,22 +127,34 @@ export function MelhorTotal({
   );
 }
 
+// Mesma estrutura de MelhorTotal nas duas larguras, para a chegada do bloco real não empurrar a lista.
 export function EsqueletoMelhor() {
   return (
-    <div aria-hidden className="border-t border-traco pt-4 pb-1 sm:px-4">
-      <div className="esqueleto h-3.5 w-40" />
-      <div className="mt-3 flex gap-4">
-        <div className="esqueleto size-12" />
+    <div aria-hidden className="border-t border-traco pt-4 pb-1">
+      <div className="esqueleto my-[3px] h-3.5 w-40 sm:mx-4" />
+      <div className="mt-2 flex items-start gap-4 sm:relative sm:pr-4 sm:pl-20">
+        <div className="esqueleto size-12 shrink-0 sm:absolute sm:top-0 sm:left-4" />
         <div className="flex-1 space-y-2 pt-1">
           <div className="esqueleto h-4 w-3/4" />
+          <div className="esqueleto h-4 w-1/2 sm:hidden" />
         </div>
       </div>
-      <div className="flex justify-between gap-4 py-4 sm:pl-16">
+      <div className="flex items-start justify-between gap-4 pt-3 pb-3 sm:pt-2 sm:pr-4 sm:pb-1 sm:pl-16">
         <div className="space-y-2">
-          <div className="esqueleto h-4 w-24" />
+          <div className="esqueleto h-4 w-28" />
           <div className="esqueleto h-3.5 w-40" />
         </div>
-        <div className="esqueleto h-6 w-28" />
+        <div className="flex items-start gap-4">
+          <div className="flex flex-col items-end gap-2">
+            <div className="esqueleto h-6 w-28" />
+            <div className="esqueleto h-3.5 w-24" />
+          </div>
+          <div className="esqueleto hidden h-9 w-40 sm:block" />
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-4 pb-3 sm:hidden">
+        <div className="esqueleto h-4 w-24" />
+        <div className="esqueleto h-11 w-1/2" />
       </div>
     </div>
   );

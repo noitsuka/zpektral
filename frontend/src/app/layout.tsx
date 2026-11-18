@@ -18,6 +18,8 @@ const leitura = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500"],
   display: "swap",
+  // só preços e CEP usam esta fonte: pré-carregada, ela atrasava a primeira pintura
+  preload: false,
 });
 
 export const metadata: Metadata = {
