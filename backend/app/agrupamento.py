@@ -29,6 +29,11 @@ _UNIDADES = re.compile(
 )
 # "com 16 pilhas" contra "com 2 pilhas": a contagem do mesmo item separa pacotes
 _CONTAGEM = re.compile(r"\b(\d+) ([a-z]{3,}s)\b")
+# o que se vende em quantidade: "4 pilhas" é pacote, mesmo sem a palavra kit
+_EMBALAGENS = frozenset(
+    "pilhas rolos latas garrafas capsulas saches fraldas sabonetes refis unidades".split()
+)
+_PACOTE_SEM_NUMERO = frozenset({"cartela", "blister", "fardo"})
 
 RAZAO_FORA_DA_CURVA = 0.5
 
@@ -98,8 +103,20 @@ def _especificacoes(
     }
     criticos = {(nome, valor) for nome, valor in valores.items() if valor}
     # Título sem kit é unidade avulsa e sem condição é novo: a ausência também é um valor.
-    combo = "combo" in termos
-    criticos.add(("unidades", "combo" if combo else f"kit{unidades}" if unidades > 1 else None))
+    if unidades == 1:
+        unidades = max(
+            (int(n) for n, nome in _CONTAGEM.findall(normalizado) if nome in _EMBALAGENS),
+            default=1,
+        )
+    if "combo" in termos:
+        pacote = "combo"
+    elif unidades > 1:
+        pacote = f"kit{unidades}"
+    elif _PACOTE_SEM_NUMERO & set(termos):
+        pacote = "pacote"
+    else:
+        pacote = None
+    criticos.add(("unidades", pacote))
     criticos.add(("condicao", None if condicao in (None, Condicao.NOVO) else str(condicao)))
     return Especificacoes(
         modelos=modelos,

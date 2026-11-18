@@ -400,3 +400,16 @@ def teste_grupo_provisorio_nao_junta_cor_nem_marca_diferentes():
     mondial = oferta("m", "Liquidificador L-1200", marca="Mondial")
     arno = oferta("a", "Liquidificador L-1200", marca="Arno")
     assert chave_propria(mondial) != chave_propria(arno)
+
+
+@pytest.mark.parametrize(
+    ("unidade", "pacote"),
+    [
+        ("Pilha Alcalina AA Duracell MN1500", "Pilha Alcalina AA Duracell MN1500 com 4 pilhas"),
+        ("Pilha Alcalina AA Duracell MN1500", "Pilha Alcalina AA Duracell MN1500 Cartela"),
+        ("Papel Higiênico Neve Folha Dupla NV300", "Papel Higiênico Neve Folha Dupla NV300 12 rolos"),
+    ],
+)
+def teste_pacote_nao_se_junta_com_a_unidade_sem_quantidade(unidade, pacote):
+    ofertas = [oferta("u", unidade), oferta("p", pacote)]
+    assert not _juntas(ofertas, "u", "p")
