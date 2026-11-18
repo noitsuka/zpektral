@@ -261,8 +261,9 @@ export function Quedas() {
                       Nenhuma queda observada nos últimos {dias} dias
                     </h2>
                     <p className="mt-1 max-w-[60ch] text-tinta-2">
-                      A lista cresce conforme as pessoas buscam no Zpektral e o mesmo produto é
-                      visto mais de uma vez na mesma loja.
+                      Uma queda entra aqui quando o mesmo produto foi visto na mesma loja em pelo
+                      menos 5 dias, com a última vez nas últimas 48 horas. A lista cresce conforme
+                      as pessoas buscam no Zpektral.
                     </p>
                     <Link href="/" className="botao botao-primario mt-4">
                       Fazer uma busca

@@ -20,8 +20,9 @@ export default function PaginaQuedas() {
         <p className="mt-2 max-w-[65ch] text-tinta-2">
           Ofertas abaixo do preço habitual da própria loja, segundo o que o Zpektral viu nas buscas
           feitas aqui. Só entram produtos que alguém já buscou, então a lista não cobre todas as
-          lojas nem todos os produtos. O preço é o do produto, sem frete; o total no seu CEP aparece
-          quando você busca.
+          lojas nem todos os produtos. O preço é o do produto, sem frete, e vale para a última vez
+          que ele foi visto; confira na loja antes de comprar. O total no seu CEP aparece quando
+          você busca.
         </p>
         <Quedas />
       </main>
