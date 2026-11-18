@@ -52,6 +52,20 @@ async def teste_campanha_expirada_e_ignorada(simulador, http, config):
     )
     [o] = await executar(simulador, http, config, [e], agora=201)
     assert (o.preco, o.preco_pix) == (999900, 899910)
+    assert o.promocoes == [] and o.preco_valido_ate is None
+
+
+async def teste_campanha_ativa_informa_nome_e_fim(simulador, http, config):
+    campanha = gravacao_json("kabum.json")["data"][0]["attributes"]["offer"]
+    [o] = await executar(simulador, http, config, [entrada()], agora=campanha["starts_at"] + 60)
+    assert o.promocoes == ["PRESS START 1º SETUP"]
+    assert o.preco_valido_ate == "2026-10-26T13:00:00+00:00"
+
+
+async def teste_fim_de_campanha_distante_nao_e_informado(simulador, http, config):
+    longe = {"name": "Oferta", "price": 8399.0, "starts_at": 100, "ends_at": 100 + 90 * 86_400}
+    [o] = await executar(simulador, http, config, [entrada(offer=longe)], agora=150)
+    assert o.promocoes == ["Oferta"] and o.preco_valido_ate is None
 
 
 async def teste_frete_gratis_e_anunciado_e_nao_cotado(simulador, http, config):

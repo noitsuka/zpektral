@@ -1,0 +1,566 @@
+{
+ "products": [
+  {
+   "productId": "42707",
+   "productName": "Protetor Solar Dauf Fps30 200ml",
+   "linkText": "protetor-solar-dauf-fps30-200ml",
+   "brand": "Dauf",
+   "link": "/protetor-solar-dauf-fps30-200ml/p",
+   "items": [
+    {
+     "itemId": "42707",
+     "name": "Protetor Solar Dauf Fps30 200ml",
+     "nameComplete": "Protetor Solar Dauf Fps30 200ml",
+     "ean": "7896048606297",
+     "images": [
+      {
+       "imageUrl": "https://paguemenos.vtexassets.com/arquivos/ids/640454/protetor-solar-dauf-fps30-200ml-principal.jpg?v=638008017264570000"
+      }
+     ],
+     "sellers": [
+      {
+       "sellerId": "1",
+       "sellerName": "Farmácias Pague Menos",
+       "commertialOffer": {
+        "AvailableQuantity": 10000,
+        "Installments": [
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Discover",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Discover à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Aura",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Aura à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Hipercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Hipercard à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Vale",
+          "PaymentSystemGroupName": "giftCardPaymentGroup",
+          "Name": "Vale à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "JCB",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "JCB à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Cartão de débito virtual Caixa",
+          "PaymentSystemGroupName": "virtualDebitEloPaymentGroup",
+          "Name": "Cartão de débito virtual Caixa à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Pix",
+          "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+          "Name": "Pix à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Pagaleve",
+          "PaymentSystemGroupName": "PagalevePaymentGroup",
+          "Name": "Pagaleve à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Nubank",
+          "PaymentSystemGroupName": "NubankPaymentGroup",
+          "Name": "Nubank à vista"
+         },
+         {
+          "Value": 34.99,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 34.99,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Dinheiro",
+          "PaymentSystemGroupName": "custom201PaymentGroupPaymentGroup",
+          "Name": "Dinheiro à vista"
+         }
+        ],
+        "ListPrice": 34.99,
+        "Price": 34.99,
+        "PriceWithoutDiscount": 34.99,
+        "PriceValidUntil": "2027-11-17T21:56:57Z",
+        "discountHighlights": [],
+        "teasers": []
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "productId": "146424",
+   "productName": "Protetor Solar 60FPS 60ml",
+   "linkText": "protetor-solar-60fps-60ml-172y747x12751i62",
+   "brand": "Unicpharma",
+   "link": "/protetor-solar-60fps-60ml-172y747x12751i62/p",
+   "items": [
+    {
+     "itemId": "150463",
+     "name": "Protetor Solar 60FPS 60ml",
+     "nameComplete": "Protetor Solar 60FPS 60ml",
+     "ean": "7898973794261",
+     "images": [
+      {
+       "imageUrl": "https://paguemenos.vtexassets.com/arquivos/ids/935730/Protetor-Solar-60FPS-60ml.jpg?v=638633802346400000"
+      }
+     ],
+     "sellers": [
+      {
+       "sellerId": "1",
+       "sellerName": "Farmácias Pague Menos",
+       "commertialOffer": {
+        "AvailableQuantity": 0,
+        "Installments": [],
+        "ListPrice": 0,
+        "Price": 0,
+        "PriceWithoutDiscount": 0,
+        "PriceValidUntil": null,
+        "discountHighlights": [],
+        "teasers": []
+       }
+      },
+      {
+       "sellerId": "MRES12185547000198",
+       "sellerName": "Unicpharma",
+       "commertialOffer": {
+        "AvailableQuantity": 10000,
+        "Installments": [
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Discover",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Discover à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Aura",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Aura à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Hipercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Hipercard à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Vale",
+          "PaymentSystemGroupName": "giftCardPaymentGroup",
+          "Name": "Vale à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "JCB",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "JCB à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Cartão de débito virtual Caixa",
+          "PaymentSystemGroupName": "virtualDebitEloPaymentGroup",
+          "Name": "Cartão de débito virtual Caixa à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Pix",
+          "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+          "Name": "Pix à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Nubank",
+          "PaymentSystemGroupName": "NubankPaymentGroup",
+          "Name": "Nubank à vista"
+         },
+         {
+          "Value": 72.48,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 72.48,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "WH Google Pay",
+          "PaymentSystemGroupName": "WH Google PayPaymentGroup",
+          "Name": "WH Google Pay à vista"
+         }
+        ],
+        "ListPrice": 72.48,
+        "Price": 72.48,
+        "PriceWithoutDiscount": 72.48,
+        "PriceValidUntil": null,
+        "discountHighlights": [],
+        "teasers": []
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "productId": "50838",
+   "productName": "Protetor Solar Dauf Fps60 500ml",
+   "linkText": "protetor-solar-dauf-fps60-500ml",
+   "brand": "Dauf",
+   "link": "/protetor-solar-dauf-fps60-500ml/p",
+   "items": [
+    {
+     "itemId": "50838",
+     "name": "Protetor Solar Dauf Fps60 500ml",
+     "nameComplete": "Protetor Solar Dauf Fps60 500ml",
+     "ean": "7896048607263",
+     "images": [
+      {
+       "imageUrl": "https://paguemenos.vtexassets.com/arquivos/ids/642882/protetor-solar-dauf-fps60-500ml-principal.jpg?v=638008049517900000"
+      }
+     ],
+     "sellers": [
+      {
+       "sellerId": "1",
+       "sellerName": "Farmácias Pague Menos",
+       "commertialOffer": {
+        "AvailableQuantity": 10000,
+        "Installments": [
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Discover",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Discover à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Aura",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Aura à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Hipercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Hipercard à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Vale",
+          "PaymentSystemGroupName": "giftCardPaymentGroup",
+          "Name": "Vale à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "JCB",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "JCB à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Cabal",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Cabal à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Apple Pay",
+          "PaymentSystemGroupName": "ApplePayPaymentGroup",
+          "Name": "Apple Pay à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Cartão de débito virtual Caixa",
+          "PaymentSystemGroupName": "virtualDebitEloPaymentGroup",
+          "Name": "Cartão de débito virtual Caixa à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Pix",
+          "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+          "Name": "Pix à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Google Pay",
+          "PaymentSystemGroupName": "Google PayPaymentGroup",
+          "Name": "Google Pay à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Pagaleve",
+          "PaymentSystemGroupName": "PagalevePaymentGroup",
+          "Name": "Pagaleve à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Nubank",
+          "PaymentSystemGroupName": "NubankPaymentGroup",
+          "Name": "Nubank à vista"
+         },
+         {
+          "Value": 71.24,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 71.24,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Dinheiro",
+          "PaymentSystemGroupName": "custom201PaymentGroupPaymentGroup",
+          "Name": "Dinheiro à vista"
+         }
+        ],
+        "ListPrice": 94.99,
+        "Price": 71.24,
+        "PriceWithoutDiscount": 94.99,
+        "PriceValidUntil": "2027-11-17T21:55:11Z",
+        "discountHighlights": [
+         {
+          "name": "SUPEROFERTA",
+          "additionalInfo": [
+           {
+            "key": "offerId",
+            "value": "227800"
+           },
+           {
+            "key": "gerarNotaDebito",
+            "value": "nao"
+           }
+          ]
+         }
+        ],
+        "teasers": []
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

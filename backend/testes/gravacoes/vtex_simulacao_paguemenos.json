@@ -1,0 +1,855 @@
+{
+ "items": [
+  {
+   "id": "50838",
+   "requestIndex": 0,
+   "quantity": 1,
+   "seller": "1",
+   "sellerChain": [
+    "1",
+    "paguemenos00052"
+   ],
+   "tax": 0,
+   "priceValidUntil": "2027-11-17T21:55:11Z",
+   "price": 9499,
+   "listPrice": 9499,
+   "rewardValue": 0,
+   "sellingPrice": 7124,
+   "offerings": [],
+   "priceTags": [
+    {
+     "name": "discount@price-ed610dd5-083d-430b-8232-ec082c604433#efae8c3f-400e-4744-99ba-ce79a6fab015",
+     "value": -2375,
+     "rawValue": -23.75,
+     "isPercentual": false,
+     "identifier": null,
+     "owner": "paguemenos",
+     "sourceSystem": null
+    }
+   ],
+   "measurementUnit": "un",
+   "unitMultiplier": 1.0,
+   "parentItemIndex": null,
+   "parentAssemblyBinding": null,
+   "availability": "available",
+   "catalogProvider": "vrn:vtex.catalog-api-proxy:-:paguemenos:master:/proxy/authenticated/catalog/pvt/sku/stockkeepingunitbyid/50838",
+   "priceDefinition": {
+    "calculatedSellingPrice": 7124,
+    "total": 7124,
+    "sellingPrices": [
+     {
+      "value": 7124,
+      "quantity": 1
+     }
+    ],
+    "reason": "priceTable",
+    "pricePerUnit": 7124
+   },
+   "priceTable": null
+  }
+ ],
+ "logisticsInfo": [
+  {
+   "itemIndex": 0,
+   "addressId": null,
+   "selectedSla": null,
+   "selectedDeliveryChannel": null,
+   "quantity": 1,
+   "shipsTo": [
+    "BRA"
+   ],
+   "slas": [],
+   "deliveryChannels": [
+    {
+     "id": "delivery"
+    },
+    {
+     "id": "pickup-in-point"
+    }
+   ]
+  }
+ ],
+ "totals": [
+  {
+   "id": "Items",
+   "name": "Total dos Itens",
+   "value": 9499
+  },
+  {
+   "id": "Discounts",
+   "name": "Total dos Descontos",
+   "value": -2375
+  }
+ ],
+ "paymentData": {
+  "installmentOptions": [
+   {
+    "paymentSystem": "1",
+    "bin": null,
+    "paymentName": "American Express",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "2",
+    "bin": null,
+    "paymentName": "Visa",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "3",
+    "bin": null,
+    "paymentName": "Diners",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "4",
+    "bin": null,
+    "paymentName": "Mastercard",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "5",
+    "bin": null,
+    "paymentName": "Discover",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "7",
+    "bin": null,
+    "paymentName": "Aura",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "8",
+    "bin": null,
+    "paymentName": "Hipercard",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "9",
+    "bin": null,
+    "paymentName": "Elo",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "16",
+    "bin": null,
+    "paymentName": "Vale",
+    "paymentGroupName": "giftCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "21",
+    "bin": null,
+    "paymentName": "JCB",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "33",
+    "bin": null,
+    "paymentName": "Cabal",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "69",
+    "bin": null,
+    "paymentName": "Apple Pay",
+    "paymentGroupName": "ApplePayPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "113",
+    "bin": null,
+    "paymentName": "Cartão de débito virtual Caixa",
+    "paymentGroupName": "virtualDebitEloPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "125",
+    "bin": null,
+    "paymentName": "Pix",
+    "paymentGroupName": "instantPaymentPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "169",
+    "bin": null,
+    "paymentName": "Google Pay",
+    "paymentGroupName": "Google PayPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "172",
+    "bin": null,
+    "paymentName": "Pagaleve",
+    "paymentGroupName": "PagalevePaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "178",
+    "bin": null,
+    "paymentName": "Nubank",
+    "paymentGroupName": "NubankPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "201",
+    "bin": null,
+    "paymentName": "Dinheiro",
+    "paymentGroupName": "custom201PaymentGroupPaymentGroup",
+    "value": 7124,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 7124,
+      "total": 7124,
+      "sellerMerchantInstallments": [
+       {
+        "id": "PAGUEMENOS00052",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 7124,
+        "total": 7124
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "paymentSystems": [
+   {
+    "id": 113,
+    "name": "Cartão de débito virtual Caixa",
+    "groupName": "virtualDebitEloPaymentGroup",
+    "validator": null,
+    "stringId": "113",
+    "template": "virtualDebitEloPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551852Z",
+    "availablePayments": null
+   },
+   {
+    "id": 125,
+    "name": "Pix",
+    "groupName": "instantPaymentPaymentGroup",
+    "validator": null,
+    "stringId": "125",
+    "template": "instantPaymentPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551856Z",
+    "availablePayments": null
+   },
+   {
+    "id": 201,
+    "name": "Dinheiro",
+    "groupName": "custom201PaymentGroupPaymentGroup",
+    "validator": null,
+    "stringId": "201",
+    "template": "custom201PaymentGroupPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": true,
+    "description": "Pague em dinheiro ao receber o pedido",
+    "requiresAuthentication": false,
+    "dueDate": "2026-12-17T21:52:36.8551858Z",
+    "availablePayments": null
+   },
+   {
+    "id": 178,
+    "name": "Nubank",
+    "groupName": "NubankPaymentGroup",
+    "validator": null,
+    "stringId": "178",
+    "template": "NubankPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.855186Z",
+    "availablePayments": null
+   },
+   {
+    "id": 169,
+    "name": "Google Pay",
+    "groupName": "Google PayPaymentGroup",
+    "validator": null,
+    "stringId": "169",
+    "template": "Google PayPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551862Z",
+    "availablePayments": null
+   },
+   {
+    "id": 69,
+    "name": "Apple Pay",
+    "groupName": "ApplePayPaymentGroup",
+    "validator": null,
+    "stringId": "69",
+    "template": "ApplePayPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551864Z",
+    "availablePayments": null
+   },
+   {
+    "id": 172,
+    "name": "Pagaleve",
+    "groupName": "PagalevePaymentGroup",
+    "validator": null,
+    "stringId": "172",
+    "template": "PagalevePaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551865Z",
+    "availablePayments": null
+   },
+   {
+    "id": 33,
+    "name": "Cabal",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "33",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551866Z",
+    "availablePayments": null
+   },
+   {
+    "id": 4,
+    "name": "Mastercard",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "4",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551867Z",
+    "availablePayments": null
+   },
+   {
+    "id": 8,
+    "name": "Hipercard",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "8",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551869Z",
+    "availablePayments": null
+   },
+   {
+    "id": 2,
+    "name": "Visa",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "2",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551871Z",
+    "availablePayments": null
+   },
+   {
+    "id": 9,
+    "name": "Elo",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "9",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551872Z",
+    "availablePayments": null
+   },
+   {
+    "id": 3,
+    "name": "Diners",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "3",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551875Z",
+    "availablePayments": null
+   },
+   {
+    "id": 1,
+    "name": "American Express",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "1",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551877Z",
+    "availablePayments": null
+   },
+   {
+    "id": 7,
+    "name": "Aura",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "7",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551881Z",
+    "availablePayments": null
+   },
+   {
+    "id": 5,
+    "name": "Discover",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "5",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551883Z",
+    "availablePayments": null
+   },
+   {
+    "id": 21,
+    "name": "JCB",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "21",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:50:36.8551885Z",
+    "availablePayments": null
+   },
+   {
+    "id": 16,
+    "name": "Vale",
+    "groupName": "giftCardPaymentGroup",
+    "validator": null,
+    "stringId": "16",
+    "template": "giftCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:49:04.2419381Z",
+    "availablePayments": null
+   }
+  ],
+  "payments": [],
+  "giftCards": [],
+  "giftCardMessages": [],
+  "availableAccounts": [],
+  "availableTokens": [],
+  "availableAssociations": {}
+ },
+ "ratesAndBenefitsData": {
+  "rateAndBenefitsIdentifiers": [
+   {
+    "id": "ed610dd5-083d-430b-8232-ec082c604433",
+    "name": "SUPEROFERTA",
+    "featured": true,
+    "description": "SKU : 56312 - PROT SOL DAUF FACIAL BGES FPS8060ML, SKU : 56330 - PROT SOL DAUF FACIAL BGC FPS8060ML, SKU : 45872 - PROT SOL DAUF FACIAL FPS60 60ML, SKU : 50838 - PROT SOL DAUF FPS60 500ML, SKU : 60299 - PROT SOL DAUF FPS60 200G GTFAC 60ML, SKU : 55892 - PROT SOL DAUF FACIAL FPS80 60ML, SKU : 51761 - POS SOL DAUF ALOE VERA GEL 120ML, SKU : 175674 - PROT SOL DAUF FPS80 60G+GT SAB GEL - \r\n Produtos[  SKU: 56312 - PROT SOL DAUF FACIAL BGES FPS8060ML , \r\n  SKU: 56330 - PROT SOL DAUF FACIAL BGC FPS8060ML , \r\n  SKU: 45872 - PROT SOL DAUF FACIAL FPS60 60ML , \r\n  SKU: 50838 - PROT SOL DAUF FPS60 500ML , \r\n  SKU: 60299 - PROT SOL DAUF FPS60 200G GTFAC 60ML , \r\n  SKU: 55892 - PROT SOL DAUF FACIAL FPS80 60ML , \r\n  SKU: 51761 - POS SOL DAUF ALOE VERA GEL 120ML , \r\n  SKU: 175674 - PROT SOL DAUF FPS80 60G+GT SAB GEL  ]",
+    "matchedParameters": {
+     "Seller@CatalogSystem": "1,dasaloja01|inclusive"
+    },
+    "additionalInfo": {
+     "offerId": "227800",
+     "gerarNotaDebito": "nao"
+    },
+    "triggeredBy": null,
+    "isCupomDiscount": null
+   }
+  ],
+  "teaser": [],
+  "campaigns": []
+ }
+}

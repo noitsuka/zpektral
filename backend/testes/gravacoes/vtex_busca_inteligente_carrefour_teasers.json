@@ -1,0 +1,878 @@
+{
+ "products": [
+  {
+   "productId": "333388284",
+   "productName": "Air Fryer Philco 4L Revestimento Redstone 1500W PAF40A 110V",
+   "linkText": "air-fryer-philco-4l-revestimento-redstone-1500w-paf40a-110v-3609634",
+   "brand": "Philco",
+   "link": "/air-fryer-philco-4l-revestimento-redstone-1500w-paf40a-110v-3609634/p",
+   "items": [
+    {
+     "itemId": "333404594",
+     "name": "Air Fryer Philco 4L Revestimento Redstone 1500W PAF40A 110V",
+     "nameComplete": "Air Fryer Philco 4L Revestimento Redstone 1500W PAF40A 110V",
+     "ean": "7891356123931",
+     "images": [
+      {
+       "imageUrl": "https://carrefourbr.vtexassets.com/arquivos/ids/185966248/3609634_1.jpg.jpg?v=638762631774870000"
+      }
+     ],
+     "sellers": [
+      {
+       "sellerId": "1",
+       "sellerName": "Carrefour",
+       "commertialOffer": {
+        "AvailableQuantity": 10000,
+        "Installments": [
+         {
+          "Value": 224.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express à vista"
+         },
+         {
+          "Value": 112.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express 2 vezes sem juros"
+         },
+         {
+          "Value": 74.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express 3 vezes sem juros"
+         },
+         {
+          "Value": 56.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express 4 vezes sem juros"
+         },
+         {
+          "Value": 224.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa à vista"
+         },
+         {
+          "Value": 112.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa 2 vezes sem juros"
+         },
+         {
+          "Value": 74.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa 3 vezes sem juros"
+         },
+         {
+          "Value": 56.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa 4 vezes sem juros"
+         },
+         {
+          "Value": 224.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners à vista"
+         },
+         {
+          "Value": 112.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners 2 vezes sem juros"
+         },
+         {
+          "Value": 74.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners 3 vezes sem juros"
+         },
+         {
+          "Value": 56.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners 4 vezes sem juros"
+         },
+         {
+          "Value": 224.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard à vista"
+         },
+         {
+          "Value": 112.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard 2 vezes sem juros"
+         },
+         {
+          "Value": 74.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard 3 vezes sem juros"
+         },
+         {
+          "Value": 56.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard 4 vezes sem juros"
+         },
+         {
+          "Value": 224.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo à vista"
+         },
+         {
+          "Value": 112.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo 2 vezes sem juros"
+         },
+         {
+          "Value": 74.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo 3 vezes sem juros"
+         },
+         {
+          "Value": 56.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo 4 vezes sem juros"
+         },
+         {
+          "Value": 224.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Vale",
+          "PaymentSystemGroupName": "giftCardPaymentGroup",
+          "Name": "Vale à vista"
+         },
+         {
+          "Value": 224.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Pix",
+          "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+          "Name": "Pix à vista"
+         },
+         {
+          "Value": 224.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Cartão Carrefour",
+          "PaymentSystemGroupName": "customPrivate_401PaymentGroup",
+          "Name": "Cartão Carrefour à vista"
+         },
+         {
+          "Value": 112.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Cartão Carrefour",
+          "PaymentSystemGroupName": "customPrivate_401PaymentGroup",
+          "Name": "Cartão Carrefour 2 vezes sem juros"
+         },
+         {
+          "Value": 74.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Cartão Carrefour",
+          "PaymentSystemGroupName": "customPrivate_401PaymentGroup",
+          "Name": "Cartão Carrefour 3 vezes sem juros"
+         },
+         {
+          "Value": 56.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Cartão Carrefour",
+          "PaymentSystemGroupName": "customPrivate_401PaymentGroup",
+          "Name": "Cartão Carrefour 4 vezes sem juros"
+         },
+         {
+          "Value": 224.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Cartão Atacadão",
+          "PaymentSystemGroupName": "customPrivate_405PaymentGroup",
+          "Name": "Cartão Atacadão à vista"
+         },
+         {
+          "Value": 112.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Cartão Atacadão",
+          "PaymentSystemGroupName": "customPrivate_405PaymentGroup",
+          "Name": "Cartão Atacadão 2 vezes sem juros"
+         },
+         {
+          "Value": 74.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Cartão Atacadão",
+          "PaymentSystemGroupName": "customPrivate_405PaymentGroup",
+          "Name": "Cartão Atacadão 3 vezes sem juros"
+         },
+         {
+          "Value": 56.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Cartão Atacadão",
+          "PaymentSystemGroupName": "customPrivate_405PaymentGroup",
+          "Name": "Cartão Atacadão 4 vezes sem juros"
+         },
+         {
+          "Value": 224.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Cartão Sam's Club",
+          "PaymentSystemGroupName": "customPrivate_406PaymentGroup",
+          "Name": "Cartão Sam's Club à vista"
+         },
+         {
+          "Value": 112.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Cartão Sam's Club",
+          "PaymentSystemGroupName": "customPrivate_406PaymentGroup",
+          "Name": "Cartão Sam's Club 2 vezes sem juros"
+         },
+         {
+          "Value": 74.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Cartão Sam's Club",
+          "PaymentSystemGroupName": "customPrivate_406PaymentGroup",
+          "Name": "Cartão Sam's Club 3 vezes sem juros"
+         },
+         {
+          "Value": 56.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 224.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Cartão Sam's Club",
+          "PaymentSystemGroupName": "customPrivate_406PaymentGroup",
+          "Name": "Cartão Sam's Club 4 vezes sem juros"
+         }
+        ],
+        "ListPrice": 242.78,
+        "Price": 224.1,
+        "PriceWithoutDiscount": 224.1,
+        "PriceValidUntil": "2026-11-24T21:21:40Z",
+        "discountHighlights": [],
+        "teasers": [
+         {
+          "name": "1P Cartão Carrefour 20% off - 29441",
+          "conditions": {
+           "parameters": [
+            {
+             "name": "PaymentMethodId",
+             "value": "405,401,406"
+            }
+           ],
+           "minimumQuantity": 0
+          },
+          "effects": {
+           "parameters": [
+            {
+             "name": "PercentualDiscount",
+             "value": "20"
+            }
+           ]
+          },
+          "generalValues": []
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "productId": "338511608",
+   "productName": "Air Fryer Forno Multilaser 10L 220V",
+   "linkText": "air-fryer-forno-multilaser-10l-220v-4024117",
+   "brand": "Multi Home",
+   "link": "/air-fryer-forno-multilaser-10l-220v-4024117/p",
+   "items": [
+    {
+     "itemId": "338399197",
+     "name": "Air Fryer Forno Multilaser 10L 220V",
+     "nameComplete": "Air Fryer Forno Multilaser 10L 220V",
+     "ean": "7899548506074",
+     "images": [
+      {
+       "imageUrl": "https://carrefourbr.vtexassets.com/arquivos/ids/208568414/4024133_4024117_a.jpg?v=639047711239030000"
+      }
+     ],
+     "sellers": [
+      {
+       "sellerId": "1",
+       "sellerName": "Carrefour",
+       "commertialOffer": {
+        "AvailableQuantity": 10000,
+        "Installments": [
+         {
+          "Value": 296.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express à vista"
+         },
+         {
+          "Value": 148.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express 2 vezes sem juros"
+         },
+         {
+          "Value": 98.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express 3 vezes sem juros"
+         },
+         {
+          "Value": 74.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express 4 vezes sem juros"
+         },
+         {
+          "Value": 59.22,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 5,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express 5 vezes sem juros"
+         },
+         {
+          "Value": 49.35,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 6,
+          "PaymentSystemName": "American Express",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "American Express 6 vezes sem juros"
+         },
+         {
+          "Value": 296.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa à vista"
+         },
+         {
+          "Value": 148.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa 2 vezes sem juros"
+         },
+         {
+          "Value": 98.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa 3 vezes sem juros"
+         },
+         {
+          "Value": 74.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa 4 vezes sem juros"
+         },
+         {
+          "Value": 59.22,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 5,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa 5 vezes sem juros"
+         },
+         {
+          "Value": 49.35,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 6,
+          "PaymentSystemName": "Visa",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Visa 6 vezes sem juros"
+         },
+         {
+          "Value": 296.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners à vista"
+         },
+         {
+          "Value": 148.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners 2 vezes sem juros"
+         },
+         {
+          "Value": 98.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners 3 vezes sem juros"
+         },
+         {
+          "Value": 74.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners 4 vezes sem juros"
+         },
+         {
+          "Value": 59.22,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 5,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners 5 vezes sem juros"
+         },
+         {
+          "Value": 49.35,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 6,
+          "PaymentSystemName": "Diners",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Diners 6 vezes sem juros"
+         },
+         {
+          "Value": 296.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard à vista"
+         },
+         {
+          "Value": 148.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard 2 vezes sem juros"
+         },
+         {
+          "Value": 98.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard 3 vezes sem juros"
+         },
+         {
+          "Value": 74.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard 4 vezes sem juros"
+         },
+         {
+          "Value": 59.22,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 5,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard 5 vezes sem juros"
+         },
+         {
+          "Value": 49.35,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 6,
+          "PaymentSystemName": "Mastercard",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Mastercard 6 vezes sem juros"
+         },
+         {
+          "Value": 296.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo à vista"
+         },
+         {
+          "Value": 148.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo 2 vezes sem juros"
+         },
+         {
+          "Value": 98.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo 3 vezes sem juros"
+         },
+         {
+          "Value": 74.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo 4 vezes sem juros"
+         },
+         {
+          "Value": 59.22,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 5,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo 5 vezes sem juros"
+         },
+         {
+          "Value": 49.35,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 6,
+          "PaymentSystemName": "Elo",
+          "PaymentSystemGroupName": "creditCardPaymentGroup",
+          "Name": "Elo 6 vezes sem juros"
+         },
+         {
+          "Value": 296.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Vale",
+          "PaymentSystemGroupName": "giftCardPaymentGroup",
+          "Name": "Vale à vista"
+         },
+         {
+          "Value": 296.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Pix",
+          "PaymentSystemGroupName": "instantPaymentPaymentGroup",
+          "Name": "Pix à vista"
+         },
+         {
+          "Value": 296.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Cartão Carrefour",
+          "PaymentSystemGroupName": "customPrivate_401PaymentGroup",
+          "Name": "Cartão Carrefour à vista"
+         },
+         {
+          "Value": 148.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Cartão Carrefour",
+          "PaymentSystemGroupName": "customPrivate_401PaymentGroup",
+          "Name": "Cartão Carrefour 2 vezes sem juros"
+         },
+         {
+          "Value": 98.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Cartão Carrefour",
+          "PaymentSystemGroupName": "customPrivate_401PaymentGroup",
+          "Name": "Cartão Carrefour 3 vezes sem juros"
+         },
+         {
+          "Value": 74.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Cartão Carrefour",
+          "PaymentSystemGroupName": "customPrivate_401PaymentGroup",
+          "Name": "Cartão Carrefour 4 vezes sem juros"
+         },
+         {
+          "Value": 59.22,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 5,
+          "PaymentSystemName": "Cartão Carrefour",
+          "PaymentSystemGroupName": "customPrivate_401PaymentGroup",
+          "Name": "Cartão Carrefour 5 vezes sem juros"
+         },
+         {
+          "Value": 49.35,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 6,
+          "PaymentSystemName": "Cartão Carrefour",
+          "PaymentSystemGroupName": "customPrivate_401PaymentGroup",
+          "Name": "Cartão Carrefour 6 vezes sem juros"
+         },
+         {
+          "Value": 296.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Cartão Atacadão",
+          "PaymentSystemGroupName": "customPrivate_405PaymentGroup",
+          "Name": "Cartão Atacadão à vista"
+         },
+         {
+          "Value": 148.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Cartão Atacadão",
+          "PaymentSystemGroupName": "customPrivate_405PaymentGroup",
+          "Name": "Cartão Atacadão 2 vezes sem juros"
+         },
+         {
+          "Value": 98.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Cartão Atacadão",
+          "PaymentSystemGroupName": "customPrivate_405PaymentGroup",
+          "Name": "Cartão Atacadão 3 vezes sem juros"
+         },
+         {
+          "Value": 74.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Cartão Atacadão",
+          "PaymentSystemGroupName": "customPrivate_405PaymentGroup",
+          "Name": "Cartão Atacadão 4 vezes sem juros"
+         },
+         {
+          "Value": 59.22,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 5,
+          "PaymentSystemName": "Cartão Atacadão",
+          "PaymentSystemGroupName": "customPrivate_405PaymentGroup",
+          "Name": "Cartão Atacadão 5 vezes sem juros"
+         },
+         {
+          "Value": 49.35,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 6,
+          "PaymentSystemName": "Cartão Atacadão",
+          "PaymentSystemGroupName": "customPrivate_405PaymentGroup",
+          "Name": "Cartão Atacadão 6 vezes sem juros"
+         },
+         {
+          "Value": 296.1,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 1,
+          "PaymentSystemName": "Cartão Sam's Club",
+          "PaymentSystemGroupName": "customPrivate_406PaymentGroup",
+          "Name": "Cartão Sam's Club à vista"
+         },
+         {
+          "Value": 148.05,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 2,
+          "PaymentSystemName": "Cartão Sam's Club",
+          "PaymentSystemGroupName": "customPrivate_406PaymentGroup",
+          "Name": "Cartão Sam's Club 2 vezes sem juros"
+         },
+         {
+          "Value": 98.7,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 3,
+          "PaymentSystemName": "Cartão Sam's Club",
+          "PaymentSystemGroupName": "customPrivate_406PaymentGroup",
+          "Name": "Cartão Sam's Club 3 vezes sem juros"
+         },
+         {
+          "Value": 74.02,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 4,
+          "PaymentSystemName": "Cartão Sam's Club",
+          "PaymentSystemGroupName": "customPrivate_406PaymentGroup",
+          "Name": "Cartão Sam's Club 4 vezes sem juros"
+         },
+         {
+          "Value": 59.22,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 5,
+          "PaymentSystemName": "Cartão Sam's Club",
+          "PaymentSystemGroupName": "customPrivate_406PaymentGroup",
+          "Name": "Cartão Sam's Club 5 vezes sem juros"
+         },
+         {
+          "Value": 49.35,
+          "InterestRate": 0,
+          "TotalValuePlusInterestRate": 296.1,
+          "NumberOfInstallments": 6,
+          "PaymentSystemName": "Cartão Sam's Club",
+          "PaymentSystemGroupName": "customPrivate_406PaymentGroup",
+          "Name": "Cartão Sam's Club 6 vezes sem juros"
+         }
+        ],
+        "ListPrice": 301.79,
+        "Price": 296.1,
+        "PriceWithoutDiscount": 296.1,
+        "PriceValidUntil": "2026-11-24T20:21:29Z",
+        "discountHighlights": [],
+        "teasers": [
+         {
+          "name": "1P Cartão Carrefour 20% off - 29441",
+          "conditions": {
+           "parameters": [
+            {
+             "name": "PaymentMethodId",
+             "value": "405,401,406"
+            }
+           ],
+           "minimumQuantity": 0
+          },
+          "effects": {
+           "parameters": [
+            {
+             "name": "PercentualDiscount",
+             "value": "20"
+            }
+           ]
+          },
+          "generalValues": []
+         }
+        ]
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

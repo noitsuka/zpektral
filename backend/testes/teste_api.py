@@ -1,3 +1,5 @@
+from datetime import UTC, datetime, timedelta
+
 import httpx
 import orjson
 import pytest
@@ -40,7 +42,7 @@ async def cliente_api(http, config, simulador):
         yield cliente
 
 
-async def teste_busca_com_cep(cliente_api):
+async def teste_busca_com_cep(cliente_api, monkeypatch):
     r = await cliente_api.get("/busca", params={"q": "smart tv 55", "cep": "30130-010"})
     assert r.status_code == 200
     corpo = r.json()
@@ -55,9 +57,18 @@ async def teste_busca_com_cep(cliente_api):
     assert "grupos" not in corpo
     assert "server-timing" in r.headers
     assert corpo["cache"] is False
+    assert primeira["promocoes"] == [] and primeira["preco_valido_ate"] is None
+    assert datetime.fromisoformat(primeira["consultado_em"]).utcoffset() == timedelta(0)
 
+    class Depois(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return datetime(2030, 1, 1, tzinfo=UTC)
+
+    monkeypatch.setattr("app.modelos.datetime", Depois)
     de_novo = await cliente_api.get("/busca", params={"q": "Smart TV 55", "cep": "30130010"})
     assert de_novo.json()["cache"] is True
+    assert de_novo.json()["ofertas"][0]["consultado_em"] == primeira["consultado_em"]
 
 
 async def teste_filtros_e_paginacao(cliente_api):
@@ -144,6 +155,9 @@ async def teste_transmissao_envia_cada_fonte_e_depois_o_fim(cliente_api):
     assert loja1["fase"] == "final"
     assert loja1["melhor_total"] == loja1["ofertas"][0]["total"]
     assert all(o["grupo"] for o in loja1["ofertas"] if o["ean"])
+    assert all(
+        {"consultado_em", "promocoes", "preco_valido_ate"} <= o.keys() for o in loja1["ofertas"]
+    )
     concluido = corpos_eventos[-1]
     assert concluido["total"] == 3
     assert "grupos" not in concluido

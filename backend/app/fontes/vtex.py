@@ -31,6 +31,9 @@ from app.modelos import (
     Origem,
     Parcelamento,
     StatusFrete,
+    instante_iso,
+    nomes_de_promocao,
+    validade_informada,
 )
 from app.relevancia import normalizar, pontuar_loja_brinquedos
 
@@ -168,6 +171,7 @@ class FonteVtex:
 
     def _candidatas(self, produtos: list[dict[str, Any]], ctx: ContextoBusca) -> list[_Candidata]:
         saida: list[_Candidata] = []
+        agora = datetime.now(UTC)
         for posicao, produto in enumerate(produtos):
             link = self._montar_link(produto)
             vistos: set[tuple[str, int]] = set()
@@ -208,6 +212,10 @@ class FonteVtex:
                             else None,
                             preco_pix=pix,
                             parcelamento=parcelamentos,
+                            promocoes=_destaques(oferta_comercial),
+                            preco_valido_ate=_validade(
+                                oferta_comercial.get("PriceValidUntil"), agora
+                            ),
                             relevancia=self._relevancia(
                                 ctx, titulo, vendedor.get("sellerName"), item.get("ean")
                             ),
@@ -304,7 +312,7 @@ class Cotacao:
     segunda_resposta: dict[str, Any] | None = None
 
 
-_CAMPOS_ITEM = ("price", "listPrice", "sellingPrice", "availability")
+_CAMPOS_ITEM = ("price", "listPrice", "sellingPrice", "availability", "priceValidUntil")
 _CAMPOS_SLA = (
     "id",
     "name",
@@ -357,7 +365,36 @@ def compactar(dados: dict[str, Any]) -> dict[str, Any]:
                 or "pix" in (o.get("paymentName") or "").lower()
             ]
         },
+        "ratesAndBenefitsData": {"rateAndBenefitsIdentifiers": _promocoes_aplicadas(dados)},
     }
+
+
+def _promocoes_aplicadas(dados: dict[str, Any]) -> list[dict[str, Any]]:
+    beneficios = (dados.get("ratesAndBenefitsData") or {}).get("rateAndBenefitsIdentifiers")
+    return [
+        {"name": b.get("name"), "featured": True}
+        for b in beneficios or []
+        if isinstance(b, dict) and b.get("featured")
+    ]
+
+
+def _destaques(oferta_comercial: dict[str, Any]) -> list[str]:
+    # Teasers ficam de fora: dependem de cartão da loja ou de quantidade e trazem nomes internos.
+    destaques = oferta_comercial.get("discountHighlights") or oferta_comercial.get(
+        "DiscountHighLight"
+    )
+    return nomes_de_promocao(
+        d.get("name") or d.get("Name") for d in destaques or [] if isinstance(d, dict)
+    )
+
+
+def _validade(bruto: object, agora: datetime) -> str | None:
+    if not isinstance(bruto, str):
+        return None
+    try:
+        return validade_informada(datetime.fromisoformat(bruto), agora)
+    except ValueError:
+        return None
 
 
 def _com_sku(link: str, sku: str) -> str:
@@ -397,6 +434,7 @@ def aplicar_simulacao(
         oferta.frete = Frete.desconhecido()
         return
     item = itens[0]
+    momento = datetime.fromtimestamp(cotada_em or time.time(), UTC)
     cartao, pix, parcelamentos = _pagamento_checkout(dados.get("paymentData") or {})
     imposto = sum(t.get("value") or 0 for t in dados.get("totals") or [] if t.get("id") == "Tax")
     vitrine = item.get("sellingPrice") or item.get("price")
@@ -405,6 +443,9 @@ def aplicar_simulacao(
         if abs(preco - oferta.preco) > oferta.preco * DESVIO_DE_PRECO:
             oferta.alertar(Alerta.PRECO_MUDOU_NO_CHECKOUT)
         oferta.preco = preco
+        oferta.consultado_em = instante_iso(momento)
+        oferta.preco_valido_ate = _validade(item.get("priceValidUntil"), momento)
+        oferta.promocoes = nomes_de_promocao(b["name"] for b in _promocoes_aplicadas(dados))
     if item.get("listPrice"):
         oferta.preco_original = item["listPrice"] + imposto
 
@@ -440,9 +481,7 @@ def aplicar_simulacao(
         modalidade=melhor.nome,
         transportadora=melhor.transportadora,
         entrega_ate=melhor.entrega_ate,
-        cotado_em=datetime.fromtimestamp(cotada_em or time.time(), UTC).isoformat(
-            timespec="seconds"
-        ),
+        cotado_em=instante_iso(momento),
     )
 
 

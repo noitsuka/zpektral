@@ -1,6 +1,7 @@
 import asyncio
 import json
 import re
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
@@ -577,3 +578,115 @@ async def teste_oferta_malformada_nao_derruba_a_loja(simulador, http, config):
     assert any(
         o.link.startswith("https://www.carrefour.com.br/produto-x/p?skuId=") for o in ofertas
     )
+
+
+PAGUE_MENOS = LojaVtex("paguemenos", "Pague Menos", "www.paguemenos.com.br", "is")
+URL_IS_PAGUE_MENOS = re.compile(r"https://www\.paguemenos\.com\.br/api/io/.*")
+# Instante em que as gravações de promoção e validade foram capturadas.
+CAPTURA = datetime(2026, 11, 17, 22, 0, tzinfo=UTC).timestamp()
+
+
+async def _catalogo(simulador, http, config, loja, url, busca):
+    simulador.get(url).mock(resposta_json(busca))
+    simulador.post(re.compile(r".*/simulation")).mock(httpx.Response(503))
+    ofertas = await FonteVtex(loja, http, config).buscar(contexto("protetor solar"))
+    return {o.id: o for o in ofertas}
+
+
+async def teste_promocao_em_destaque_no_catalogo(simulador, http, config):
+    busca = gravacao_json("vtex_busca_inteligente_paguemenos.json")
+    ofertas = await _catalogo(simulador, http, config, PAGUE_MENOS, URL_IS_PAGUE_MENOS, busca)
+    assert ofertas["paguemenos:50838:1"].promocoes == ["SUPEROFERTA"]
+    assert ofertas["paguemenos:42707:1"].promocoes == []
+    assert all(o.preco_valido_ate is None for o in ofertas.values())
+
+
+async def teste_teasers_condicionais_nao_viram_promocao(simulador, http, config):
+    busca = gravacao_json("vtex_busca_inteligente_carrefour_teasers.json")
+    ofertas = await _catalogo(simulador, http, config, CARREFOUR, URL_IS, busca)
+    assert ofertas and all(o.promocoes == [] for o in ofertas.values())
+
+
+@pytest.mark.parametrize(
+    ("bruto", "dias_validos"),
+    [
+        (lambda agora: (agora + timedelta(days=5)).isoformat(), 5),
+        (lambda agora: (agora + timedelta(days=31)).isoformat(), None),
+        (lambda agora: (agora + timedelta(days=5)).replace(tzinfo=None).isoformat(), None),
+        (lambda agora: "2100-01-01T02:59:59Z", None),
+        (lambda agora: "amanhã", None),
+    ],
+)
+async def teste_validade_do_catalogo(simulador, http, config, bruto, dias_validos):
+    agora = datetime.now(UTC).replace(microsecond=0)
+    busca = gravacao_json("vtex_busca_inteligente_paguemenos.json")
+    item = busca["products"][0]["items"][0]
+    item["sellers"][0]["commertialOffer"]["PriceValidUntil"] = bruto(agora)
+    ofertas = await _catalogo(simulador, http, config, PAGUE_MENOS, URL_IS_PAGUE_MENOS, busca)
+    validade = ofertas[f"paguemenos:{item['itemId']}:1"].preco_valido_ate
+    if dias_validos is None:
+        assert validade is None
+    else:
+        assert datetime.fromisoformat(validade) == agora + timedelta(days=dias_validos)
+
+
+def teste_checkout_informa_promocao_aplicada_e_instante_da_leitura():
+    oferta = oferta_vazia()
+    oferta.preco = 7124
+    aplicar_simulacao(
+        oferta, gravacao_json("vtex_simulacao_paguemenos.json"), tem_cep=False, cotada_em=CAPTURA
+    )
+    assert oferta.preco == 7124
+    assert oferta.promocoes == ["SUPEROFERTA"]
+    assert oferta.preco_valido_ate is None
+    assert oferta.consultado_em == "2026-11-17T22:00:00+00:00"
+
+
+def teste_checkout_informa_validade_proxima():
+    oferta = oferta_vazia()
+    oferta.preco = 5759
+    aplicar_simulacao(
+        oferta,
+        gravacao_json("vtex_simulacao_drogariasaopaulo.json"),
+        tem_cep=False,
+        cotada_em=CAPTURA,
+    )
+    assert oferta.preco_valido_ate == "2026-11-23T02:30:00+00:00"
+    assert oferta.promocoes == []
+
+
+def teste_checkout_substitui_promocao_e_validade_do_catalogo():
+    oferta = oferta_vazia()
+    oferta.preco, oferta.promocoes = 340100, ["Oferta do catálogo"]
+    oferta.preco_valido_ate = "2026-11-19T03:00:00+00:00"
+    aplicar_simulacao(
+        oferta, gravacao_json("vtex_simulacao_brastemp.json"), tem_cep=False, cotada_em=CAPTURA
+    )
+    assert oferta.preco == 389900
+    assert oferta.promocoes == [] and oferta.preco_valido_ate is None
+
+
+def teste_checkout_sem_preco_mantem_o_que_o_catalogo_informou():
+    oferta = oferta_vazia()
+    oferta.promocoes, oferta.consultado_em = ["SUPEROFERTA"], "2026-11-17T21:55:00+00:00"
+    dados = gravacao_json("vtex_simulacao_paguemenos.json")
+    dados["paymentData"]["installmentOptions"] = []
+    for chave in ("price", "sellingPrice"):
+        dados["items"][0][chave] = None
+    aplicar_simulacao(oferta, dados, tem_cep=False, cotada_em=CAPTURA)
+    assert oferta.promocoes == ["SUPEROFERTA"]
+    assert oferta.consultado_em == "2026-11-17T21:55:00+00:00"
+
+
+@pytest.mark.parametrize(
+    "gravacao", ["vtex_simulacao_paguemenos.json", "vtex_simulacao_drogariasaopaulo.json"]
+)
+def teste_cotacao_compacta_mantem_promocao_e_validade(gravacao):
+    from app.fontes.vtex import compactar
+
+    bruto = gravacao_json(gravacao)
+    completa, pequeno = oferta_vazia(), oferta_vazia()
+    aplicar_simulacao(completa, bruto, tem_cep=False, cotada_em=CAPTURA)
+    aplicar_simulacao(pequeno, compactar(bruto), tem_cep=False, cotada_em=CAPTURA)
+    assert completa == pequeno
+    assert completa.promocoes or completa.preco_valido_ate

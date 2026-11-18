@@ -1,0 +1,1899 @@
+{
+ "items": [
+  {
+   "id": "326199360",
+   "requestIndex": 0,
+   "quantity": 1,
+   "seller": "1",
+   "sellerChain": [
+    "1"
+   ],
+   "tax": 0,
+   "priceValidUntil": "2027-11-17T22:00:09Z",
+   "price": 389900,
+   "listPrice": 389900,
+   "rewardValue": 0,
+   "sellingPrice": 389900,
+   "offerings": [],
+   "priceTags": [],
+   "measurementUnit": "un",
+   "unitMultiplier": 1.0,
+   "parentItemIndex": null,
+   "parentAssemblyBinding": null,
+   "availability": "available",
+   "catalogProvider": "vrn:vtex.catalog-api-proxy:-:brastemp:master:/proxy/authenticated/catalog/pvt/sku/stockkeepingunitbyid/326199360",
+   "priceDefinition": {
+    "calculatedSellingPrice": 389900,
+    "total": 389900,
+    "sellingPrices": [
+     {
+      "value": 389900,
+      "quantity": 1
+     }
+    ],
+    "reason": null,
+    "pricePerUnit": 389900
+   },
+   "priceTable": null
+  }
+ ],
+ "logisticsInfo": [
+  {
+   "itemIndex": 0,
+   "addressId": null,
+   "selectedSla": null,
+   "selectedDeliveryChannel": null,
+   "quantity": 1,
+   "shipsTo": [
+    "BRA"
+   ],
+   "slas": [],
+   "deliveryChannels": [
+    {
+     "id": "delivery"
+    }
+   ]
+  }
+ ],
+ "totals": [
+  {
+   "id": "Items",
+   "name": "Total dos Itens",
+   "value": 389900
+  }
+ ],
+ "paymentData": {
+  "installmentOptions": [
+   {
+    "paymentSystem": "1",
+    "bin": null,
+    "paymentName": "American Express",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 389900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 389900,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 389900,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 194950,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 194950,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 129966,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 129966,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 97475,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 97475,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 77980,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 77980,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 64983,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 64983,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 55700,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 55700,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 48737,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 48737,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 45494,
+      "total": 409446,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 9,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 45494,
+        "total": 409446
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 41144,
+      "total": 411440,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 10,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 41144,
+        "total": 411440
+       }
+      ]
+     },
+     {
+      "count": 11,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 37585,
+      "total": 413435,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 11,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 37585,
+        "total": 413435
+       }
+      ]
+     },
+     {
+      "count": 12,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 34620,
+      "total": 415440,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 12,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 34620,
+        "total": 415440
+       }
+      ]
+     },
+     {
+      "count": 13,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 34334,
+      "total": 446342,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 13,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 34334,
+        "total": 446342
+       }
+      ]
+     },
+     {
+      "count": 14,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 32183,
+      "total": 450562,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 14,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 32183,
+        "total": 450562
+       }
+      ]
+     },
+     {
+      "count": 15,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 30321,
+      "total": 454815,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 15,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 30321,
+        "total": 454815
+       }
+      ]
+     },
+     {
+      "count": 16,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 28693,
+      "total": 459088,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 16,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 28693,
+        "total": 459088
+       }
+      ]
+     },
+     {
+      "count": 17,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 27258,
+      "total": 463386,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 17,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 27258,
+        "total": 463386
+       }
+      ]
+     },
+     {
+      "count": 18,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 25984,
+      "total": 467712,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 18,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 25984,
+        "total": 467712
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "2",
+    "bin": null,
+    "paymentName": "Visa",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 389900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 389900,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 389900,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 194950,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 194950,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 129966,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 129966,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 97475,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 97475,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 77980,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 77980,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 64983,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 64983,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 55700,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 55700,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 48737,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 48737,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 45494,
+      "total": 409446,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 9,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 45494,
+        "total": 409446
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 41144,
+      "total": 411440,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 10,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 41144,
+        "total": 411440
+       }
+      ]
+     },
+     {
+      "count": 11,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 37585,
+      "total": 413435,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 11,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 37585,
+        "total": 413435
+       }
+      ]
+     },
+     {
+      "count": 12,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 34620,
+      "total": 415440,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 12,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 34620,
+        "total": 415440
+       }
+      ]
+     },
+     {
+      "count": 13,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 34334,
+      "total": 446342,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 13,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 34334,
+        "total": 446342
+       }
+      ]
+     },
+     {
+      "count": 14,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 32183,
+      "total": 450562,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 14,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 32183,
+        "total": 450562
+       }
+      ]
+     },
+     {
+      "count": 15,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 30321,
+      "total": 454815,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 15,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 30321,
+        "total": 454815
+       }
+      ]
+     },
+     {
+      "count": 16,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 28693,
+      "total": 459088,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 16,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 28693,
+        "total": 459088
+       }
+      ]
+     },
+     {
+      "count": 17,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 27258,
+      "total": 463386,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 17,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 27258,
+        "total": 463386
+       }
+      ]
+     },
+     {
+      "count": 18,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 25984,
+      "total": 467712,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 18,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 25984,
+        "total": 467712
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "3",
+    "bin": null,
+    "paymentName": "Diners",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 389900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 389900,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 389900,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 194950,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 194950,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 129966,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 129966,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 97475,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 97475,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 77980,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 77980,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 64983,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 64983,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 55700,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 55700,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 48737,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 48737,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 45494,
+      "total": 409446,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 9,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 45494,
+        "total": 409446
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 41144,
+      "total": 411440,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 10,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 41144,
+        "total": 411440
+       }
+      ]
+     },
+     {
+      "count": 11,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 37585,
+      "total": 413435,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 11,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 37585,
+        "total": 413435
+       }
+      ]
+     },
+     {
+      "count": 12,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 34620,
+      "total": 415440,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 12,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 34620,
+        "total": 415440
+       }
+      ]
+     },
+     {
+      "count": 13,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 34334,
+      "total": 446342,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 13,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 34334,
+        "total": 446342
+       }
+      ]
+     },
+     {
+      "count": 14,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 32183,
+      "total": 450562,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 14,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 32183,
+        "total": 450562
+       }
+      ]
+     },
+     {
+      "count": 15,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 30321,
+      "total": 454815,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 15,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 30321,
+        "total": 454815
+       }
+      ]
+     },
+     {
+      "count": 16,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 28693,
+      "total": 459088,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 16,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 28693,
+        "total": 459088
+       }
+      ]
+     },
+     {
+      "count": 17,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 27258,
+      "total": 463386,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 17,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 27258,
+        "total": 463386
+       }
+      ]
+     },
+     {
+      "count": 18,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 25984,
+      "total": 467712,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 18,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 25984,
+        "total": 467712
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "4",
+    "bin": null,
+    "paymentName": "Mastercard",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 389900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 389900,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 389900,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 194950,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 194950,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 129966,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 129966,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 97475,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 97475,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 77980,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 77980,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 64983,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 64983,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 55700,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 55700,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 48737,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 48737,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 45494,
+      "total": 409446,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 9,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 45494,
+        "total": 409446
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 41144,
+      "total": 411440,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 10,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 41144,
+        "total": 411440
+       }
+      ]
+     },
+     {
+      "count": 11,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 37585,
+      "total": 413435,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 11,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 37585,
+        "total": 413435
+       }
+      ]
+     },
+     {
+      "count": 12,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 34620,
+      "total": 415440,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 12,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 34620,
+        "total": 415440
+       }
+      ]
+     },
+     {
+      "count": 13,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 34334,
+      "total": 446342,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 13,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 34334,
+        "total": 446342
+       }
+      ]
+     },
+     {
+      "count": 14,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 32183,
+      "total": 450562,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 14,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 32183,
+        "total": 450562
+       }
+      ]
+     },
+     {
+      "count": 15,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 30321,
+      "total": 454815,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 15,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 30321,
+        "total": 454815
+       }
+      ]
+     },
+     {
+      "count": 16,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 28693,
+      "total": 459088,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 16,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 28693,
+        "total": 459088
+       }
+      ]
+     },
+     {
+      "count": 17,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 27258,
+      "total": 463386,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 17,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 27258,
+        "total": 463386
+       }
+      ]
+     },
+     {
+      "count": 18,
+      "hasInterestRate": true,
+      "interestRate": 199,
+      "value": 25984,
+      "total": 467712,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 18,
+        "hasInterestRate": true,
+        "interestRate": 199,
+        "value": 25984,
+        "total": 467712
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "9",
+    "bin": null,
+    "paymentName": "Elo",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 389900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 389900,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 389900,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 194950,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 194950,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 129966,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 129966,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 97475,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 97475,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 77980,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 77980,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 64983,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 64983,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 55700,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 55700,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 48737,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 48737,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 45048,
+      "total": 405432,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 9,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 45048,
+        "total": 405432
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 40741,
+      "total": 407410,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 10,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 40741,
+        "total": 407410
+       }
+      ]
+     },
+     {
+      "count": 11,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 37217,
+      "total": 409387,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 11,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 37217,
+        "total": 409387
+       }
+      ]
+     },
+     {
+      "count": 12,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 34280,
+      "total": 411360,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 12,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 34280,
+        "total": 411360
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "16",
+    "bin": null,
+    "paymentName": "Vale",
+    "paymentGroupName": "giftCardPaymentGroup",
+    "value": 389900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 389900,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 389900,
+        "total": 389900
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "900",
+    "bin": null,
+    "paymentName": "WH Google Pay",
+    "paymentGroupName": "WH Google PayPaymentGroup",
+    "value": 389900,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 389900,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 389900,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 2,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 194950,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 2,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 194950,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 3,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 129966,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 3,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 129966,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 4,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 97475,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 4,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 97475,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 5,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 77980,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 5,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 77980,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 6,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 64983,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 6,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 64983,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 7,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 55700,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 7,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 55700,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 8,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 48737,
+      "total": 389900,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 8,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 48737,
+        "total": 389900
+       }
+      ]
+     },
+     {
+      "count": 9,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 45494,
+      "total": 409446,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 9,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 45494,
+        "total": 409446
+       }
+      ]
+     },
+     {
+      "count": 10,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 41144,
+      "total": 411440,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 10,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 41144,
+        "total": 411440
+       }
+      ]
+     },
+     {
+      "count": 11,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 37585,
+      "total": 413435,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 11,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 37585,
+        "total": 413435
+       }
+      ]
+     },
+     {
+      "count": 12,
+      "hasInterestRate": true,
+      "interestRate": 99,
+      "value": 34620,
+      "total": 415440,
+      "sellerMerchantInstallments": [
+       {
+        "id": "BRASTEMP",
+        "count": 12,
+        "hasInterestRate": true,
+        "interestRate": 99,
+        "value": 34620,
+        "total": 415440
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "paymentSystems": [
+   {
+    "id": 16,
+    "name": "Vale",
+    "groupName": "giftCardPaymentGroup",
+    "validator": null,
+    "stringId": "16",
+    "template": "giftCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:46:38.493728Z",
+    "availablePayments": null
+   },
+   {
+    "id": 1,
+    "name": "American Express",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "1",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:46:38.4937282Z",
+    "availablePayments": null
+   },
+   {
+    "id": 2,
+    "name": "Visa",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "2",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:46:38.4937287Z",
+    "availablePayments": null
+   },
+   {
+    "id": 3,
+    "name": "Diners",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "3",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:46:38.4937288Z",
+    "availablePayments": null
+   },
+   {
+    "id": 4,
+    "name": "Mastercard",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "4",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:46:38.4937292Z",
+    "availablePayments": null
+   },
+   {
+    "id": 9,
+    "name": "Elo",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "9",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:46:38.4937294Z",
+    "availablePayments": null
+   },
+   {
+    "id": 900,
+    "name": "WH Google Pay",
+    "groupName": "WH Google PayPaymentGroup",
+    "validator": null,
+    "stringId": "900",
+    "template": "WH Google PayPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:46:38.4937295Z",
+    "availablePayments": null
+   }
+  ],
+  "payments": [],
+  "giftCards": [],
+  "giftCardMessages": [],
+  "availableAccounts": [],
+  "availableTokens": [],
+  "availableAssociations": {}
+ },
+ "ratesAndBenefitsData": {
+  "rateAndBenefitsIdentifiers": [],
+  "teaser": [],
+  "campaigns": []
+ }
+}

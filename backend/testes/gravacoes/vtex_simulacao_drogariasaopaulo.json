@@ -1,0 +1,493 @@
+{
+ "items": [
+  {
+   "id": "507962",
+   "requestIndex": 0,
+   "quantity": 1,
+   "seller": "1",
+   "sellerChain": [
+    "1",
+    "drogariasaopaulovillalobos2"
+   ],
+   "tax": 0,
+   "priceValidUntil": "2026-11-23T02:30:00Z",
+   "price": 5759,
+   "listPrice": 10799,
+   "rewardValue": 0,
+   "sellingPrice": 5759,
+   "offerings": [],
+   "priceTags": [],
+   "measurementUnit": "un",
+   "unitMultiplier": 1.0,
+   "parentItemIndex": null,
+   "parentAssemblyBinding": null,
+   "availability": "available",
+   "catalogProvider": "vrn:vtex.catalog-api-proxy:-:drogariasp:master:/proxy/authenticated/catalog/pvt/sku/stockkeepingunitbyid/507962",
+   "priceDefinition": {
+    "calculatedSellingPrice": 5759,
+    "total": 5759,
+    "sellingPrices": [
+     {
+      "value": 5759,
+      "quantity": 1
+     }
+    ],
+    "reason": "priceTable",
+    "pricePerUnit": 5759
+   },
+   "priceTable": null
+  }
+ ],
+ "logisticsInfo": [
+  {
+   "itemIndex": 0,
+   "addressId": null,
+   "selectedSla": null,
+   "selectedDeliveryChannel": null,
+   "quantity": 1,
+   "shipsTo": [
+    "BRA"
+   ],
+   "slas": [],
+   "deliveryChannels": [
+    {
+     "id": "delivery"
+    }
+   ]
+  }
+ ],
+ "totals": [
+  {
+   "id": "Items",
+   "name": "Total dos Itens",
+   "value": 5759
+  }
+ ],
+ "paymentData": {
+  "installmentOptions": [
+   {
+    "paymentSystem": "1",
+    "bin": null,
+    "paymentName": "American Express",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 5759,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 5759,
+      "total": 5759,
+      "sellerMerchantInstallments": [
+       {
+        "id": "DROGARIASP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 5759,
+        "total": 5759
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "2",
+    "bin": null,
+    "paymentName": "Visa",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 5759,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 5759,
+      "total": 5759,
+      "sellerMerchantInstallments": [
+       {
+        "id": "DROGARIASP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 5759,
+        "total": 5759
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "3",
+    "bin": null,
+    "paymentName": "Diners",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 5759,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 5759,
+      "total": 5759,
+      "sellerMerchantInstallments": [
+       {
+        "id": "DROGARIASP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 5759,
+        "total": 5759
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "4",
+    "bin": null,
+    "paymentName": "Mastercard",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 5759,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 5759,
+      "total": 5759,
+      "sellerMerchantInstallments": [
+       {
+        "id": "DROGARIASP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 5759,
+        "total": 5759
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "8",
+    "bin": null,
+    "paymentName": "Hipercard",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 5759,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 5759,
+      "total": 5759,
+      "sellerMerchantInstallments": [
+       {
+        "id": "DROGARIASP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 5759,
+        "total": 5759
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "9",
+    "bin": null,
+    "paymentName": "Elo",
+    "paymentGroupName": "creditCardPaymentGroup",
+    "value": 5759,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 5759,
+      "total": 5759,
+      "sellerMerchantInstallments": [
+       {
+        "id": "DROGARIASP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 5759,
+        "total": 5759
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "69",
+    "bin": null,
+    "paymentName": "Apple Pay",
+    "paymentGroupName": "ApplePayPaymentGroup",
+    "value": 5759,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 5759,
+      "total": 5759,
+      "sellerMerchantInstallments": [
+       {
+        "id": "DROGARIASP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 5759,
+        "total": 5759
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "125",
+    "bin": null,
+    "paymentName": "Pix",
+    "paymentGroupName": "instantPaymentPaymentGroup",
+    "value": 5759,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 5759,
+      "total": 5759,
+      "sellerMerchantInstallments": [
+       {
+        "id": "DROGARIASP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 5759,
+        "total": 5759
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "178",
+    "bin": null,
+    "paymentName": "Nubank",
+    "paymentGroupName": "NubankPaymentGroup",
+    "value": 5759,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 5759,
+      "total": 5759,
+      "sellerMerchantInstallments": [
+       {
+        "id": "DROGARIASP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 5759,
+        "total": 5759
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "paymentSystem": "900",
+    "bin": null,
+    "paymentName": "WH Google Pay",
+    "paymentGroupName": "WH Google PayPaymentGroup",
+    "value": 5759,
+    "installments": [
+     {
+      "count": 1,
+      "hasInterestRate": false,
+      "interestRate": 0,
+      "value": 5759,
+      "total": 5759,
+      "sellerMerchantInstallments": [
+       {
+        "id": "DROGARIASP",
+        "count": 1,
+        "hasInterestRate": false,
+        "interestRate": 0,
+        "value": 5759,
+        "total": 5759
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "paymentSystems": [
+   {
+    "id": 1,
+    "name": "American Express",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "1",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": true,
+    "displayDocument": true,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:47:15.8556021Z",
+    "availablePayments": null
+   },
+   {
+    "id": 3,
+    "name": "Diners",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "3",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": true,
+    "displayDocument": true,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:47:15.8556023Z",
+    "availablePayments": null
+   },
+   {
+    "id": 4,
+    "name": "Mastercard",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "4",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": true,
+    "displayDocument": true,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:47:15.8556025Z",
+    "availablePayments": null
+   },
+   {
+    "id": 8,
+    "name": "Hipercard",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "8",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": true,
+    "displayDocument": true,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:47:15.8556027Z",
+    "availablePayments": null
+   },
+   {
+    "id": 9,
+    "name": "Elo",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "9",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": true,
+    "displayDocument": true,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:47:15.8556029Z",
+    "availablePayments": null
+   },
+   {
+    "id": 2,
+    "name": "Visa",
+    "groupName": "creditCardPaymentGroup",
+    "validator": null,
+    "stringId": "2",
+    "template": "creditCardPaymentGroup-template",
+    "requiresDocument": true,
+    "displayDocument": true,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:47:15.8556032Z",
+    "availablePayments": null
+   },
+   {
+    "id": 125,
+    "name": "Pix",
+    "groupName": "instantPaymentPaymentGroup",
+    "validator": null,
+    "stringId": "125",
+    "template": "instantPaymentPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:47:15.8556034Z",
+    "availablePayments": null
+   },
+   {
+    "id": 178,
+    "name": "Nubank",
+    "groupName": "NubankPaymentGroup",
+    "validator": null,
+    "stringId": "178",
+    "template": "NubankPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:47:15.8556039Z",
+    "availablePayments": null
+   },
+   {
+    "id": 69,
+    "name": "Apple Pay",
+    "groupName": "ApplePayPaymentGroup",
+    "validator": null,
+    "stringId": "69",
+    "template": "ApplePayPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:47:15.8556041Z",
+    "availablePayments": null
+   },
+   {
+    "id": 900,
+    "name": "WH Google Pay",
+    "groupName": "WH Google PayPaymentGroup",
+    "validator": null,
+    "stringId": "900",
+    "template": "WH Google PayPaymentGroup-template",
+    "requiresDocument": false,
+    "displayDocument": false,
+    "isCustom": false,
+    "description": null,
+    "requiresAuthentication": false,
+    "dueDate": "2026-11-24T21:47:15.8556044Z",
+    "availablePayments": null
+   }
+  ],
+  "payments": [],
+  "giftCards": [],
+  "giftCardMessages": [],
+  "availableAccounts": [],
+  "availableTokens": [],
+  "availableAssociations": {}
+ },
+ "ratesAndBenefitsData": {
+  "rateAndBenefitsIdentifiers": [],
+  "teaser": [],
+  "campaigns": []
+ }
+}

@@ -1,5 +1,8 @@
+import html
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 
 _VOLTAGEM = re.compile(r"(?<![\d.,])(110|127|220)\s*(?:v|volts?)\b", re.I)
@@ -134,6 +137,35 @@ class Importacao:
         return self.imposto_importacao + self.icms
 
 
+PROMOCOES_MAXIMAS = 3
+TAMANHO_MAXIMO_PROMOCAO = 80
+DIAS_VALIDADE_INFORMADA = 30
+_MARCACAO = re.compile(r"<[^>]{0,200}>|[\x00-\x1f\x7f\u200b-\u200f\u202a-\u202e\u2066-\u2069]")
+
+
+def instante_iso(momento: datetime) -> str:
+    return momento.astimezone(UTC).isoformat(timespec="seconds")
+
+
+def nomes_de_promocao(brutos: Iterable[object]) -> list[str]:
+    nomes: dict[str, str] = {}
+    for bruto in brutos:
+        if not isinstance(bruto, str):
+            continue
+        nome = " ".join(_MARCACAO.sub(" ", html.unescape(bruto)).split())
+        nome = nome[:TAMANHO_MAXIMO_PROMOCAO].rstrip()
+        if nome:
+            nomes.setdefault(nome.casefold(), nome)
+    return list(nomes.values())[:PROMOCOES_MAXIMAS]
+
+
+def validade_informada(data: datetime, agora: datetime) -> str | None:
+    # Datas distantes são o padrão da plataforma, não o fim de uma oferta.
+    if data.tzinfo is None or not agora < data <= agora + timedelta(days=DIAS_VALIDADE_INFORMADA):
+        return None
+    return instante_iso(data)
+
+
 @dataclass(slots=True)
 class Totais:
     pix: int | None
@@ -158,6 +190,9 @@ class Oferta:
     preco_original: int | None = None
     preco_pix: int | None = None
     parcelamento: Parcelamento | None = None
+    promocoes: list[str] = field(default_factory=list)
+    preco_valido_ate: str | None = None
+    consultado_em: str = field(default_factory=lambda: instante_iso(datetime.now(UTC)))
     frete: Frete = field(default_factory=Frete.desconhecido)
     disponivel: bool = True
     relevancia: int = 0

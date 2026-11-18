@@ -1,5 +1,6 @@
 import re
 import time
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import quote
 
@@ -15,6 +16,8 @@ from app.modelos import (
     Origem,
     Parcelamento,
     StatusFrete,
+    nomes_de_promocao,
+    validade_informada,
 )
 
 API = "https://servicespub.prod.api.aws.grupokabum.com.br/catalog/v2/products"
@@ -63,12 +66,17 @@ class FonteKabum:
 
         cartao, pix = a["price"], a.get("price_with_discount") or a["price"]
         promocao = a.get("offer") or {}
+        nomes, valido_ate = [], None
         if promocao.get("price") and promocao.get("starts_at", 0) <= agora <= promocao.get(
             "ends_at", 0
         ):
             cartao, pix = (
                 promocao["price"],
                 promocao.get("price_with_discount") or promocao["price"],
+            )
+            nomes = nomes_de_promocao([promocao.get("name")])
+            valido_ate = validade_informada(
+                datetime.fromtimestamp(promocao["ends_at"], UTC), datetime.fromtimestamp(agora, UTC)
             )
 
         id_produto = entrada.get("id")
@@ -98,6 +106,8 @@ class FonteKabum:
             preco_original=para_centavos(antigo) if antigo else None,
             preco_pix=para_centavos(pix),
             parcelamento=_parcelamento(a.get("max_installment"), para_centavos(cartao)),
+            promocoes=nomes,
+            preco_valido_ate=valido_ate,
             frete=frete,
             condicao=Condicao.RECONDICIONADO if a.get("is_openbox") else None,
             relevancia=ctx.relevancia_de(titulo, vendedor),
