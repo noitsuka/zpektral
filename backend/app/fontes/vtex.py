@@ -221,7 +221,7 @@ class FonteVtex:
                             ),
                             posicao=posicao,
                         )
-                        saida.append(_Candidata(oferta, str(item.get("itemId")), id_vendedor))
+                        saida.append(_Candidata(oferta, sku, id_vendedor))
                     except (ValueError, TypeError, AttributeError, KeyError) as excecao:
                         log.info("%s: oferta malformada ignorada (%r)", self.id, excecao)
         return saida

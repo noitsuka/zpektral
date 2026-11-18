@@ -191,10 +191,8 @@ async def teste_respostas_grandes_sao_comprimidas(cliente_api):
 
 
 async def teste_resposta_parcial_lista_fontes_pendentes(cliente_api):
-    from app.main import app as aplicacao
-
     lenta = FonteFalsa("lenta", [("Smart TV 55 Philco", 200000)], atraso=0.5)
-    aplicacao.state.buscas.fontes.append(lenta)
+    app.state.buscas.fontes.append(lenta)
     r = await cliente_api.get("/busca", params={"q": "smart tv 55 rapida", "espera_ms": 50})
     corpo = r.json()
     assert corpo["pronto"] is False

@@ -287,11 +287,11 @@ def marcar_fora_da_curva(ofertas: list[Oferta]) -> None:
     for o in ofertas:
         if o.grupo:
             membros.setdefault(o.grupo, []).append(o)
-    for grupo_id in membros.values():
-        if len({o.loja.id for o in grupo_id}) < 3:
+    for do_grupo in membros.values():
+        if len({o.loja.id for o in do_grupo}) < 3:
             continue
-        mediana = statistics.median(o.melhor_preco for o in grupo_id)
-        for o in grupo_id:
+        mediana = statistics.median(o.melhor_preco for o in do_grupo)
+        for o in do_grupo:
             if o.melhor_preco < mediana * RAZAO_FORA_DA_CURVA:
                 o.alertar(Alerta.PRECO_FORA_DA_CURVA)
 

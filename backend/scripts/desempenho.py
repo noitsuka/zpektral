@@ -58,7 +58,7 @@ def cronometrar(rotulo: str, funcao, rodadas: int = 200) -> None:
     print(f"{rotulo:52} p50 {p50:7.2f} ms   p95 {p95:7.2f} ms")
 
 
-def principal() -> None:
+def main() -> None:
     for n in (500, 2000):
         conjunto = ofertas(n)
         print(f"\n{n} ofertas")
@@ -86,4 +86,4 @@ def principal() -> None:
 
 
 if __name__ == "__main__":
-    principal()
+    main()

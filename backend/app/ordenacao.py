@@ -96,7 +96,7 @@ def confianca_da_cotacao(oferta: Oferta) -> float:
 
 
 def notas_custo_beneficio(
-    ofertas: list[Oferta], pagamento: Pagamento, w: Pesos
+    ofertas: list[Oferta], pagamento: Pagamento, pesos: Pesos
 ) -> dict[str, float]:
     if not ofertas:
         return {}
@@ -106,12 +106,12 @@ def notas_custo_beneficio(
     for o, custo in zip(ofertas, custos, strict=True):
         preco = baixo / custo if custo > 0 else 1.0
         dias = o.frete.prazo_dias if o.frete.prazo_dias is not None else DIAS_DESCONHECIDOS
-        entrega = math.exp(-w.decaimento * dias)
+        entrega = math.exp(-pesos.decaimento * dias)
         saida[o.id] = (
-            w.preco * preco
-            + w.prazo * entrega
-            + w.relevancia * o.relevancia / 100
-            + w.confianca * confianca_da_cotacao(o)
+            pesos.preco * preco
+            + pesos.prazo * entrega
+            + pesos.relevancia * o.relevancia / 100
+            + pesos.confianca * confianca_da_cotacao(o)
         )
     return saida
 
