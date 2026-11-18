@@ -148,7 +148,7 @@ Site em `http://localhost:3000` e API em `http://localhost:8000` (documentação
 
 ## Deploy
 
-Site e API são dois projetos na Vercel, e o banco é um PostgreSQL no Neon conectado pela integração da Vercel. A API roda na região de São Paulo ([`backend/vercel.json`](backend/vercel.json)): saindo dos Estados Unidos, a mesma busca perdia 13 lojas. O passo a passo para publicar uma versão nova, com migração e volta atrás, está em [docs/implantacao.md](docs/implantacao.md).
+Site e API são dois projetos na Vercel, e o banco é um PostgreSQL no Neon conectado pela integração da Vercel. A API roda na região de São Paulo ([`backend/vercel.json`](backend/vercel.json)): saindo dos Estados Unidos, a mesma busca perdia 13 lojas. O passo a passo para publicar uma versão nova, com migração e volta atrás, está em [docs/implantacao.md](docs/implantacao.md), e a homologação isolada da produção em [docs/homologacao.md](docs/homologacao.md).
 
 | Variável | Onde | Descrição |
 | --- | --- | --- |
