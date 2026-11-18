@@ -25,7 +25,10 @@ _MOVEL = re.compile(r"\b(\d+) (prateleira|porta|gaveta)\b")
 _UNIDADES = re.compile(
     r"\b(?:kit|pack|pacote|combo|caixa|leve)(?: com| c| de)? (\d+)\b(?! peca)"
     r"|\b(\d+) (?:unidade|und|un)\b"
+    r"|\b(\d+) ?x\b"
 )
+# "com 16 pilhas" contra "com 2 pilhas": a contagem do mesmo item separa pacotes
+_CONTAGEM = re.compile(r"\b(\d+) ([a-z]{3,}s)\b")
 
 RAZAO_FORA_DA_CURVA = 0.5
 
@@ -82,12 +85,21 @@ def _especificacoes(
     }
     moveis = {peca: f"{n}{peca}s" for n, peca in reversed(_MOVEL.findall(texto))}
     kit = _UNIDADES.search(texto)
-    unidades = int(kit.group(1) or kit.group(2)) if kit else 1
+    unidades = int(kit.group(1) or kit.group(2) or kit.group(3)) if kit else 1
     marca = next(iter(normalizar(marca).split()), None) if marca else None
-    valores = {"capacidade": "/".join(capacidade), **medidas, **moveis, "marca": marca, "ean": ean}
+    contagens = {f"qtd_{nome}": n for n, nome in _CONTAGEM.findall(normalizado)}
+    valores = {
+        "capacidade": "/".join(capacidade),
+        **medidas,
+        **moveis,
+        **contagens,
+        "marca": marca,
+        "ean": ean,
+    }
     criticos = {(nome, valor) for nome, valor in valores.items() if valor}
     # Título sem kit é unidade avulsa e sem condição é novo: a ausência também é um valor.
-    criticos.add(("unidades", f"kit{unidades}" if unidades > 1 else None))
+    combo = "combo" in termos
+    criticos.add(("unidades", "combo" if combo else f"kit{unidades}" if unidades > 1 else None))
     criticos.add(("condicao", None if condicao in (None, Condicao.NOVO) else str(condicao)))
     return Especificacoes(
         modelos=modelos,
@@ -123,8 +135,16 @@ def _chaves_identidade(oferta: Oferta, especificacoes_oferta: Especificacoes) ->
 def chave_propria(
     oferta: Oferta, especificacoes_oferta: Especificacoes | None = None
 ) -> str | None:
-    chaves = _chaves_identidade(oferta, especificacoes_oferta or especificacoes(oferta))
-    return chaves[0] if chaves else None
+    perfil = especificacoes_oferta or especificacoes(oferta)
+    chaves = _chaves_identidade(oferta, perfil)
+    if not chaves:
+        return None
+    if oferta.ean:
+        return chaves[0]
+    # grupo provisório, antes do agrupamento final: código de modelo sozinho junta
+    # cores e marcas diferentes, então a chave leva os dois
+    extras = [perfil.marca or "", *sorted(perfil.cores)]
+    return "/".join([chaves[0], *extras]).rstrip("/")
 
 
 class _UniaoConjuntos:
@@ -181,8 +201,23 @@ def _rotulo(perfis: set[Especificacoes]) -> str:
     return "/".join(sorted(partes)).lower()
 
 
+def _marca_no_titulo(titulo: str, conhecidas: frozenset[str]) -> str | None:
+    return next((t for t in normalizar(titulo).split() if t in conhecidas), None)
+
+
 def atribuir_grupos(ofertas: list[Oferta]) -> None:
-    perfis = [especificacoes(o) for o in ofertas]
+    # quem não informa a marca (marketplaces) recebe a que outra loja informou e está no título
+    conhecidas = frozenset(
+        normalizar(o.marca).split()[0] for o in ofertas if o.marca and normalizar(o.marca)
+    ) - {"generico", "generica"}
+    perfis = [
+        especificacoes(o)
+        if o.marca
+        else _especificacoes(
+            o.titulo, o.voltagem, o.condicao, _marca_no_titulo(o.titulo, conhecidas), o.ean
+        )
+        for o in ofertas
+    ]
     uf = _UniaoConjuntos(perfis)
     por_ean: dict[str, dict[tuple, list[int]]] = {}
     por_modelo: dict[str, dict[tuple, list[int]]] = {}

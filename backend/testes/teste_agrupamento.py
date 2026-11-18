@@ -351,3 +351,52 @@ def teste_acessorio_e_comida_na_busca_do_aparelho_caem():
     rebaixar_muito_abaixo([*fritadeiras, pizza, cesto, barata])
     assert pizza.relevancia == 50 and cesto.relevancia == 50
     assert barata.relevancia == 100
+
+
+def _juntas(ofertas, a: str, b: str) -> bool:
+    atribuir_grupos(ofertas)
+    grupo = {o.id: o.grupo for o in ofertas}
+    return grupo[a] is not None and grupo[a] == grupo[b]
+
+
+def teste_quantidade_diferente_no_titulo_separa_pacotes():
+    ofertas = [
+        oferta("p16", "Pilha Alcalina Duracell MN1500 com 16 pilhas"),
+        oferta("p2", "Pilha Alcalina Duracell MN1500 com 2 pilhas"),
+    ]
+    assert not _juntas(ofertas, "p16", "p2")
+
+
+def teste_2x_e_combo_nao_se_juntam_com_a_unidade():
+    duas = [
+        oferta("um", "Ventilador Arno VE5560 40cm"),
+        oferta("dois", "Ventilador Arno VE5560 2x"),
+    ]
+    assert not _juntas(duas, "um", "dois")
+    combo = [
+        oferta("lava", "Lava-louças Brastemp BLF61AR", ean="7891129582071"),
+        oferta("combo", "Combo Geladeira Brastemp e Lava-louças BLF61AR", ean="7891129582071"),
+    ]
+    assert not _juntas(combo, "lava", "combo")
+
+
+def teste_marca_so_no_titulo_separa_codigo_generico():
+    ofertas = [
+        oferta("mondial", "Liquidificador Mondial L-1200 Turbo", marca="Mondial"),
+        oferta("arno_loja", "Liquidificador Arno Power L-1200", marca="Arno"),
+        oferta("m", "Liquidificador Mondial L-1200 Preto"),
+        oferta("a", "Liquidificador Arno L-1200 Preto"),
+    ]
+    assert not _juntas(ofertas, "m", "a")
+    assert _juntas(ofertas, "m", "mondial")
+
+
+def teste_grupo_provisorio_nao_junta_cor_nem_marca_diferentes():
+    from app.agrupamento import chave_propria
+
+    inox = oferta("i", "Geladeira Brastemp BRM44HK Inox")
+    branca = oferta("b", "Geladeira Brastemp BRM44HK Branca")
+    assert chave_propria(inox) != chave_propria(branca)
+    mondial = oferta("m", "Liquidificador L-1200", marca="Mondial")
+    arno = oferta("a", "Liquidificador L-1200", marca="Arno")
+    assert chave_propria(mondial) != chave_propria(arno)
