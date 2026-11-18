@@ -46,16 +46,17 @@ test("o total do destaque é o produto mais o frete, e o link vai para a loja", 
 
 test("estante PNR e estante Artely aparecem como produtos distintos", async ({ page }) => {
   await buscar(page, "estante para livros multy 4 prateleiras menta");
-  const pnr = page.getByText(/Multy 4 Prateleiras Menta - Pnr/i).first();
-  const artely = page.getByText(/Multy.*Artely|Artely.*Multy/i).first();
+  // pelos títulos dos grupos: a etiqueta do destaque também cita o produto
+  const titulo = (nome: RegExp) => page.getByRole("heading", { level: 3, name: nome }).first();
+  const pnr = titulo(/Multy 4 Prateleiras Menta - Pnr/i);
+  const artely = titulo(/Multy.*Artely|Artely.*Multy/i);
   await expect(pnr).toBeVisible();
   await expect(artely).toBeVisible();
-  const grupoPnr = pnr.locator("xpath=ancestor::*[@data-grupo][1]");
-  const grupoArtely = artely.locator("xpath=ancestor::*[@data-grupo][1]");
-  if ((await grupoPnr.count()) && (await grupoArtely.count()))
-    expect(await grupoPnr.getAttribute("data-grupo")).not.toBe(
-      await grupoArtely.getAttribute("data-grupo"),
-    );
+  const grupo = (alvo: typeof pnr) =>
+    alvo.locator('xpath=ancestor::section[starts-with(@id, "produto-")][1]').getAttribute("id");
+  const grupoPnr = await grupo(pnr);
+  expect(grupoPnr).toBeTruthy();
+  expect(grupoPnr).not.toBe(await grupo(artely));
 });
 
 test("o histórico de preço responde para as ofertas da busca", async ({ page }) => {
