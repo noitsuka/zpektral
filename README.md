@@ -54,7 +54,7 @@ O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produ
 - O valor exibido vem do carrinho da loja, sem estimativa; o que a loja não informa aparece como não informado
 - Parte das cotações é refeita em paralelo, e o vendedor que devolve valores diferentes para o mesmo carrinho perde o selo de preço exato
 - Nenhum bloqueio das lojas contra robôs é contornado, e a loja que passa a proibir o acesso no robots.txt sai da lista (`pytest -m live` confere)
-- O histórico guarda o texto da busca e só os cinco primeiros dígitos do CEP, e apaga registros com mais de 180 dias
+- O histórico guarda a busca simplificada (nunca com e-mail ou números longos, como CPF) e só os cinco primeiros dígitos do CEP; o texto da busca some em 14 dias e o resto em 180
 - As buscas mais feitas são refeitas a cada 6 horas para manter o histórico em dia
 
 ## Lojas

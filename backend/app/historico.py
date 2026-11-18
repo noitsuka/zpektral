@@ -1,17 +1,19 @@
 import logging
+import re
 import statistics
 import time
 from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta, timezone
 from itertools import groupby
 
-from sqlalchemy import case, delete, func, select
+from sqlalchemy import case, delete, func, select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.banco import HistoricoPreco, SaudeLoja
-from app.busca import TrabalhoBusca
+from app.busca import TrabalhoBusca, chave_cache
 from app.cache import CacheComValidade
 from app.modelos import Loja, Oferta, StatusFonte, StatusFrete, instante_iso
+from app.relevancia import normalizar_ean
 
 log = logging.getLogger("zpektral.historico")
 
@@ -25,6 +27,9 @@ TAMANHO_MAXIMO_OFERTA = 160
 OFERTAS_POR_CONSULTA = 50
 HORARIO_DE_BRASILIA = timezone(timedelta(hours=-3))
 TAMANHO_MAXIMO_CONSULTA = 120
+# a atualização agendada usa 7 dias de buscas; depois disso o texto não serve para nada
+DIAS_TEXTO_DA_BUSCA = 14
+_NUMERO_LONGO = re.compile(r"\d[\d.\-/ ]{6,}\d")
 SEGUNDOS_CACHE_QUEDAS = 300
 DIAS_MINIMOS_QUEDA = 5
 HORAS_VISTA_RECENTE = 48
@@ -129,7 +134,7 @@ class RegistroHistorico:
                     preco_original=o.preco_original,
                     link=o.link or None,
                     imagem=o.imagem,
-                    consulta=trabalho.consulta[:TAMANHO_MAXIMO_CONSULTA],
+                    consulta=consulta_gravavel(trabalho.consulta),
                     agendada=self._agendada,
                 )
             )
@@ -186,6 +191,15 @@ class RegistroHistorico:
                 delete(HistoricoPreco).where(HistoricoPreco.observado_em < limite)
             )
             saude = await sessao.execute(delete(SaudeLoja).where(SaudeLoja.observado_em < limite))
+            await sessao.execute(
+                update(HistoricoPreco)
+                .where(
+                    HistoricoPreco.observado_em
+                    < datetime.now(UTC) - timedelta(days=DIAS_TEXTO_DA_BUSCA),
+                    HistoricoPreco.consulta.is_not(None),
+                )
+                .values(consulta=None)
+            )
         return (precos.rowcount or 0) + (saude.rowcount or 0)
 
     async def expurgar_se_preciso(self) -> None:
@@ -369,3 +383,14 @@ def _gravavel(o: Oferta) -> bool:
 
 def _com_fuso(valor: datetime) -> datetime:
     return valor if valor.tzinfo else valor.replace(tzinfo=UTC)
+
+
+def consulta_gravavel(texto: str) -> str | None:
+    if "@" in texto:
+        return None
+    for trecho in _NUMERO_LONGO.findall(texto):
+        digitos = "".join(c for c in trecho if c.isdigit())
+        eh_ean = 12 <= len(digitos) <= 14 and normalizar_ean(digitos)
+        if len(digitos) >= 8 and not eh_ean:
+            return None
+    return chave_cache(texto, None)[0][:TAMANHO_MAXIMO_CONSULTA] or None

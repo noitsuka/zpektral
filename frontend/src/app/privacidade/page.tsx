@@ -20,7 +20,7 @@ const ITENS = [
   {
     titulo: "Histórico de preços",
     texto:
-      "Cada busca grava o preço de cada oferta na própria loja, com frete e total, o texto que foi buscado e os 5 primeiros dígitos do CEP, que identificam a região e não o endereço. É isso que permite dizer se o preço de hoje está abaixo ou acima do habitual daquela loja. O registro não guarda IP, conta nem nada que identifique quem buscou, e registros com mais de 180 dias são apagados. A página Quedas de preço usa esse mesmo histórico. Por isso, evite digitar dados pessoais no campo de busca.",
+      "Cada busca grava o preço de cada oferta na própria loja, com frete e total, a busca em forma simplificada (sem acentos nem maiúsculas) e os 5 primeiros dígitos do CEP, que identificam a região e não o endereço. É isso que permite dizer se o preço de hoje está abaixo ou acima do habitual daquela loja. Se a busca tiver um e-mail ou uma sequência longa de números, como CPF ou telefone, o texto não é gravado. O texto da busca é apagado depois de 14 dias; o restante, depois de 180. O registro não guarda IP, conta nem nada que identifique quem buscou. A página Quedas de preço usa esse mesmo histórico.",
   },
   {
     titulo: "Endereço IP",

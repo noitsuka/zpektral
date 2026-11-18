@@ -452,3 +452,37 @@ async def teste_rota_de_quedas(config, sessoes, simulador):
 
         app.state.historico = None
         assert (await cliente.get("/ofertas/quedas")).status_code == 503
+
+
+@pytest.mark.parametrize(
+    ("digitada", "gravada"),
+    [
+        ("Geladeira Frost Free", "geladeira frost free"),
+        ("  Estante  MULTY menta ", "estante multy menta"),
+        ("estante 7899307521331", "7899307521331"),
+        ("joao@exemplo.com geladeira", None),
+        ("geladeira 123.456.789-09", None),
+        ("geladeira 11987654321", None),
+        ("geladeira 01310-100", None),
+    ],
+)
+def teste_busca_gravada_e_normalizada_e_sem_dado_pessoal(digitada, gravada):
+    from app.historico import consulta_gravavel
+
+    assert consulta_gravavel(digitada) == gravada
+
+
+async def teste_expurgo_apaga_o_texto_da_busca_antigo_e_mantem_o_preco(sessoes):
+    from sqlalchemy import select
+
+    from app.banco import HistoricoPreco
+
+    async with sessoes() as sessao, sessao.begin():
+        sessao.add(_linha("a:velha", datetime.now(UTC) - timedelta(days=20), 100, consulta="tv"))
+        sessao.add(_linha("a:nova", datetime.now(UTC) - timedelta(days=2), 100, consulta="tv"))
+    await RegistroHistorico(sessoes, dias_retencao=180).expurgar()
+    async with sessoes() as sessao:
+        linhas = dict(
+            (await sessao.execute(select(HistoricoPreco.oferta, HistoricoPreco.consulta))).all()
+        )
+    assert linhas == {"a:velha": None, "a:nova": "tv"}
