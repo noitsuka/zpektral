@@ -18,6 +18,7 @@ from app.busca import ServicoBusca
 from app.cliente_http import ClienteHttp, DestinoProibido
 from app.configuracao import Configuracoes
 from app.fontes import criar_fontes
+from app.fontes.vtex import carregar_lojas
 from app.ordenacao import Filtros, aplicar
 
 CONSULTAS = Path(__file__).resolve().parents[1] / "testes" / "dados" / "consultas_avaliacao.json"
@@ -144,12 +145,22 @@ def _resumo(oferta: Any) -> dict[str, Any]:
     }
 
 
-async def rodar(consultas: list[dict[str, Any]], banco: Path, somente_cache: bool) -> list[dict]:
+async def rodar(
+    consultas: list[dict[str, Any]],
+    banco: Path,
+    somente_cache: bool,
+    lojas: frozenset[str] | None = None,
+) -> list[dict]:
     # prazo folgado: a primeira passada grava as respostas que as outras versões vão reler
     config = Configuracoes(_env_file=None, segundos_limite_fonte=30)
+    vtex = {loja.id for loja in carregar_lojas()}
     saida = []
     async with ClienteGravado(config, banco, somente_cache) as http:
-        fontes = [f for f in criar_fontes(http, config) if f.id not in FORA_POR_ROBOTS]
+        fontes = [
+            f
+            for f in criar_fontes(http, config)
+            if f.id not in FORA_POR_ROBOTS and (lojas is None or f.id not in vtex or f.id in lojas)
+        ]
         servico = ServicoBusca(fontes, config)
         for consulta in consultas:
             antes, inicio = http.requisicoes, time.monotonic()
@@ -279,6 +290,11 @@ def main() -> None:
     rodar_cmd.add_argument("--cache", type=Path, required=True, help="banco SQLite das respostas")
     rodar_cmd.add_argument("--somente-cache", action="store_true", help="não chama as lojas")
     rodar_cmd.add_argument("--apenas", nargs="*", help="ids das consultas")
+    rodar_cmd.add_argument(
+        "--lojas",
+        type=Path,
+        help="ids VTEX, um por linha, para comparar versões com o mesmo cadastro",
+    )
     medir_cmd = comandos.add_parser("medir", help="calcula as métricas de uma ou mais execuções")
     medir_cmd.add_argument("execucoes", type=Path, nargs="+")
     medir_cmd.add_argument("--saida", type=Path)
@@ -287,7 +303,8 @@ def main() -> None:
     consultas = carregar_consultas(CONSULTAS)
     if args.comando == "rodar":
         escolhidas = [c for c in consultas if not args.apenas or c["id"] in args.apenas]
-        registros = asyncio.run(rodar(escolhidas, args.cache, args.somente_cache))
+        lojas = frozenset(args.lojas.read_text("utf-8").split()) if args.lojas else None
+        registros = asyncio.run(rodar(escolhidas, args.cache, args.somente_cache, lojas))
         corpo = {"origem": app.__file__, "consultas": registros}
         args.saida.write_text(json.dumps(corpo, ensure_ascii=False), "utf-8", newline="\n")
         return
