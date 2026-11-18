@@ -481,9 +481,12 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
     return round(resultado)
 
 
-def _pares(termos: tuple[str, ...]) -> set[tuple[str, str]]:
+@lru_cache(maxsize=65_536)
+def _pares(termos: tuple[str, ...]) -> frozenset[tuple[str, str]]:
     # a voltagem tem regra própria: 110 e 127 valem o mesmo
-    return {(a, b) for a, b in pairwise(termos) if a.isdigit() and b.isalpha() and b != "v"}
+    return frozenset(
+        (a, b) for a, b in pairwise(termos) if a.isdigit() and b.isalpha() and b != "v"
+    )
 
 
 def _quantidade_trocada(termos: tuple[str, ...], palavras_titulo: tuple[str, ...]) -> bool:
