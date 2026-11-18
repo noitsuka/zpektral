@@ -9,7 +9,7 @@ import { ErroApi, quedasDePreco } from "@/nucleo/api";
 import { haQuanto, plural, porcentagem, reais } from "@/nucleo/formato";
 import type { RespostaQuedas } from "@/nucleo/tipos";
 
-const PERIODOS = [7, 30];
+const PERIODOS = [7, 30, 90];
 const QUEDAS_MINIMAS = [
   { valor: 0, rotulo: "Qualquer" },
   { valor: 0.1, rotulo: "10% ou mais" },

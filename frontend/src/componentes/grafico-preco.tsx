@@ -69,6 +69,12 @@ export function GraficoPreco({
     setIndice(Math.max(0, Math.min(visiveis.length - 1, proximo[evento.key])));
   }
 
+  // Dia isolado vira ponto; dentro de um trecho, a linha já mostra o dia.
+  const isolados = new Set(trechos(visiveis).flatMap((t) => (t.length === 1 ? t : [])));
+  const pontosVisiveis = visiveis.filter(
+    (p) => isolados.has(p) || p === selecionado || p.dia === hoje || visiveis.length <= 31,
+  );
+
   const legenda = (p: PontoHistorico) =>
     `${p.dia === hoje ? "Hoje" : diaAbreviado(p.dia)}: ${reais(p.preco)}`;
 
@@ -162,7 +168,7 @@ export function GraficoPreco({
               />
             ) : null,
           )}
-          {visiveis.map((p) => (
+          {pontosVisiveis.map((p) => (
             <line
               key={p.dia}
               x1={x(p.dia)}
@@ -170,7 +176,9 @@ export function GraficoPreco({
               y1={y(p.preco)}
               y2={y(p.preco)}
               strokeLinecap="round"
-              strokeWidth={p === selecionado ? 9 : p.dia === hoje ? 7 : 4}
+              strokeWidth={
+                p === selecionado ? 9 : p.dia === hoje ? 7 : visiveis.length > 31 ? 3 : 4
+              }
               className={p.dia === hoje || p === selecionado ? "stroke-acao" : "stroke-tinta"}
               vectorEffect="non-scaling-stroke"
             />

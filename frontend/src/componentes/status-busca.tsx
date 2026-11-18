@@ -18,23 +18,27 @@ export function StatusBusca({
   fontes,
   terminou,
   ofertas,
+  interrompida = false,
 }: {
   fontes: CelulaFonte[];
   terminou: boolean;
   ofertas: number;
+  interrompida?: boolean;
 }) {
   const ativas = fontes.filter((f) => f.situacao !== "desativada");
   const fora = lojasFora(ativas);
   const responderam = ativas.filter(
     (f) => f.situacao !== "aguardando" && f.situacao !== "catalogo",
   );
-  const texto = !ativas.length
-    ? "Preparando a busca"
-    : terminou
-      ? fora.length
-        ? `${responderam.length - fora.length} de ${plural(ativas.length, "loja respondeu", "lojas responderam")}`
-        : `${plural(ativas.length, "loja consultada", "lojas consultadas")}`
-      : `Consultando as lojas: ${responderam.length} de ${ativas.length}`;
+  const texto = interrompida
+    ? "A consulta às lojas foi interrompida"
+    : !ativas.length
+      ? "Preparando a busca"
+      : terminou
+        ? fora.length
+          ? `${responderam.length - fora.length} de ${plural(ativas.length, "loja respondeu", "lojas responderam")}`
+          : `${plural(ativas.length, "loja consultada", "lojas consultadas")}`
+        : `Consultando as lojas: ${responderam.length} de ${ativas.length}`;
 
   return (
     <div className="flex min-h-11 flex-wrap items-center gap-x-4 gap-y-2">

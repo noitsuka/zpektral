@@ -281,12 +281,17 @@ export function Resultados() {
         <h1 className="text-[1.5rem] leading-tight font-semibold tracking-[-0.01em] break-words sm:text-[1.75rem]">
           {q}
         </h1>
-        <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.9375rem]">
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 text-[0.9375rem]">
           {cep ? (
-            <p className="inline-flex flex-wrap items-center gap-x-1.5 text-tinta-2">
-              <MapPin className="size-4" aria-hidden />
-              Entrega em {endereco?.cidade ? `${endereco.cidade}, ${endereco.uf}, ` : ""}
-              <span className="numero font-semibold text-acao">CEP {mascararCep(cep)}</span>
+            <p className="flex items-start gap-1.5 text-tinta-2">
+              <MapPin className="mt-1 size-4 shrink-0" aria-hidden />
+              <span>
+                <span className="hidden sm:inline">Entrega em </span>
+                {endereco?.cidade && `${endereco.cidade}, ${endereco.uf} · `}
+                <span className="numero font-semibold whitespace-nowrap text-acao">
+                  CEP {mascararCep(cep)}
+                </span>
+              </span>
             </p>
           ) : (
             <p className="text-tinta-2">Sem CEP de entrega</p>
@@ -294,7 +299,7 @@ export function Resultados() {
           <button
             type="button"
             onClick={focarCep}
-            className="min-h-11 text-[0.875rem] font-medium text-acao underline sm:min-h-0"
+            className="min-h-11 text-[0.875rem] font-medium whitespace-nowrap text-acao underline"
           >
             {cep ? "Trocar CEP" : "Informar CEP"}
           </button>
@@ -304,6 +309,7 @@ export function Resultados() {
             fontes={transmissao.fontes}
             terminou={terminou}
             ofertas={ranqueadas.length}
+            interrompida={transmissaoFalhou && !final}
           />
         </div>
 

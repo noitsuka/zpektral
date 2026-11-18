@@ -119,9 +119,17 @@ export function CartaoGrupo({
   );
 }
 
-function Campo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
+function Campo({
+  rotulo,
+  bordas,
+  children,
+}: {
+  rotulo: string;
+  bordas: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="min-w-0 border-tinta px-4 py-3">
+    <div className={`min-w-0 border-tinta px-4 py-3 ${bordas}`}>
       <dt className="rotulo-campo">{rotulo}</dt>
       <dd className="numero mt-1 font-semibold">{children}</dd>
     </div>
@@ -193,9 +201,14 @@ export function EtiquetaMelhor({
         )}
       </div>
 
-      <dl className="grid grid-cols-2 border-t-2 border-tinta sm:grid-cols-4 sm:[&>div]:border-r sm:[&>div]:border-b-0 sm:[&>div:last-child]:border-r-0 [&>div:nth-child(-n+2)]:border-b [&>div:nth-child(odd)]:border-r">
-        <Campo rotulo="Produto">{reais(oferta.preco)}</Campo>
-        <Campo rotulo={contexto.cep ? `Frete ${mascararCep(contexto.cep)}` : "Frete"}>
+      <dl className="grid grid-cols-2 border-t-2 border-tinta sm:grid-cols-4">
+        <Campo rotulo="Produto" bordas="border-r border-b sm:border-b-0">
+          {reais(oferta.preco)}
+        </Campo>
+        <Campo
+          rotulo={contexto.cep ? `Frete ${mascararCep(contexto.cep)}` : "Frete"}
+          bordas="border-b sm:border-r sm:border-b-0"
+        >
           <span className="flex flex-wrap items-center gap-1.5">
             {estado === "confirmado"
               ? frete.valor
@@ -205,14 +218,14 @@ export function EtiquetaMelhor({
             <CarimboTotal estado={estado} />
           </span>
         </Campo>
-        <Campo rotulo="No Pix">
+        <Campo rotulo="No Pix" bordas="border-r">
           {t?.pix != null && t.pix < t.avista ? (
             reais(t.pix)
           ) : (
             <span className="font-normal text-tinta-2">sem desconto</span>
           )}
         </Campo>
-        <Campo rotulo="Entrega">
+        <Campo rotulo="Entrega" bordas="">
           {estado === "confirmado" ? (
             entrega
           ) : (
