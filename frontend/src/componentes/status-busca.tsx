@@ -48,7 +48,7 @@ export function StatusBusca({
         aria-valuemin={0}
         aria-valuemax={ativas.length || 1}
         aria-valuenow={responderam.length}
-        className="flex h-3.5 w-full max-w-64 items-end gap-px sm:w-64 sm:gap-0.5"
+        className="flex h-3.5 w-full max-w-64 items-end gap-px overflow-hidden sm:w-64"
       >
         {ativas.length
           ? ativas.map((f) => (

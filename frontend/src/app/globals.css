@@ -240,7 +240,7 @@
   .traco-loja {
     flex: 1 1 0;
     max-width: 5px;
-    min-width: 2px;
+    min-width: 1px;
     height: 0.875rem;
     border-radius: 1px;
     background: var(--fio);
