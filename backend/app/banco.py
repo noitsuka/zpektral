@@ -1,6 +1,16 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, Index, Integer, String, func, make_url
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    Index,
+    Integer,
+    String,
+    false,
+    func,
+    make_url,
+)
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -49,6 +59,11 @@ class HistoricoPreco(Base):
     frete: Mapped[int | None] = mapped_column(Integer)
     status_frete: Mapped[str] = mapped_column(String(20))
     total: Mapped[int] = mapped_column(Integer)
+    preco_original: Mapped[int | None] = mapped_column(Integer)
+    link: Mapped[str | None] = mapped_column(String(2048))
+    imagem: Mapped[str | None] = mapped_column(String(2048))
+    consulta: Mapped[str | None] = mapped_column(String(120))
+    agendada: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
     __table_args__ = (
         Index("ix_historico_precos_serie", "produto", "prefixo_cep", "loja", "observado_em"),

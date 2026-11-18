@@ -9,7 +9,14 @@ from app.api.esquemas import InfoFonte, info_das_fontes
 from app.api.respostas import RespostaJson
 from app.cep import normalizar_cep
 from app.cliente_http import ErroExterno
-from app.historico import OFERTAS_POR_CONSULTA, TAMANHO_MAXIMO_OFERTA, PontoDia, SerieLoja
+from app.historico import (
+    OFERTAS_POR_CONSULTA,
+    SEGUNDOS_CACHE_QUEDAS,
+    TAMANHO_MAXIMO_OFERTA,
+    PainelQuedas,
+    PontoDia,
+    SerieLoja,
+)
 from app.modelos import Endereco
 
 roteador = APIRouter()
@@ -87,3 +94,30 @@ async def obter_historico_ofertas(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
     return RespostaJson(await historico.resumo_ofertas(lista, dias))
+
+
+@roteador.get(
+    "/ofertas/quedas",
+    response_model=PainelQuedas,
+    summary="Ofertas cujo preço caiu em relação ao habitual da própria loja",
+    description="Preço sem CEP de cada oferta, observado em pelo menos 5 dias da janela e "
+    "visto nas últimas 48 horas, que está 10% ou mais abaixo da mediana dos menores preços "
+    "diários, sem contar o dia de hoje. `variacao` é negativa e os valores estão em centavos.",
+)
+async def obter_quedas(
+    guarda: Protegido,
+    historico: Historico,
+    servico: Buscas,
+    dias: Annotated[int, Query(ge=7, le=90)] = 30,
+    limite: Annotated[int, Query(ge=1, le=100)] = 60,
+) -> Response:
+    if historico is None:
+        return RespostaJson(
+            {"detail": "Histórico de preços desativado neste servidor"},
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+    nomes = {f.id: f.nome for f in servico.fontes}
+    return RespostaJson(
+        await historico.quedas(dias, limite, nomes),
+        headers={"cache-control": f"public, max-age={SEGUNDOS_CACHE_QUEDAS}"},
+    )

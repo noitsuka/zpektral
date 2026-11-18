@@ -1,4 +1,5 @@
 import os
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
@@ -297,3 +298,155 @@ async def teste_rota_de_historico_por_oferta(config, sessoes, simulador):
         app.state.historico = None
         r = await cliente.get("/historico/ofertas", params={"ids": "carrefour:123"})
         assert r.status_code == 503
+
+
+async def teste_linhas_guardam_link_imagem_preco_de_lista_e_a_busca(config, sessoes):
+    from sqlalchemy import select
+
+    from app.banco import HistoricoPreco
+
+    fonte = FonteFalsa("a", [("Smart TV 55 LG", 300000, "7890000000017")])
+    await executar(config, RegistroHistorico(sessoes), BH, [fonte])
+    await executar(config, RegistroHistorico(sessoes, agendada=True), None, [fonte])
+    async with sessoes() as sessao:
+        linhas = (await sessao.scalars(select(HistoricoPreco).order_by(HistoricoPreco.id))).all()
+    assert [(r.prefixo_cep, r.agendada) for r in linhas] == [("30130", False), (None, True)]
+    assert all(r.link == "https://a.example/0" and r.consulta == "smart tv 55" for r in linhas)
+
+
+async def teste_resumo_por_oferta_ignora_a_atualizacao_agendada(sessoes):
+    ontem = datetime.now(UTC) - timedelta(days=1)
+    await _gravar(sessoes, "a:1", ontem, 30000)
+    async with sessoes() as sessao, sessao.begin():
+        sessao.add(_linha("a:1", ontem, 10000, agendada=True, prefixo_cep=None))
+    resumo = await RegistroHistorico(sessoes).resumo_ofertas(["a:1"], dias=90)
+    assert [p.preco for p in resumo["a:1"]] == [30000]
+
+
+AGORA = datetime(2026, 11, 17, 15, 0, tzinfo=UTC)
+
+
+def _linha(oferta, quando, preco, **extras):
+    from app.banco import HistoricoPreco
+
+    campos = {
+        "loja": oferta.split(":")[0],
+        "prefixo_cep": None,
+        "titulo": f"Produto {oferta}",
+        "status_frete": "sem_cep",
+        "link": f"https://loja.example/{oferta}",
+        **extras,
+    }
+    return HistoricoPreco(observado_em=quando, oferta=oferta, preco=preco, total=preco, **campos)
+
+
+def _serie(oferta, precos_passados, *atuais, **extras):
+    linhas = [
+        _linha(oferta, AGORA - timedelta(days=dias), preco)
+        for dias, preco in enumerate(reversed(precos_passados), start=1)
+    ]
+    for horas, preco in atuais:
+        linhas.append(_linha(oferta, AGORA - timedelta(hours=horas), preco, **extras))
+    return linhas
+
+
+async def _quedas_gravadas(sessoes):
+    dez = [10000] * 6
+    linhas = [
+        *_serie("a:queda", dez, (1, 8500)),
+        *_serie("b:limite", dez[:5], (1, 9000)),
+        *_serie("a:pouca", dez[:5], (1, 9100)),
+        *_serie("a:poucos_dias", dez[:3], (1, 5000)),
+        *_serie("a:sem_link", dez, (1, 7000), link=None),
+        *_serie("a:com_cep", dez, (1, 10000)),
+        _linha("a:com_cep", AGORA - timedelta(hours=1), 6000, prefixo_cep="30130"),
+        *_serie(
+            "a:hoje",
+            [10000, 12000, 10000, 9000, 11000],
+            (3, 6000),
+            (1, 8000),
+            preco_original=15000,
+            imagem="https://loja.example/hoje.jpg",
+        ),
+    ]
+    linhas += [_linha("a:antiga", AGORA - timedelta(days=d), 10000) for d in range(4, 11)]
+    linhas.append(_linha("a:antiga", AGORA - timedelta(days=3), 5000))
+    async with sessoes() as sessao, sessao.begin():
+        sessao.add_all(linhas)
+
+
+async def teste_quedas_verificadas_no_historico_sem_cep(sessoes):
+    await _quedas_gravadas(sessoes)
+    painel = await RegistroHistorico(sessoes).quedas(30, 60, {"a": "Loja A"}, agora=AGORA)
+    assert painel.janela_dias == 30 and painel.gerado_em == "2026-11-17T15:00:00+00:00"
+    assert [(i.oferta, i.variacao) for i in painel.itens] == [
+        ("a:hoje", -0.2),
+        ("a:queda", -0.15),
+        ("b:limite", -0.1),
+    ]
+    hoje = painel.itens[0]
+    assert (hoje.preco, hoje.mediana, hoje.menor, hoje.maior) == (8000, 10000, 9000, 12000)
+    assert hoje.dias_observados == 6 and hoje.visto_em == "2026-11-17T14:00:00+00:00"
+    assert hoje.preco_original == 15000 and hoje.imagem == "https://loja.example/hoje.jpg"
+    assert (hoje.loja.id, hoje.loja.nome, hoje.link) == (
+        "a",
+        "Loja A",
+        "https://loja.example/a:hoje",
+    )
+    limite = painel.itens[2]
+    assert (limite.loja.nome, limite.dias_observados, limite.imagem) == ("b", 6, None)
+
+
+async def teste_quedas_respeitam_o_limite_e_ficam_em_cache(sessoes):
+    await _quedas_gravadas(sessoes)
+    registro = RegistroHistorico(sessoes)
+    dois = await registro.quedas(30, 2, {}, agora=AGORA)
+    assert [i.oferta for i in dois.itens] == ["a:hoje", "a:queda"]
+    async with sessoes() as sessao, sessao.begin():
+        sessao.add_all(_serie("c:nova", [10000] * 6, (1, 1000)))
+    assert await registro.quedas(30, 2, {}, agora=AGORA) is dois
+    assert (await registro.quedas(30, 3, {}, agora=AGORA)).itens[0].oferta == "c:nova"
+
+
+async def teste_rota_de_quedas(config, sessoes, simulador):
+    from app.limites import Guarda
+    from app.main import app
+
+    simulador.route(host="testserver").pass_through()
+    await _quedas_gravadas(sessoes)
+    registro = RegistroHistorico(sessoes)
+    await registro.quedas(30, 60, {"a": "Loja A"}, agora=AGORA)
+    app.state.historico = registro
+    app.state.buscas = ServicoBusca([FonteFalsa("a")], config)
+    app.state.guarda = Guarda.das_configuracoes(config)
+    transporte = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transporte, base_url="http://testserver") as cliente:
+        r = await cliente.get("/ofertas/quedas")
+        assert r.status_code == 200
+        assert "max-age" in r.headers["cache-control"]
+        corpo = r.json()
+        assert set(corpo) == {"janela_dias", "gerado_em", "itens"}
+        assert corpo["janela_dias"] == 30
+        item = corpo["itens"][0]
+        assert item == {
+            "oferta": "a:hoje",
+            "titulo": "Produto a:hoje",
+            "loja": {"id": "a", "nome": "Loja A"},
+            "link": "https://loja.example/a:hoje",
+            "imagem": "https://loja.example/hoje.jpg",
+            "preco": 8000,
+            "preco_original": 15000,
+            "mediana": 10000,
+            "menor": 9000,
+            "maior": 12000,
+            "dias_observados": 6,
+            "variacao": -0.2,
+            "visto_em": "2026-11-17T14:00:00+00:00",
+        }
+
+        for ruim in [{"dias": 6}, {"dias": 91}, {"limite": 0}, {"limite": 101}, {"dias": "x"}]:
+            r = await cliente.get("/ofertas/quedas", params=ruim)
+            assert r.status_code == 422, ruim
+
+        app.state.historico = None
+        assert (await cliente.get("/ofertas/quedas")).status_code == 503
