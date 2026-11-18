@@ -113,6 +113,6 @@ def teste_filtros_e_ordem_nunca_inventam_ofertas(ofertas, ordem, pagamento, mini
         assert minimo is None or total >= minimo
         assert maximo is None or total <= maximo
     if ordem is Ordem.MENOR_TOTAL:
-        chaves = [(o.total_para(pagamento), certeza(o)) for o in resultado]
+        chaves = [(certeza(o), o.total_para(pagamento)) for o in resultado]
         assert chaves == sorted(chaves)
     assert sum(loja.quantidade for loja in facetas.lojas) >= len(resultado)

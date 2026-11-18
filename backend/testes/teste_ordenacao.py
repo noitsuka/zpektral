@@ -66,12 +66,15 @@ def teste_menor_total_conta_o_frete():
     assert ids(resultado) == ["pricier", "cheap"]
 
 
-def teste_menor_total_poe_o_mais_barato_na_frente_mesmo_sem_frete():
+def teste_menor_total_poe_o_total_confirmado_na_frente_de_quem_nao_tem_frete():
     sem_frete = oferta("no_shipping", 9000)
     anunciado = oferta("advertised", 9500, frete=Frete(StatusFrete.GRATIS_ANUNCIADO, valor=0))
     exatas = oferta("exact", 9000, frete=cotada(1000))
-    resultado, _ = aplicar([exatas, anunciado, sem_frete], Filtros(ordem=Ordem.MENOR_TOTAL))
-    assert ids(resultado) == ["no_shipping", "advertised", "exact"]
+    caro_exato = oferta("exact_pricier", 9800, frete=cotada(1000))
+    resultado, _ = aplicar(
+        [caro_exato, sem_frete, anunciado, exatas], Filtros(ordem=Ordem.MENOR_TOTAL)
+    )
+    assert ids(resultado) == ["exact", "exact_pricier", "advertised", "no_shipping"]
 
 
 def teste_menor_total_empatado_prefere_o_total_conferido():

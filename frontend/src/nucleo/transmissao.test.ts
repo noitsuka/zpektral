@@ -192,7 +192,7 @@ describe("ranking ao vivo", () => {
     expect(ordenadas[0].id).toBe("p:1");
   });
 
-  it("põe o mais barato na frente mesmo sem frete cotado", () => {
+  it("deixa quem não tem frete cotado depois dos totais confirmados", () => {
     const semFrete = oferta("x:1", 50, {
       total_exato: false,
       frete: { ...ofertas[0].frete, status: "nao_informado", valor: null },
@@ -201,7 +201,7 @@ describe("ranking ao vivo", () => {
       ...FILTROS_PADRAO,
       ordem: "menor_total",
     });
-    expect(ordenadas.map((o) => o.id)).toEqual(["x:1", "b:1", "c:1", "a:1"]);
+    expect(ordenadas.map((o) => o.id)).toEqual(["b:1", "a:1", "x:1", "c:1"]);
   });
 
   it("ordena pela maior economia verificada e desempata pelo total", () => {
