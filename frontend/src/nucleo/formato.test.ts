@@ -9,14 +9,12 @@ import {
 } from "@/nucleo/filtros";
 import {
   reais,
-  partesReais,
   dataEntrega,
   ehCep,
   mascararCep,
   porcentagem,
   hojeEmBrasilia,
   diaAbreviado,
-  segundos,
   haQuanto,
 } from "@/nucleo/formato";
 
@@ -28,10 +26,6 @@ describe("dinheiro", () => {
     [100000000, "R$ 1.000.000,00"],
   ])("formata %i centavos", (centavos, texto) => {
     expect(reais(centavos)).toBe(texto);
-  });
-
-  it("separa reais e centavos", () => {
-    expect(partesReais(129905)).toEqual({ reais: "1.299", fracao: "05" });
   });
 });
 
@@ -49,10 +43,6 @@ describe("cep", () => {
 describe("datas e horários", () => {
   it("formata a data de entrega prometida sem mudar o dia", () => {
     expect(dataEntrega("2026-10-22")).toMatch(/22/);
-  });
-  it("formata durações", () => {
-    expect(segundos(270)).toBe("270 ms");
-    expect(segundos(3120)).toBe("3,1 s");
   });
 });
 

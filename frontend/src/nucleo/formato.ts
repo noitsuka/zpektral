@@ -9,12 +9,6 @@ export function quantidade(n: number): string {
   return formatoNumero.format(n);
 }
 
-export function partesReais(centavos: number): { reais: string; fracao: string } {
-  const reais = Math.trunc(centavos / 100);
-  const fracao = Math.abs(centavos % 100);
-  return { reais: formatoNumero.format(reais), fracao: String(fracao).padStart(2, "0") };
-}
-
 export function digitosCep(bruto: string): string {
   return bruto.replace(/\D/g, "").slice(0, 8);
 }
@@ -29,7 +23,7 @@ export function ehCep(bruto: string): boolean {
   return digitos.length === 8 && digitos !== "00000000";
 }
 
-const weekday = new Intl.DateTimeFormat("pt-BR", {
+const diaDaSemana = new Intl.DateTimeFormat("pt-BR", {
   weekday: "short",
   day: "numeric",
   month: "short",
@@ -38,7 +32,7 @@ const weekday = new Intl.DateTimeFormat("pt-BR", {
 
 export function dataEntrega(dataIso: string): string {
   const data = new Date(`${dataIso}T12:00:00Z`);
-  return Number.isNaN(data.getTime()) ? dataIso : weekday.format(data);
+  return Number.isNaN(data.getTime()) ? dataIso : diaDaSemana.format(data);
 }
 
 const relogio = new Intl.DateTimeFormat("pt-BR", {
@@ -50,10 +44,6 @@ const relogio = new Intl.DateTimeFormat("pt-BR", {
 export function horaCotacao(iso: string): string {
   const data = new Date(iso);
   return Number.isNaN(data.getTime()) ? "" : relogio.format(data);
-}
-
-export function segundos(ms: number): string {
-  return ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1).replace(".", ",")} s`;
 }
 
 export function plural(n: number, um: string, varios: string): string {
@@ -87,7 +77,7 @@ export function diaAbreviado(dataIso: string): string {
   return Number.isNaN(data.getTime()) ? dataIso : diaCurto.format(data).replace(".", "");
 }
 
-const diaEDiaDoMes = new Intl.DateTimeFormat("pt-BR", {
+const diaCurtoEmBrasilia = new Intl.DateTimeFormat("pt-BR", {
   day: "2-digit",
   month: "short",
   timeZone: "America/Sao_Paulo",
@@ -100,5 +90,5 @@ export function haQuanto(iso: string, agora: Date = new Date()): string | null {
   if (minutos < 1) return "há menos de 1 min";
   if (minutos < 60) return `há ${minutos} min`;
   if (minutos < 24 * 60) return `há ${Math.floor(minutos / 60)} h`;
-  return `em ${diaEDiaDoMes.format(momento).replace(".", "")}`;
+  return `em ${diaCurtoEmBrasilia.format(momento).replace(".", "")}`;
 }

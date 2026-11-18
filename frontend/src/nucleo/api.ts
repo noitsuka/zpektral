@@ -8,7 +8,6 @@ export class ErroApi extends Error {
   constructor(
     readonly status: number,
     mensagem: string,
-    readonly tentarDepois?: number,
   ) {
     super(mensagem);
   }
@@ -30,12 +29,9 @@ async function obter<T>(caminho: string, signal?: AbortSignal): Promise<T> {
   }
   const corpo = await resposta.json().catch(() => null);
   if (!resposta.ok) {
-    const tentarDeNovo = Number(resposta.headers.get("retry-after")) || undefined;
     const detalhe = typeof corpo?.detail === "string" ? corpo.detail : "Algo deu errado.";
-    const id = typeof corpo?.id === "string" ? corpo.id : null;
-    if (id)
-      throw new ErroApi(resposta.status, `${detalhe} (código ${id.slice(0, 8)})`, tentarDeNovo);
-    throw new ErroApi(resposta.status, detalhe, tentarDeNovo);
+    const codigo = typeof corpo?.id === "string" ? ` (código ${corpo.id.slice(0, 8)})` : "";
+    throw new ErroApi(resposta.status, `${detalhe}${codigo}`);
   }
   return corpo as T;
 }

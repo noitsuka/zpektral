@@ -37,7 +37,7 @@ export function StatusBusca({
       : terminou
         ? fora.length
           ? `${responderam.length - fora.length} de ${plural(ativas.length, "loja respondeu", "lojas responderam")}`
-          : `${plural(ativas.length, "loja consultada", "lojas consultadas")}`
+          : plural(ativas.length, "loja consultada", "lojas consultadas")
         : `Consultando as lojas: ${responderam.length} de ${ativas.length}`;
 
   return (

@@ -25,12 +25,12 @@ import { filtrarAoVivo, rebaixarMuitoAbaixo } from "@/nucleo/ao-vivo";
 import { ErroApi, buscarPagina } from "@/nucleo/api";
 import { REPOUSO, espectroDe } from "@/nucleo/espectro";
 import {
-  FILTROS_PADRAO,
   ORDENS,
   ORDENS_LOCAIS,
   facetasDe,
   filtrosDosParametros,
   filtrosParaParametros,
+  limparFiltros,
   ocultasPorCondicao,
 } from "@/nucleo/filtros";
 import { hojeEmBrasilia, mascararCep, plural } from "@/nucleo/formato";
@@ -467,13 +467,7 @@ export function Resultados() {
                   q={q}
                   cep={cep}
                   aoTentarDeNovo={tentarDeNovo}
-                  aoLimparFiltros={() =>
-                    setFiltros({
-                      ...FILTROS_PADRAO,
-                      ordem: filtros.ordem,
-                      pagamento: filtros.pagamento,
-                    })
-                  }
+                  aoLimparFiltros={() => setFiltros(limparFiltros(filtros))}
                   hrefSemCep={`${pathname}?${semCep}`}
                 />
               ) : (

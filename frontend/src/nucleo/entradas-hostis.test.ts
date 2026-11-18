@@ -59,7 +59,7 @@ describe("URL editada à mão", () => {
         "menor_preco",
         "maior_preco",
         "entrega_rapida",
-        "maior_desconto",
+        "economia_verificada",
       ]).toContain(f.ordem);
       expect(["melhor", "pix", "avista", "parcelado"]).toContain(f.pagamento);
       expect(f.relevancia_min).toBe(FILTROS_PADRAO.relevancia_min);

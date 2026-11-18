@@ -9,6 +9,7 @@ import {
   FRETES,
   PAGAMENTOS,
   contarFiltrosAtivos,
+  limparFiltros,
   voltagemFazSentido,
 } from "@/nucleo/filtros";
 import { plural, quantidade, reais } from "@/nucleo/formato";
@@ -275,10 +276,6 @@ export function PainelFiltros({ filtros, facetas, onChange }: Props) {
   );
 }
 
-function limpar(filtros: Filtros): Filtros {
-  return { ...FILTROS_PADRAO, ordem: filtros.ordem, pagamento: filtros.pagamento };
-}
-
 export function BotaoFiltros({ visiveis, ...props }: Props & { visiveis: number }) {
   const dialogo = useRef<HTMLDialogElement>(null);
   const [aberto, setAberto] = useState(false);
@@ -333,7 +330,7 @@ export function BotaoFiltros({ visiveis, ...props }: Props & { visiveis: number 
               <button
                 type="button"
                 disabled={!ativos}
-                onClick={() => props.onChange(limpar(props.filtros))}
+                onClick={() => props.onChange(limparFiltros(props.filtros))}
                 className="botao botao-secundario"
               >
                 Limpar
@@ -420,7 +417,7 @@ export function ChipsFiltros({ filtros, facetas, onChange }: Props) {
       <li>
         <button
           type="button"
-          onClick={() => onChange(limpar(filtros))}
+          onClick={() => onChange(limparFiltros(filtros))}
           className="min-h-8 px-1.5 text-[0.8125rem] font-medium text-tinta-2 underline hover:text-tinta"
         >
           Limpar tudo

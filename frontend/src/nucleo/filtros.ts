@@ -130,6 +130,10 @@ export function contarFiltrosAtivos(f: Filtros): number {
   );
 }
 
+export function limparFiltros(f: Filtros): Filtros {
+  return { ...FILTROS_PADRAO, ordem: f.ordem, pagamento: f.pagamento };
+}
+
 export function voltagemFazSentido(facetas: Facetas | null): boolean {
   if (!facetas) return false;
   const total = facetas.lojas.reduce((soma, l) => soma + l.quantidade, 0);
