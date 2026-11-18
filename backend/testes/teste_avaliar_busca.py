@@ -84,6 +84,7 @@ def teste_metricas_com_recall_por_pooling():
     assert antes["mrr"] == pytest.approx(0.5)
     assert antes["recall@10"] == pytest.approx(0.5)
     assert antes["variante_errada@10"] == pytest.approx(0.5)
+    assert antes["cobertura"] == antes["precisao"] == pytest.approx(0.5)
     ideal = 1 + 1 / math.log2(3)
     assert antes["ndcg@10"] == pytest.approx((1 / math.log2(3)) / ideal, abs=1e-4)
     assert depois["p@10"] == pytest.approx(0.2)

@@ -22,6 +22,10 @@ from app.ordenacao import Filtros, aplicar
 
 CONSULTAS = Path(__file__).resolve().parents[1] / "testes" / "dados" / "consultas_avaliacao.json"
 CONJUNTOS = ("desenvolvimento", "teste", "todas")
+# saíram do cadastro em 076f8e1 porque o robots.txt proíbe /api/; versões antigas ainda as chamam
+FORA_POR_ROBOTS = frozenset(
+    {"casaevideo", "philco", "britania", "polishop", "pbkids", "lebiscuit", "zonasul"}
+)
 _LETRA_DIGITO = re.compile(r"(?<=[a-z])(?=\d)|(?<=\d)(?=[a-z])")
 _NAO_ALFANUMERICO = re.compile(r"[^a-z0-9]+")
 
@@ -145,7 +149,8 @@ async def rodar(consultas: list[dict[str, Any]], banco: Path, somente_cache: boo
     config = Configuracoes(_env_file=None, segundos_limite_fonte=30)
     saida = []
     async with ClienteGravado(config, banco, somente_cache) as http:
-        servico = ServicoBusca(criar_fontes(http, config), config)
+        fontes = [f for f in criar_fontes(http, config) if f.id not in FORA_POR_ROBOTS]
+        servico = ServicoBusca(fontes, config)
         for consulta in consultas:
             antes, inicio = http.requisicoes, time.monotonic()
             trabalho, _ = servico.iniciar(consulta["consulta"], None)
@@ -218,7 +223,10 @@ def medir(
                     "ndcg@10": dcg / ideal,
                     "recall@10": sum(relevantes[:10]) / total,
                     "recall@20": sum(relevantes[:20]) / total,
+                    "cobertura": sum(relevantes) / total,
                 }
+                if lista:
+                    linha["precisao"] = sum(relevantes) / len(lista)
             else:
                 linha["exibidas_sem_relevante"] = len(lista)
             for conjunto in (criterios[r["id"]]["conjunto"], "todas"):
@@ -243,6 +251,8 @@ COLUNAS = (
     "ndcg@10",
     "recall@10",
     "recall@20",
+    "cobertura",
+    "precisao",
     "zero_resultados",
     "variante_errada@10",
     "lojas_com_relevante",
