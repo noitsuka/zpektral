@@ -404,8 +404,10 @@ async def teste_quedas_respeitam_o_limite_e_ficam_em_cache(sessoes):
     assert [i.oferta for i in dois.itens] == ["a:hoje", "a:queda"]
     async with sessoes() as sessao, sessao.begin():
         sessao.add_all(_serie("c:nova", [10000] * 6, (1, 1000)))
-    assert await registro.quedas(30, 2, {}, agora=AGORA) is dois
-    assert (await registro.quedas(30, 3, {}, agora=AGORA)).itens[0].oferta == "c:nova"
+    tres = await registro.quedas(30, 3, {}, agora=AGORA)
+    assert tres.itens[:2] == dois.itens
+    todas = await registro.quedas(30, 100, {}, agora=AGORA)
+    assert all(i.oferta != "c:nova" for i in todas.itens)
 
 
 async def teste_rota_de_quedas(config, sessoes, simulador):

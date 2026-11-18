@@ -1,7 +1,7 @@
 import logging
 import statistics
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, date, datetime, timedelta, timezone
 from itertools import groupby
 
@@ -95,7 +95,7 @@ class RegistroHistorico:
         self._gravados: CacheComValidade[tuple, int] = CacheComValidade(
             SEGUNDOS_MESMO_PRECO, CHAVES_LEMBRADAS, relogio
         )
-        self._quedas: CacheComValidade[tuple[int, int], PainelQuedas] = CacheComValidade(
+        self._quedas: CacheComValidade[int, PainelQuedas] = CacheComValidade(
             SEGUNDOS_CACHE_QUEDAS, 32, relogio
         )
 
@@ -235,13 +235,14 @@ class RegistroHistorico:
     async def quedas(
         self, dias: int, limite: int, nomes_lojas: dict[str, str], agora: datetime | None = None
     ) -> PainelQuedas:
-        return await self._quedas.obter_ou_carregar(
-            (dias, limite),
-            lambda: self._calcular_quedas(dias, limite, nomes_lojas, agora or datetime.now(UTC)),
+        # a chave ignora o limite: variar só o limite não força outro cálculo
+        painel = await self._quedas.obter_ou_carregar(
+            dias, lambda: self._calcular_quedas(dias, nomes_lojas, agora or datetime.now(UTC))
         )
+        return replace(painel, itens=painel.itens[:limite])
 
     async def _calcular_quedas(
-        self, dias: int, limite: int, nomes_lojas: dict[str, str], agora: datetime
+        self, dias: int, nomes_lojas: dict[str, str], agora: datetime
     ) -> PainelQuedas:
         h = HistoricoPreco
         recente = agora - timedelta(hours=HORAS_VISTA_RECENTE)
@@ -315,7 +316,7 @@ class RegistroHistorico:
                 )
             )
         itens.sort(key=lambda i: (i.variacao, i.oferta))
-        return PainelQuedas(dias, instante_iso(agora), itens[:limite])
+        return PainelQuedas(dias, instante_iso(agora), itens)
 
     async def serie(self, produto: str, cep: str | None, dias: int) -> list[SerieLoja]:
         desde = datetime.now(UTC) - timedelta(days=dias)
