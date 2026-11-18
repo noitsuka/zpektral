@@ -46,6 +46,10 @@ def teste_le_cada_resultado_uma_vez_por_asin():
     assert not any(r.titulo.startswith("Anúncio patrocinado") for r in resultados)
 
 
+def teste_pagina_sem_resultados_devolve_lista_vazia():
+    assert ler_resultados(b"<html><body>Nenhum resultado para xyz.</body></html>") == []
+
+
 def teste_frete_gratis_so_no_primeiro_pedido_nao_conta_como_gratis():
     resultados = ler_resultados(gravacao_bytes("amazon_busca.html"))
     assert all(not r.frete_gratis for r in resultados)
@@ -82,9 +86,18 @@ async def teste_verificacao_vira_falha_da_fonte(simulador, http, config):
 
 async def teste_503_da_amazon_vira_falha_sem_insistir(simulador, http, config):
     rota = simulador.get(BUSCA).mock(httpx.Response(503, content=VERIFICACAO))
-    with pytest.raises(ErroExterno):
+    with pytest.raises(ErroExterno) as erro:
         await FonteAmazon(http, config).buscar(contexto("iphone 15"))
     assert rota.call_count == 1
+    assert erro.value.bloqueio
+
+
+async def teste_503_sem_pagina_de_robo_e_erro_comum(simulador, http, config):
+    rota = simulador.get(BUSCA).mock(httpx.Response(503, content=b"<html>fora do ar</html>"))
+    with pytest.raises(ErroExterno, match="HTTP 503") as erro:
+        await FonteAmazon(http, config).buscar(contexto("iphone 15"))
+    assert rota.call_count == 1
+    assert not erro.value.bloqueio
 
 
 class FreteFalso:
