@@ -307,3 +307,17 @@ async def teste_trabalho_com_metade_das_lojas_bloqueadas_expira_rapido(config):
     trabalho, _ = svc.iniciar("tv", None)
     await trabalho.aguardar()
     assert _validade(svc, "tv") < 20
+
+
+async def teste_ofertas_dizem_que_termo_da_busca_faltou(config):
+    import orjson
+
+    fonte = FonteFalsa(
+        "a", [("Geladeira Inox 220V", 100), ("Geladeira Inox 110V", 90)], previa_apos=0.01
+    )
+    trabalho, _ = servico(config, fonte).iniciar("geladeira inox 110v", None)
+    await trabalho.aguardar()
+    previa, final = trabalho.lotes
+    assert [o.termos_ausentes for o in previa.ofertas] == [["110v"], []]
+    assert [o.termos_ausentes for o in final.ofertas] == [["110v"], []]
+    assert orjson.loads(orjson.dumps(final.ofertas[0]))["termos_ausentes"] == ["110v"]

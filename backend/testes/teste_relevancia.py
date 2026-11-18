@@ -246,3 +246,24 @@ def teste_cor_diferente_da_pedida_fica_escondida():
 def teste_numero_por_extenso_casa_com_o_digito():
     assert s("estante multy quatro prateleiras", "Estante 4 Prateleiras Multy Artely") >= 95
     assert s("fogao cinco bocas", "Fogão 5 Bocas Atlas") >= 95
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo", "ausentes"),
+    [
+        ("estante multy menta", "Estante Multy Menta Artely", []),
+        (
+            "estante para livros multy 4 prateleiras menta",
+            "Estante Multy 5 Prateleiras Branca",
+            ["livros", "4 prateleiras", "menta"],
+        ),
+        ("geladiera frost free", "Geladeira Consul Duplex", ["frost free"]),
+        ("maquina de lavar louça", "Geladeira Brastemp", ["máquina de lavar louça"]),
+        ("geladeira inox 110v", "Geladeira Inox 220V", ["110v"]),
+        ("jogo de panelas", "Frigideira Tramontina", ["jogo de panelas"]),
+    ],
+)
+def teste_termos_ausentes_usam_as_palavras_da_busca(consulta, titulo, ausentes):
+    from app.relevancia import termos_ausentes
+
+    assert termos_ausentes(interpretar_consulta(consulta), titulo) == ausentes

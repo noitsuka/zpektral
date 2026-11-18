@@ -20,9 +20,11 @@ from app.configuracao import Configuracoes
 from app.fontes.base import ContextoBusca, Fonte
 from app.modelos import Endereco, Frete, Oferta, RelatorioFonte, StatusFonte
 from app.relevancia import (
+    Consulta,
     interpretar_consulta,
     normalizar,
     normalizar_ean,
+    termos_ausentes,
     texto_para_lojas,
 )
 from app.saude import PainelSaude
@@ -176,6 +178,12 @@ def sanear(ofertas: list[Oferta]) -> list[Oferta]:
     return saida
 
 
+def marcar_ausentes(ofertas: list[Oferta], consulta: Consulta) -> list[Oferta]:
+    for o in ofertas:
+        o.termos_ausentes = termos_ausentes(consulta, o.titulo, o.ean)
+    return ofertas
+
+
 class ServicoBusca:
     def __init__(
         self,
@@ -271,7 +279,8 @@ class ServicoBusca:
             relatorio = RelatorioFonte(
                 fonte.id, fonte.nome, StatusFonte.OK, decorrido, len(ofertas)
             )
-            trabalho.adicionar(Lote(relatorio, sanear(ofertas), Fase.CATALOGO))
+            ofertas = marcar_ausentes(sanear(ofertas), ctx.consulta)
+            trabalho.adicionar(Lote(relatorio, ofertas, Fase.CATALOGO))
 
         status, mensagem, ofertas = StatusFonte.OK, None, []
         try:
@@ -286,7 +295,7 @@ class ServicoBusca:
                 status, mensagem = StatusFonte.BLOQUEADA, "a loja recusou o acesso automatizado"
             else:
                 status, mensagem = StatusFonte.ERRO, "a loja não respondeu como esperado"
-        ofertas = sanear(ofertas)
+        ofertas = marcar_ausentes(sanear(ofertas), ctx.consulta)
         decorrido = round((time.monotonic() - inicio) * 1000)
         relatorio = RelatorioFonte(fonte.id, fonte.nome, status, decorrido, len(ofertas), mensagem)
         self.saude.registrar(relatorio)

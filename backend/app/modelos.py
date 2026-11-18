@@ -205,6 +205,7 @@ class Oferta:
     grupo: str | None = None
     link_carrinho: str | None = None
     importacao: Importacao | None = None
+    termos_ausentes: list[str] = field(default_factory=list)
 
     def consolidar(self) -> "Oferta":
         if self.preco_pix is not None and not 0 < self.preco_pix <= self.preco:

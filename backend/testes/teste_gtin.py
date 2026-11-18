@@ -28,3 +28,11 @@ def teste_oferta_com_o_mesmo_ean_e_o_produto_certo():
     assert ctx.relevancia_de(titulo, ean="07899307521331") == 100
     assert ctx.relevancia_de(titulo, ean="7909903385180") <= 40
     assert ctx.relevancia_de(titulo) <= 40
+
+
+def teste_oferta_com_o_mesmo_ean_nao_tem_termo_ausente():
+    from app.relevancia import termos_ausentes
+
+    consulta = interpretar_consulta("7899307521331")
+    assert termos_ausentes(consulta, "Estante Multy", "7899307521331") == []
+    assert termos_ausentes(consulta, "Estante Multy") == ["7899307521331"]

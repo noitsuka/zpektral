@@ -201,16 +201,21 @@ def termos_do_texto(texto: str) -> tuple[str, ...]:
     return tuple(termos)
 
 
-def texto_para_lojas(texto: str) -> str:
-    if gtin := _gtin(texto):
-        return gtin
-    palavras = corrigir(texto).split()
+def _brutos_por_palavra(palavras: list[str]) -> tuple[list[str], list[int]]:
     termos: list[str] = []
     dono: list[int] = []
     for i, palavra in enumerate(palavras):
         brutos = _termos_brutos(palavra)
         termos += brutos
         dono += [i] * len(brutos)
+    return termos, dono
+
+
+def texto_para_lojas(texto: str) -> str:
+    if gtin := _gtin(texto):
+        return gtin
+    palavras = corrigir(texto).split()
+    termos, dono = _brutos_por_palavra(palavras)
     trocas = {
         dono[inicio]: (dono[fim - 1], sinonimo.nas_lojas)
         for inicio, fim, sinonimo in _sinonimos_em(termos)
@@ -235,10 +240,25 @@ class Consulta:
     pesos: tuple[float, ...]
     pede_acessorio: bool
     gtin: str | None = None
+    palavras: tuple[tuple[str, tuple[str, ...]], ...] = ()
 
     @property
     def esta_vazia(self) -> bool:
         return not self.termos
+
+
+def _termos_de_cada_palavra(palavras: list[str]) -> tuple[tuple[str, tuple[str, ...]], ...]:
+    brutos, dono = _brutos_por_palavra(palavras)
+    termos: list[list[str]] = [[] for _ in palavras]
+    trechos = {inicio: (fim, s.termo) for inicio, fim, s in _sinonimos_em(brutos)}
+    i = 0
+    while i < len(brutos):
+        fim, termo = trechos.get(i, (i + 1, brutos[i]))
+        if termo not in PALAVRAS_VAZIAS:
+            for j in range(dono[i], dono[fim - 1] + 1):
+                termos[j].append(termo)
+        i = fim
+    return tuple(zip(palavras, map(tuple, termos), strict=True))
 
 
 @lru_cache(maxsize=1024)
@@ -254,7 +274,40 @@ def interpretar_consulta(texto: str) -> Consulta:
         2.0 if _tem_numero(t) else float(max(1, palavras_do_produto.get(t, 1))) for t in termos
     )
     especiais = (PALAVRAS_ACESSORIO | PALAVRAS_BRINQUEDO) - _contados(corrigido)
-    return Consulta(texto, termos, pesos, any(t in especiais for t in termos), _gtin(texto))
+    return Consulta(
+        texto,
+        termos,
+        pesos,
+        any(t in especiais for t in termos),
+        _gtin(texto),
+        _termos_de_cada_palavra(corrigido.split()),
+    )
+
+
+def termos_ausentes(consulta: Consulta, titulo: str, ean: object = None) -> list[str]:
+    if consulta.gtin and normalizar_ean(ean) == consulta.gtin:
+        return []
+    achados = _acertos(consulta, termos_do_texto(titulo))
+    trechos: list[list[str]] = []
+    vazias: list[str] = []
+    aberto = False
+    for palavra, termos in consulta.palavras:
+        if not termos:
+            vazias.append(palavra)
+            continue
+        if any(t not in achados for t in termos):
+            if aberto:
+                trechos[-1] += [*vazias, palavra]
+            else:
+                trechos.append([palavra])
+            aberto = True
+        else:
+            # um número sozinho não se explica: leva a palavra seguinte, como em "4 prateleiras"
+            if aberto and not any(c.isalpha() for p in trechos[-1] for c in p):
+                trechos[-1] += [*vazias, palavra]
+            aberto = False
+        vazias = []
+    return list(dict.fromkeys(" ".join(t) for t in trechos))
 
 
 def _gtin(texto: str) -> str | None:
