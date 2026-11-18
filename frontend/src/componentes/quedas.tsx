@@ -1,8 +1,8 @@
 "use client";
 
-import { ArrowUpRight, ChevronDown, RotateCw, TrendingDown } from "lucide-react";
+import { ArrowUpRight, ChevronDown, RotateCw } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 
 import { Foto } from "@/componentes/foto";
 import { ErroApi, quedasDePreco } from "@/nucleo/api";
@@ -36,20 +36,20 @@ function Segmentos<T extends string | number>({
 }) {
   return (
     <div role="group" aria-label={rotulo}>
-      <p className="text-[0.8125rem] font-semibold text-tinta-2" aria-hidden>
+      <p className="text-[0.8125rem] text-apagado" aria-hidden>
         {rotulo}
       </p>
-      <div className="mt-1 flex flex-wrap gap-1.5">
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
         {opcoes.map((o) => (
           <button
             key={o.valor}
             type="button"
             aria-pressed={o.valor === valor}
             onClick={() => aoMudar(o.valor)}
-            className={`min-h-10 rounded-controle border px-3 text-[0.875rem] font-medium ${
+            className={`min-h-11 rounded-quadro border px-3 text-[0.875rem] transition-colors ${
               o.valor === valor
-                ? "border-tinta bg-tinta text-etiqueta"
-                : "border-borda bg-etiqueta text-tinta hover:border-tinta"
+                ? "border-ouro/50 bg-ouro-suave text-ouro"
+                : "border-traco-forte text-apagado hover:text-tinta"
             }`}
           >
             {o.rotulo}
@@ -103,7 +103,7 @@ export function Quedas() {
 
   return (
     <>
-      <div className="mt-6 flex flex-wrap items-end gap-x-6 gap-y-4">
+      <div className="mt-8 flex flex-wrap items-end gap-x-8 gap-y-5">
         <Segmentos
           rotulo="Período"
           valor={dias}
@@ -117,13 +117,13 @@ export function Quedas() {
           aoMudar={setQuedaMinima}
         />
         <label className="flex flex-col">
-          <span className="text-[0.8125rem] font-semibold text-tinta-2">Loja</span>
-          <span className="campo relative mt-1 flex h-10 items-center">
+          <span className="text-[0.8125rem] text-apagado">Loja</span>
+          <span className="seletor mt-1.5">
             <select
               value={loja}
               onChange={(e) => setLoja(e.target.value)}
               disabled={!lojas.length}
-              className="h-full min-w-44 cursor-pointer appearance-none bg-transparent pr-9 pl-3 text-[0.9375rem] outline-none"
+              className="h-[2.625rem] min-w-44 cursor-pointer appearance-none bg-transparent pr-9 pl-3 text-[0.875rem] outline-none disabled:cursor-not-allowed"
             >
               <option value="">Todas as lojas</option>
               {lojas.map(([id, nome]) => (
@@ -133,27 +133,24 @@ export function Quedas() {
               ))}
             </select>
             <ChevronDown
-              className="pointer-events-none absolute right-2.5 size-4 text-tinta-2"
+              className="pointer-events-none absolute right-2.5 size-4 text-apagado"
               aria-hidden
             />
           </span>
         </label>
       </div>
 
-      <div className="mt-6" aria-live="polite" aria-busy={estado.fase === "carregando"}>
+      <div className="mt-8 max-w-4xl" aria-live="polite" aria-busy={estado.fase === "carregando"}>
         {estado.fase === "carregando" && (
-          <ul aria-hidden className="space-y-3">
+          <ul aria-hidden>
             {[0, 1, 2, 3].map((i) => (
-              <li
-                key={i}
-                className="flex gap-4 rounded-etiqueta border border-tinta bg-etiqueta p-4"
-              >
-                <div className="esqueleto size-16" />
+              <li key={i} className="flex gap-4 border-t border-traco py-5">
+                <div className="esqueleto size-14" />
                 <div className="flex-1 space-y-2 pt-1">
                   <div className="esqueleto h-4 w-3/4" />
-                  <div className="esqueleto h-3 w-1/3" />
-                  <div className="esqueleto h-5 w-40" />
+                  <div className="esqueleto h-3.5 w-1/3" />
                 </div>
+                <div className="esqueleto h-6 w-24" />
               </li>
             ))}
           </ul>
@@ -162,16 +159,16 @@ export function Quedas() {
         {estado.fase === "erro" && (
           <div
             role="alert"
-            className="rounded-etiqueta border-2 border-falha bg-etiqueta px-5 py-6"
+            className="rounded-quadro border border-falha/35 bg-falha-suave px-5 py-5"
           >
-            <h2 className="font-semibold text-falha">{estado.mensagem}</h2>
-            <p className="mt-1 text-tinta-2">
+            <h2 className="font-medium">{estado.mensagem}</h2>
+            <p className="mt-1 text-apagado">
               Tente de novo daqui a pouco. A busca continua funcionando.
             </p>
             <button
               type="button"
               onClick={() => setTentativa((n) => n + 1)}
-              className="botao botao-secundario mt-4"
+              className="botao botao-linha mt-4"
             >
               <RotateCw className="size-4" aria-hidden />
               Tentar de novo
@@ -181,58 +178,65 @@ export function Quedas() {
 
         {estado.fase === "pronto" && (
           <>
-            <p className="numero text-[0.9375rem] text-tinta-2">
+            <p className="numero text-[0.875rem] text-apagado">
               {plural(filtrados.length, "queda", "quedas")}
               {haQuanto(estado.dados.gerado_em, agora) &&
                 ` · lista montada ${haQuanto(estado.dados.gerado_em, agora)}`}
             </p>
             {filtrados.length ? (
-              <ul className="mt-3 space-y-3">
-                {filtrados.map((i) => (
+              <ul className="mt-3">
+                {filtrados.map((i, n) => (
                   <li
                     key={i.oferta}
-                    className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-3 rounded-etiqueta border border-tinta bg-etiqueta p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
+                    style={{ "--i": n } as CSSProperties}
+                    className="linha-oferta grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-3 border-t border-traco py-5 sm:grid-cols-[auto_minmax(0,1fr)_auto]"
                   >
-                    <Foto imagem={i.imagem} tamanho="size-16" />
+                    <Foto imagem={i.imagem} tamanho="size-14" />
                     <div className="min-w-0">
-                      <h2 className="line-clamp-2 leading-snug font-semibold">{i.titulo}</h2>
-                      <p className="mt-0.5 text-[0.875rem] text-tinta-2">
-                        <span className="font-medium text-tinta">{i.loja.nome}</span>
+                      <h2 className="line-clamp-2 leading-snug font-medium">{i.titulo}</h2>
+                      <p className="mt-0.5 text-[0.875rem] text-apagado">
+                        <span className="text-tinta">{i.loja.nome}</span>
                         {haQuanto(i.visto_em, agora) && ` · visto ${haQuanto(i.visto_em, agora)}`}
                       </p>
-                      <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-                        <span className="selo bg-economia-suave font-medium text-economia">
-                          <TrendingDown className="size-3.5" aria-hidden />
-                          {porcentagem(-i.variacao)} abaixo do habitual desta loja
-                        </span>
+                      <p className="mt-1.5 text-[0.875rem] text-exato">
+                        {porcentagem(-i.variacao)} abaixo do habitual desta loja
                       </p>
-                      <p className="numero mt-2 text-[0.8125rem] text-tinta-2">
-                        Habitual {reais(i.mediana)} · menor {reais(i.menor)} · maior{" "}
-                        {reais(i.maior)} em{" "}
-                        {plural(i.dias_observados, "dia observado", "dias observados")}
-                      </p>
-                      {i.preco_original !== null && i.preco_original > i.preco && (
-                        <p className="numero mt-1 text-[0.8125rem] text-tinta-3">
-                          A loja anuncia “de {reais(i.preco_original)}”
-                          {i.preco_original > i.maior && ", acima do maior preço visto aqui"}
-                        </p>
-                      )}
+                      <details className="gaveta-detalhes text-[0.875rem]">
+                        <summary className="botao-texto cursor-pointer">
+                          Ver o histórico
+                          <ChevronDown className="chevron size-4" aria-hidden />
+                        </summary>
+                        <div className="numero space-y-0.5 pb-1 text-apagado">
+                          <p>
+                            Habitual {reais(i.mediana)}, menor {reais(i.menor)}, maior{" "}
+                            {reais(i.maior)} em{" "}
+                            {plural(i.dias_observados, "dia observado", "dias observados")}.
+                          </p>
+                          {i.preco_original !== null && i.preco_original > i.preco && (
+                            <p>
+                              A loja anuncia “de{" "}
+                              <s className="text-tenue">{reais(i.preco_original)}</s>”
+                              {i.preco_original > i.maior && ", acima do maior preço visto aqui"}.
+                            </p>
+                          )}
+                        </div>
+                      </details>
                     </div>
-                    <div className="col-span-full flex items-end justify-between gap-3 sm:col-span-1 sm:flex-col">
+                    <div className="col-span-full flex items-end justify-between gap-4 sm:col-span-1 sm:flex-col sm:items-end sm:justify-start">
                       <div className="sm:text-right">
-                        <p className="text-[0.75rem] text-tinta-3">Preço do produto</p>
-                        <p className="numero text-[1.25rem] leading-tight font-semibold">
+                        <p className="font-mono text-[1.1875rem] leading-tight font-medium tabular-nums">
                           {reais(i.preco)}
                         </p>
+                        <p className="mt-0.5 text-[0.8125rem] text-apagado">Sem frete</p>
                       </div>
                       <a
                         href={i.link}
                         target="_blank"
                         rel="noopener noreferrer nofollow"
-                        className="botao botao-secundario min-h-10 text-[0.875rem]"
+                        className="botao botao-linha"
                       >
                         Ver na loja
-                        <ArrowUpRight className="size-4" aria-hidden />
+                        <ArrowUpRight className="seta size-4" aria-hidden />
                         <span className="sr-only"> {i.loja.nome} (abre em nova aba)</span>
                       </a>
                     </div>
@@ -240,34 +244,45 @@ export function Quedas() {
                 ))}
               </ul>
             ) : (
-              <div className="mt-3 rounded-etiqueta border border-tinta bg-etiqueta px-5 py-6">
+              <div className="mt-3 border-t border-traco py-10">
                 {temFiltro ? (
                   <>
-                    <h2 className="font-semibold">Nenhuma queda com esses filtros</h2>
+                    <h2 className="text-[1.1875rem] font-semibold">
+                      Nenhuma queda com esses filtros
+                    </h2>
                     <button
                       type="button"
                       onClick={() => {
                         setLoja("");
                         setQuedaMinima(0);
                       }}
-                      className="botao botao-secundario mt-4"
+                      className="botao botao-ouro mt-5"
                     >
                       Limpar os filtros
                     </button>
                   </>
                 ) : (
                   <>
-                    <h2 className="font-semibold">
+                    <h2 className="text-[1.1875rem] font-semibold">
                       Nenhuma queda observada nos últimos {dias} dias
                     </h2>
-                    <p className="mt-1 max-w-[60ch] text-tinta-2">
-                      Uma queda entra aqui quando o mesmo produto foi visto na mesma loja em pelo
-                      menos 5 dias, e a última vez foi há menos de 48 horas. A lista cresce conforme
-                      as pessoas buscam no Zpektral.
+                    <p className="mt-1.5 max-w-[60ch] text-apagado">
+                      A lista cresce conforme as pessoas buscam no Zpektral.
                     </p>
-                    <Link href="/" className="botao botao-primario mt-4">
-                      Fazer uma busca
-                    </Link>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      <Link href="/" className="botao botao-ouro">
+                        Fazer uma busca
+                      </Link>
+                      {dias < 90 && (
+                        <button
+                          type="button"
+                          onClick={() => setDias(90)}
+                          className="botao botao-linha"
+                        >
+                          Ver os últimos 90 dias
+                        </button>
+                      )}
+                    </div>
                   </>
                 )}
               </div>

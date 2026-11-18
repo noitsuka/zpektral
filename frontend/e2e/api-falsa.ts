@@ -55,6 +55,21 @@ export async function simularApi(page: Page, opcoes: { comHistorico?: boolean } 
         body: transmissao(nome),
       });
     }
+    if (url.pathname.startsWith("/cep/")) {
+      const cep = url.pathname.slice("/cep/".length);
+      if (cep === "99999999")
+        return rota.fulfill({ status: 404, headers: CORS, json: { detail: "CEP não encontrado" } });
+      return rota.fulfill({
+        headers: CORS,
+        json: {
+          cep,
+          logradouro: "Avenida Afonso Pena",
+          bairro: "Centro",
+          cidade: "Belo Horizonte",
+          uf: "MG",
+        },
+      });
+    }
     if (url.pathname === "/historico/ofertas") {
       const ids = (url.searchParams.get("ids") ?? "").split(",");
       const corpo =

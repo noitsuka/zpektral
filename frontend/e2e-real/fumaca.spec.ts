@@ -20,19 +20,21 @@ async function buscar(page: Page, q: string) {
 
 test("o total do destaque é o produto mais o frete, e o link vai para a loja", async ({ page }) => {
   const erros = await buscar(page, "geladeira frost free");
-  const destaque = page.getByRole("region", { name: /Menor total com entrega no CEP/ });
+  const destaque = page.getByRole("region", { name: /Menor total no seu CEP/ });
   await expect(destaque).toBeVisible();
-  const campo = (rotulo: RegExp) =>
-    destaque
-      .locator("div", { has: page.getByText(rotulo) })
-      .last()
-      .innerText();
-  const produto = reais(await campo(/^Produto$/i));
-  const frete = await campo(/^Frete/i);
-  const total = reais(await destaque.getByText(/^R\$/).first().innerText());
+  // a linha se anuncia como "Loja, R$ total"
+  const total = reais((await destaque.getByRole("article").getAttribute("aria-label")) ?? "");
+  await destaque.getByRole("button", { name: /Ver a conta/ }).click();
+  const conta = destaque.getByRole("region", { name: /^Conta de / });
+  const valor = (rotulo: RegExp) =>
+    conta.locator("dt", { hasText: rotulo }).locator("xpath=following-sibling::dd[1]");
+  await expect(valor(/^Produto$/)).toBeVisible();
+  const produto = reais(await valor(/^Produto$/).innerText());
+  const frete = await valor(/^Frete/).innerText();
   const valorFrete = /grátis/i.test(frete) ? 0 : reais(frete);
-  const noPix = await campo(/^No Pix$/i).catch(() => "");
-  const totalPix = /R\$/.test(noPix) ? reais(noPix) : null;
+  const totalPix = (await valor(/^No Pix$/).count())
+    ? reais(await valor(/^No Pix$/).innerText())
+    : null;
   // o total exibido é o do cartão (produto + frete) ou o do Pix, nunca outro número
   expect([produto + valorFrete, totalPix].map((v) => v && Math.round(v * 100))).toContain(
     Math.round(total * 100),
@@ -46,7 +48,7 @@ test("o total do destaque é o produto mais o frete, e o link vai para a loja", 
 
 test("estante PNR e estante Artely aparecem como produtos distintos", async ({ page }) => {
   await buscar(page, "estante para livros multy 4 prateleiras menta");
-  // pelos títulos dos grupos: a etiqueta do destaque também cita o produto
+  // pelos títulos dos grupos: a linha do menor total também cita o produto
   const titulo = (nome: RegExp) => page.getByRole("heading", { level: 3, name: nome }).first();
   const pnr = titulo(/Multy 4 Prateleiras Menta - Pnr/i);
   const artely = titulo(/Multy.*Artely|Artely.*Multy/i);

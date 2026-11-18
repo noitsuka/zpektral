@@ -12,8 +12,6 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 const PASTA = path.join(process.cwd(), "node_modules/@fontsource/archivo/files");
-const TINTA = "#15171a";
-const CAMPOS = ["Produto", "Frete para o seu CEP", "Pix e parcelas", "Total"];
 
 export default async function ImagemCompartilhamento() {
   const [regular, negrito] = await Promise.all([
@@ -28,50 +26,22 @@ export default async function ImagemCompartilhamento() {
         width: "100%",
         height: "100%",
         display: "flex",
-        background: "#eceef1",
-        padding: 56,
+        flexDirection: "column",
+        justifyContent: "space-between",
+        background: "#070707",
+        color: "#f2f3f1",
         fontFamily: "Archivo",
-        color: TINTA,
+        padding: "80px 88px",
       }}
     >
-      <div
-        style={{
-          flex: 1,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          background: "#ffffff",
-          border: `4px solid ${TINTA}`,
-          borderRadius: 12,
-        }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", padding: "56px 64px 0" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={simbolo} width={104} height={104} alt="" />
-            <span style={{ fontSize: 92, fontWeight: 600, letterSpacing: -3 }}>{MARCA.nome}</span>
-          </div>
-          <span style={{ marginTop: 28, fontSize: 40, color: "#4b5058" }}>{MARCA.slogan}</span>
-        </div>
-        <div style={{ display: "flex", borderTop: `4px solid ${TINTA}` }}>
-          {CAMPOS.map((campo, i) => (
-            <span
-              key={campo}
-              style={{
-                flex: 1,
-                padding: "26px 28px",
-                fontSize: 24,
-                fontWeight: 600,
-                letterSpacing: 1,
-                textTransform: "uppercase",
-                borderLeft: i ? `2px solid ${TINTA}` : "none",
-                color: i === CAMPOS.length - 1 ? "#2b3db8" : TINTA,
-              }}
-            >
-              {campo}
-            </span>
-          ))}
-        </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={simbolo} width={104} height={104} alt="" />
+        <span style={{ fontSize: 92, fontWeight: 600, letterSpacing: -3 }}>{MARCA.nome}</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+        <span style={{ width: 120, height: 3, background: "#e9c46a" }} />
+        <span style={{ fontSize: 44, color: "#a1a6a2", maxWidth: 900 }}>{MARCA.slogan}</span>
       </div>
     </div>,
     {

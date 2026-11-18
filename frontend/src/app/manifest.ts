@@ -10,8 +10,8 @@ export default function manifesto(): MetadataRoute.Manifest {
     lang: "pt-BR",
     start_url: "/",
     display: "standalone",
-    background_color: "#eceef1",
-    theme_color: "#ffffff",
+    background_color: "#070707",
+    theme_color: "#070707",
     icons: [
       { src: "/icon.svg", type: "image/svg+xml", sizes: "any" },
       { src: "/apple-icon", type: "image/png", sizes: "180x180" },

@@ -39,7 +39,7 @@ export function formaDoSimbolo(
 export const pontosPrisma = PRISMA.map(([x, y]) => `${x},${y}`).join(" ");
 export const arestasPrisma = `M${PRISMA[0].join(" ")} ${PRISMA[1].join(" ")}M${PRISMA[3].join(" ")} ${PRISMA[2].join(" ")}`;
 
-export const COR_DESTAQUE = "#9eaeff";
+export const COR_DESTAQUE = "#e9c46a";
 
 export function svgSimbolo(
   espectro: Espectro,
@@ -48,12 +48,12 @@ export function svgSimbolo(
   const retangulo = (x: number, y: number, w: number, h: number, fill: string) =>
     `<rect x="${x}" y="${y.toFixed(2)}" width="${w.toFixed(2)}" height="${h}" fill="${fill}"/>`;
   const partes = [
-    retangulo(FEIXE.x, FEIXE.y, FEIXE.w, FEIXE.h, "#eef0ee"),
-    `<polygon points="${pontosPrisma}" fill="#eef0ee" fill-opacity="0.35"/>`,
-    `<path d="${arestasPrisma}" stroke="#eef0ee" stroke-width="0.7" fill="none"/>`,
+    retangulo(FEIXE.x, FEIXE.y, FEIXE.w, FEIXE.h, "#edf0ea"),
+    `<polygon points="${pontosPrisma}" fill="#edf0ea" fill-opacity="0.35"/>`,
+    `<path d="${arestasPrisma}" stroke="#edf0ea" stroke-width="0.7" fill="none"/>`,
     ...formaDoSimbolo(espectro, { linhas }).linhas.map((l) =>
-      retangulo(l.x, l.y, l.w, l.h, l.destaque && destaque ? COR_DESTAQUE : "#c4c9cc"),
+      retangulo(l.x, l.y, l.w, l.h, l.destaque && destaque ? COR_DESTAQUE : "#c9cfc7"),
     ),
   ];
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="5" fill="#15171a"/>${partes.join("")}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="5" fill="#070707"/>${partes.join("")}</svg>`;
 }

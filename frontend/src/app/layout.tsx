@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 
 import { MARCA } from "@/nucleo/marca";
 import { URL_DO_SITE } from "@/nucleo/site";
@@ -10,6 +10,13 @@ const texto = Archivo({
   variable: "--fonte-texto",
   subsets: ["latin"],
   axes: ["wdth"],
+  display: "swap",
+});
+// Só para dados: preços, totais e CEP.
+const leitura = IBM_Plex_Mono({
+  variable: "--fonte-leitura",
+  subsets: ["latin"],
+  weight: ["400", "500"],
   display: "swap",
 });
 
@@ -28,15 +35,13 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#16191c" },
-  ],
+  colorScheme: "dark",
+  themeColor: "#070707",
 };
 
 export default function LayoutRaiz({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={texto.variable}>
+    <html lang="pt-BR" className={`${texto.variable} ${leitura.variable}`}>
       <body className="min-h-dvh bg-fundo font-sans text-tinta">{children}</body>
     </html>
   );

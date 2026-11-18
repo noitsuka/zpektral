@@ -3,10 +3,9 @@ import { expect, test } from "@playwright/test";
 import { simularApi } from "./api-falsa";
 
 const BUSCA_BH = "/busca?q=geladeira+frost+free&cep=30130010";
-const DESTAQUE = "Menor total com entrega no CEP 30130-010";
+const DESTAQUE = "Menor total no seu CEP";
 
-test("pesquisa, filtra, ordena e abre a loja", async ({ page, isMobile }) => {
-  test.skip(isMobile, "no celular os filtros ficam numa gaveta, com teste próprio");
+test("pesquisa, filtra, ordena e abre a loja", async ({ page }) => {
   await simularApi(page);
   await page.goto("/");
   await page.getByLabel(/produto/i).fill("geladeira frost free");
@@ -15,7 +14,10 @@ test("pesquisa, filtra, ordena e abre a loja", async ({ page, isMobile }) => {
 
   await expect(page).toHaveURL(/\/busca\?q=geladeira\+frost\+free&cep=30130010/);
   await expect(page.getByText(DESTAQUE)).toBeVisible();
-  const irParaLoja = page.getByRole("link", { name: /Ir para Loja Beta/ });
+  // toda linha diz "Ir para {loja}"; o botão do menor total é o da região em destaque
+  const irParaLoja = page
+    .getByRole("region", { name: DESTAQUE })
+    .getByRole("link", { name: /Ir para Loja Beta/ });
   await expect(irParaLoja).toHaveAttribute("href", /^https:\/\/beta\.example\/produto\/0/);
   await expect(irParaLoja).toHaveAttribute("target", "_blank");
 
@@ -23,16 +25,37 @@ test("pesquisa, filtra, ordena e abre a loja", async ({ page, isMobile }) => {
   await page.getByLabel(/ordenar/i).selectOption("menor_preco");
   const semCotacao = page.getByText("Geladeira Frost Free Consul 340L Branca 110V");
   await expect(semCotacao.first()).toBeVisible();
-  await page.getByText("Só total confirmado").click();
+  await page.getByRole("button", { name: /^Filtros/ }).click();
+  const gaveta = page.getByRole("dialog");
+  await gaveta.getByText("Só total confirmado").click();
+  await gaveta.getByRole("button", { name: /^Ver / }).click();
+  await expect(gaveta).toBeHidden();
   await expect(semCotacao).toHaveCount(0);
 
   await page.getByLabel(/ordenar/i).selectOption("menor_total");
-  const primeira = page.locator("main article").first();
-  await expect(primeira).toContainText("Loja Beta");
-  await expect(primeira).toContainText("R$ 1.899,00");
+  // o menor total abre a página e não se repete na lista, que segue com o próximo
+  const destaque = page.getByRole("region", { name: DESTAQUE });
+  await expect(destaque).toContainText("Loja Beta");
+  await expect(destaque).toContainText("R$ 1.899,00");
+  const lista = page.getByRole("region", { name: "Ofertas por produto" });
+  const primeira = lista.locator("article").first();
+  await expect(primeira).toContainText("Loja Gama");
+  await expect(primeira).toContainText("R$ 2.426,00");
 
   const [aba] = await Promise.all([page.waitForEvent("popup"), irParaLoja.click()]);
   await expect(aba).toHaveURL(/beta\.example\/produto\/0/);
+});
+
+test("o CEP digitado mostra o endereço de entrega antes da busca", async ({ page }) => {
+  await simularApi(page);
+  await page.goto("/");
+  const cep = page.getByLabel(/cep/i);
+  await cep.fill("30130010");
+  await expect(
+    page.getByText("Entrega em Avenida Afonso Pena, Centro, Belo Horizonte/MG"),
+  ).toBeVisible();
+  await cep.fill("99999999");
+  await expect(page.getByText("Não achamos esse CEP. Confira os números.")).toBeVisible();
 });
 
 test("CEP incompleto não inicia a busca", async ({ page }) => {
@@ -48,7 +71,7 @@ test("CEP incompleto não inicia a busca", async ({ page }) => {
 test("CEP que não existe mostra o motivo e como seguir, sem repetir o erro", async ({ page }) => {
   await simularApi(page);
   await page.goto("/busca?q=geladeira+frost+free&cep=99999999");
-  const alerta = page.getByRole("alert").filter({ hasText: /CEP não encontrado/ });
+  const alerta = page.getByRole("alert").filter({ hasText: /Não achamos o CEP 99999-999/ });
   await expect(alerta).toBeVisible();
   await expect(alerta.getByRole("button", { name: "Tentar de novo" })).toHaveCount(0);
   await expect(alerta.getByRole("link", { name: "Buscar sem CEP" })).toHaveAttribute(
@@ -84,6 +107,7 @@ test("promoção com histórico mostra a queda verificada e o desconto anunciado
   await page.goto(BUSCA_BH);
   const destaque = page.getByRole("region", { name: DESTAQUE });
   await expect(destaque).toContainText("Electrolux 400L");
+  await destaque.getByRole("button", { name: "Ver a conta" }).click();
   await expect(destaque).toContainText(/Menor preço desta loja em \d+ dias/);
   await expect(destaque).toContainText("desconto anunciado pela loja");
   await expect(destaque).toContainText("Desconto anunciado sem respaldo");
@@ -94,6 +118,7 @@ test("sem histórico, o desconto anunciado não vira economia confirmada", async
   await simularApi(page);
   await page.goto(BUSCA_BH);
   const destaque = page.getByRole("region", { name: DESTAQUE });
+  await destaque.getByRole("button", { name: "Ver a conta" }).click();
   await expect(destaque).toContainText("desconto anunciado pela loja");
   await expect(destaque).toContainText("Histórico insuficiente para confirmar a economia");
   await expect(destaque).not.toContainText("Menor preço desta loja");

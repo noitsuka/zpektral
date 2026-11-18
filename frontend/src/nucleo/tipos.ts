@@ -117,7 +117,7 @@ type SaudeFonte = {
 
 export type InfoFonte = { id: string; nome: string; ativa: boolean; saude: SaudeFonte | null };
 
-type Endereco = {
+export type Endereco = {
   cep: string;
   logradouro: string | null;
   bairro: string | null;

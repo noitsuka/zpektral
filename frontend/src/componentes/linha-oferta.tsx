@@ -1,22 +1,7 @@
 "use client";
 
-import {
-  ArrowUpRight,
-  BadgeCheck,
-  ChevronDown,
-  CircleAlert,
-  CircleHelp,
-  Clock,
-  History,
-  MapPinOff,
-  PackageX,
-  Tag,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-  type LucideIcon,
-} from "lucide-react";
-import { useId, useState } from "react";
+import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { useId, useState, type CSSProperties, type ReactNode } from "react";
 
 import { GraficoPreco } from "@/componentes/grafico-preco";
 import { linkDaOferta, totalPara } from "@/nucleo/filtros";
@@ -44,41 +29,21 @@ export type Contexto = {
   tipico: (o: Oferta) => number | null;
 };
 
-const CARIMBOS: Record<EstadoTotal, { texto: string; cor: string; Icone: LucideIcon }> = {
-  confirmado: { texto: "Confirmado", cor: "text-confirmado", Icone: BadgeCheck },
-  estimado: { texto: "Estimado", cor: "text-alerta", Icone: CircleHelp },
-  desconhecido: { texto: "Sem cotação", cor: "text-tinta-2", Icone: CircleHelp },
-  sem_cep: { texto: "Sem CEP", cor: "text-tinta-2", Icone: MapPinOff },
-  nao_entrega: { texto: "Não entrega", cor: "text-falha", Icone: MapPinOff },
-  indisponivel: { texto: "Esgotado", cor: "text-falha", Icone: PackageX },
-  calculando: { texto: "Calculando", cor: "text-tinta-2", Icone: Clock },
-};
-
-export function CarimboTotal({ estado }: { estado: EstadoTotal }) {
-  const { texto, cor, Icone } = CARIMBOS[estado];
-  return (
-    <span className={`carimbo ${cor}`}>
-      <Icone className="size-3" strokeWidth={2.5} aria-hidden />
-      {texto}
-    </span>
-  );
-}
-
-export function rotuloDoTotal(estado: EstadoTotal, oferta: Oferta): string {
+function rotuloDoTotal(estado: EstadoTotal, oferta: Oferta): string {
   switch (estado) {
     case "confirmado":
-      return "Total no seu CEP";
+      return "Com frete";
     case "estimado":
       return oferta.importacao ? "Total estimado com impostos" : "Total estimado";
     case "nao_entrega":
     case "indisponivel":
       return "Preço do produto";
     default:
-      return "Preço sem frete";
+      return "Sem frete";
   }
 }
 
-export function textoDoFrete(oferta: Oferta, estado: EstadoTotal, cep: string | null): string {
+function textoDoFrete(oferta: Oferta, estado: EstadoTotal, cep: string | null): string {
   const f = oferta.frete;
   switch (estado) {
     case "confirmado":
@@ -108,8 +73,8 @@ export function textoDoFrete(oferta: Oferta, estado: EstadoTotal, cep: string | 
 function prazo(oferta: Oferta): string | null {
   const f = oferta.frete;
   if (f.status !== "calculado") return null;
-  if (f.entrega_ate) return `Chega até ${dataEntrega(f.entrega_ate)}`;
-  return f.prazo ? `Entrega ${f.prazo}` : null;
+  if (f.entrega_ate) return `chega até ${dataEntrega(f.entrega_ate)}`;
+  return f.prazo ? `entrega ${f.prazo}` : null;
 }
 
 const ALERTAS: Record<Alerta, string> = {
@@ -120,23 +85,22 @@ const ALERTAS: Record<Alerta, string> = {
   preco_instavel: "A loja muda o valor entre consultas",
 };
 
-const ICONE_SELO: Record<Selo["tipo"], LucideIcon> = {
-  menor_em_dias: History,
-  abaixo_do_habitual: TrendingDown,
-  acima_do_habitual: TrendingUp,
-  anunciado: Tag,
-  sem_respaldo: CircleAlert,
-  historico_insuficiente: CircleHelp,
-  pix: Wallet,
-  promocao_da_loja: Tag,
-  validade: Clock,
+const TOM: Record<Selo["tom"], string> = {
+  economia: "text-exato",
+  alerta: "text-alerta",
+  neutro: "text-apagado",
 };
 
-const TOM_SELO: Record<Selo["tom"], string> = {
-  economia: "bg-economia-suave text-economia",
-  alerta: "bg-alerta-suave text-alerta",
-  neutro: "bg-etiqueta-2 text-tinta-2",
-};
+const CONDICAO: Record<string, string> = { usado: "Usado", recondicionado: "Recondicionado" };
+
+// Na linha cabe um sinal além do frete: o alerta da oferta, se houver, ou a queda verificada.
+function sinalDaLinha(oferta: Oferta, promocao: Promocao): { texto: string; tom: string } | null {
+  if (oferta.alertas.length) return { texto: ALERTAS[oferta.alertas[0]], tom: "text-alerta" };
+  const queda = promocao.selos.find(
+    (s) => s.tipo === "menor_em_dias" || s.tipo === "abaixo_do_habitual",
+  );
+  return queda ? { texto: queda.texto, tom: "text-exato" } : null;
+}
 
 function seloDoTipico(diferenca: number | null): Selo[] {
   if (diferenca === null) return [];
@@ -151,29 +115,6 @@ function seloDoTipico(diferenca: number | null): Selo[] {
   ];
 }
 
-export function ListaSelos({ selos, alertas = [] }: { selos: Selo[]; alertas?: Alerta[] }) {
-  if (!selos.length && !alertas.length) return null;
-  return (
-    <ul className="flex flex-wrap gap-1.5" aria-label="Sobre o preço">
-      {alertas.map((a) => (
-        <li key={a} className={`selo ${TOM_SELO.alerta}`}>
-          <CircleAlert className="size-3.5 shrink-0" aria-hidden />
-          {ALERTAS[a]}
-        </li>
-      ))}
-      {selos.map((s) => {
-        const Icone = ICONE_SELO[s.tipo];
-        return (
-          <li key={`${s.tipo}-${s.texto}`} className={`selo ${TOM_SELO[s.tom]}`}>
-            <Icone className="size-3.5 shrink-0" aria-hidden />
-            {s.texto}
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
 function pagamentoDoTotal(oferta: Oferta, pagamento: Pagamento): string | null {
   const t = oferta.totais;
   if (!t) return null;
@@ -184,25 +125,7 @@ function pagamentoDoTotal(oferta: Oferta, pagamento: Pagamento): string | null {
   return "no cartão";
 }
 
-function valorDoFrete(oferta: Oferta, estado: EstadoTotal): string {
-  const f = oferta.frete;
-  switch (estado) {
-    case "confirmado":
-      return f.valor ? reais(f.valor) : "grátis";
-    case "estimado":
-      return f.status === "gratis_anunciado" ? "grátis anunciado" : reais(f.valor ?? 0);
-    case "nao_entrega":
-      return "não entrega";
-    case "indisponivel":
-      return "sem estoque";
-    case "calculando":
-      return "calculando";
-    default:
-      return "não incluído";
-  }
-}
-
-function CamposDaLinha({
+function Frete({
   oferta,
   estado,
   cep,
@@ -211,57 +134,64 @@ function CamposDaLinha({
   estado: EstadoTotal;
   cep: string | null;
 }) {
-  const t = oferta.totais;
-  const p = oferta.parcelamento;
-  const custo = p ? custoDoParcelamento(oferta.preco, p) : null;
+  // Sem CEP a página inteira já avisa; repetir em cada linha só polui.
+  if (estado === "sem_cep") return null;
+  if (estado === "confirmado") {
+    const gratis = !oferta.frete.valor;
+    const quando = prazo(oferta);
+    return (
+      <p className="numero">
+        <span className={gratis ? "text-exato" : "text-tinta"}>
+          {textoDoFrete(oferta, estado, cep)}
+        </span>
+        {quando && <span className="text-apagado"> · {quando}</span>}
+      </p>
+    );
+  }
+  const tom =
+    estado === "nao_entrega" || estado === "indisponivel"
+      ? "text-falha"
+      : estado === "estimado"
+        ? "text-alerta"
+        : "text-apagado";
+  return <p className={`numero ${tom}`}>{textoDoFrete(oferta, estado, cep)}</p>;
+}
+
+function BotaoLoja({ oferta, principal }: { oferta: Oferta; principal: boolean }) {
+  const destino = oferta.origem === "comparador" ? "o Buscapé" : oferta.loja.nome;
   return (
-    <dl className="grid grid-cols-3 divide-x divide-tinta border-y border-tinta py-1.5 text-[0.875rem]">
-      <div className="min-w-0 pr-2">
-        <dt className="rotulo-campo truncate">{cep ? `Frete ${mascararCep(cep)}` : "Frete"}</dt>
-        <dd className="mt-0.5 space-y-0.5">
-          <CarimboTotal estado={estado} />
-          <span className="numero block font-semibold">{valorDoFrete(oferta, estado)}</span>
-        </dd>
-      </div>
-      <div className="min-w-0 px-2">
-        <dt className="rotulo-campo">No Pix</dt>
-        <dd className="numero mt-0.5 font-semibold">
-          {t?.pix != null && t.pix < t.avista ? (
-            reais(t.pix)
-          ) : (
-            <span className="font-normal text-tinta-2">sem desconto</span>
-          )}
-        </dd>
-      </div>
-      <div className="min-w-0 pl-2">
-        <dt className="rotulo-campo">Parcelas</dt>
-        <dd className="numero mt-0.5 font-semibold">
-          {p && p.parcelas > 1 ? (
-            <>
-              {p.parcelas}x{" "}
-              {custo && custo.mensal > 0 ? (
-                <span className="text-alerta">{porcentagem(custo.mensal)} a.m.</span>
-              ) : (
-                <span className="font-normal text-tinta-2">sem juros</span>
-              )}
-            </>
-          ) : (
-            <span className="font-normal text-tinta-2">não informadas</span>
-          )}
-        </dd>
-      </div>
-    </dl>
+    <a
+      href={linkDaOferta(oferta)}
+      target="_blank"
+      rel="noopener noreferrer nofollow"
+      className={`botao w-full px-3 text-[0.875rem] pointer-fine:min-h-9 ${principal ? "botao-ouro" : "botao-linha"}`}
+    >
+      <span className="truncate">Ir para {destino}</span>
+      <ArrowUpRight className="seta size-4 shrink-0" aria-hidden />
+      <span className="sr-only">
+        {oferta.origem === "comparador" ? `, oferta de ${oferta.loja.nome}` : ""}
+        {oferta.vendedor ? `, vendido por ${oferta.vendedor}` : ""} (abre em nova aba)
+      </span>
+    </a>
   );
 }
+
+// Toda linha usa a mesma grade, inclusive a do menor total, para o olho não se reorientar.
+const GRADE =
+  "grid-cols-[minmax(0,1fr)_auto] [grid-template-areas:'loja_total'_'info_total'_'conta_cta'_'detalhe_detalhe'] sm:grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)_auto_12.5rem] sm:[grid-template-areas:'loja_info_total_cta'_'loja_conta_total_cta'_'detalhe_detalhe_detalhe_detalhe'] lg:grid-cols-[minmax(6.5rem,9rem)_minmax(0,1fr)_8.5rem_9.5rem_12.5rem] lg:[grid-template-areas:'loja_info_conta_total_cta'_'detalhe_detalhe_detalhe_detalhe_detalhe']";
 
 export function LinhaOferta({
   oferta,
   contexto,
-  destaque = false,
+  principal = false,
+  indice = 0,
+  antesDaConta,
 }: {
   oferta: Oferta;
   contexto: Contexto;
-  destaque?: boolean;
+  principal?: boolean;
+  indice?: number;
+  antesDaConta?: ReactNode;
 }) {
   const [aberta, setAberta] = useState(false);
   const [montada, setMontada] = useState(false);
@@ -269,58 +199,45 @@ export function LinhaOferta({
   const estado = estadoDoTotal(oferta, contexto.cep !== null);
   const total = totalPara(oferta, contexto.pagamento);
   const promocao = contexto.promocoes(oferta);
-  const quando = oferta.consultado_em ? haQuanto(oferta.consultado_em, contexto.agora) : null;
-  const entrega = prazo(oferta);
-  const forma = pagamentoDoTotal(oferta, contexto.pagamento);
-  const noCarrinho = oferta.origem === "marketplace" && oferta.link_carrinho;
+  const sinal = sinalDaLinha(oferta, promocao);
+  const forma = estado === "nao_entrega" ? null : pagamentoDoTotal(oferta, contexto.pagamento);
   const apagada = estado === "nao_entrega" || estado === "indisponivel";
+  // Com CEP, só o total confirmado tem cara de valor final.
+  const final = estado === "confirmado" || contexto.cep === null;
 
   return (
     <article
       aria-label={`${oferta.loja.nome}, ${reais(total)}`}
-      className={`grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-2.5 px-4 py-3.5 [grid-template-areas:'loja_total'_'frete_frete'_'acoes_acoes'] sm:grid-cols-[minmax(7.5rem,10rem)_minmax(0,1fr)_auto] sm:gap-x-5 sm:[grid-template-areas:'loja_frete_total'_'loja_frete_acoes'] ${
-        destaque ? "bg-acao-suave/60" : ""
-      } ${apagada ? "text-tinta-2" : ""}`}
+      data-realce=""
+      style={{ "--i": indice } as CSSProperties}
+      className={`linha-oferta grid items-center gap-x-4 rounded-quadro py-3 sm:gap-x-5 sm:px-4 lg:py-2.5 ${GRADE} ${
+        apagada ? "opacity-60" : ""
+      }`}
     >
-      <div className="min-w-0 [grid-area:loja]">
-        <p className="font-semibold">{oferta.loja.nome}</p>
-        <p className="mt-0.5 text-[0.8125rem] leading-snug text-tinta-2">
-          {oferta.origem === "marketplace" && oferta.vendedor && <>vendido por {oferta.vendedor}</>}
-          {oferta.origem === "comparador" && "pelo Buscapé"}
-          {oferta.origem === "importado" && "importado"}
-        </p>
-        {destaque && (
-          <p className="mt-1 text-[0.8125rem] font-semibold text-acao">Menor total deste produto</p>
-        )}
+      <p className="min-w-0 self-start font-medium [grid-area:loja] lg:self-center">
+        {oferta.loja.nome}
+      </p>
+
+      <div className="min-w-0 space-y-0.5 self-start text-[0.875rem] [grid-area:info] lg:self-center">
+        <Frete oferta={oferta} estado={estado} cep={contexto.cep} />
+        {sinal && <p className={sinal.tom}>{sinal.texto}</p>}
       </div>
 
-      <div className="min-w-0 space-y-2 [grid-area:frete]">
-        <CamposDaLinha oferta={oferta} estado={estado} cep={contexto.cep} />
-        <p className="text-[0.8125rem] text-tinta-2">
-          {estado === "confirmado" ? entrega : textoDoFrete(oferta, estado, contexto.cep)}
-          {quando && (
-            <span className="text-tinta-3">
-              {estado === "confirmado" && !entrega ? "" : " · "}Preço consultado {quando}
-            </span>
-          )}
-        </p>
-        <ListaSelos
-          selos={[...seloDoTipico(contexto.tipico(oferta)), ...promocao.selos]}
-          alertas={oferta.alertas}
-        />
-      </div>
-
-      <div className="text-right [grid-area:total]">
-        <p className="text-[0.75rem] text-tinta-3">{rotuloDoTotal(estado, oferta)}</p>
-        <p className="numero text-[1.3125rem] leading-tight font-bold whitespace-nowrap">
+      <div className="self-start text-right [grid-area:total] sm:self-center">
+        <p
+          className={`font-mono text-[1.1875rem] leading-tight font-medium whitespace-nowrap tabular-nums ${
+            final ? "text-tinta" : "text-apagado"
+          }`}
+        >
           {reais(total)}
         </p>
-        {forma && estado !== "nao_entrega" && (
-          <p className="text-[0.75rem] text-tinta-2">{forma}</p>
-        )}
+        <p className="mt-0.5 text-[0.8125rem] leading-snug text-apagado">
+          {rotuloDoTotal(estado, oferta)}
+          {forma && <span className="whitespace-nowrap">, {forma}</span>}
+        </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 [grid-area:acoes] sm:justify-end">
+      <div className="mt-1 [grid-area:conta] lg:mt-0">
         <button
           type="button"
           onClick={() => {
@@ -329,53 +246,74 @@ export function LinhaOferta({
           }}
           aria-expanded={aberta}
           aria-controls={idDetalhes}
-          className="inline-flex min-h-11 items-center gap-1 rounded-controle px-2 text-[0.875rem] font-medium text-tinta-2 hover:text-tinta sm:-mr-1"
+          className="botao-texto whitespace-nowrap"
         >
-          {aberta ? "Esconder a conta" : "Ver a conta"}
-          <ChevronDown
-            className={`size-4 transition-transform ${aberta ? "rotate-180" : ""}`}
-            aria-hidden
-          />
+          {aberta ? "Fechar a conta" : "Ver a conta"}
+          <ChevronDown className="chevron size-4" aria-hidden />
         </button>
-        <a
-          href={linkDaOferta(oferta)}
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          className="botao botao-secundario min-h-10 text-[0.875rem]"
-        >
-          {noCarrinho
-            ? "Abrir no carrinho"
-            : oferta.origem === "comparador"
-              ? "Ver no Buscapé"
-              : "Ver na loja"}
-          <ArrowUpRight className="size-4" aria-hidden />
-          <span className="sr-only">
-            {` ${oferta.loja.nome}${oferta.vendedor ? `, vendido por ${oferta.vendedor}` : ""} (abre em nova aba)`}
-          </span>
-        </a>
+      </div>
+
+      <div className="mt-1 flex min-w-0 justify-end [grid-area:cta] sm:mt-0">
+        <BotaoLoja oferta={oferta} principal={principal} />
       </div>
 
       <div
         id={idDetalhes}
         role="region"
         aria-label={`Conta de ${oferta.loja.nome}`}
-        className="gaveta col-span-full"
+        className="gaveta [grid-area:detalhe]"
         data-aberta={aberta}
       >
         <div className="min-h-0">
-          {montada && <Detalhes oferta={oferta} contexto={contexto} promocao={promocao} />}
+          {montada && (
+            <Detalhes
+              oferta={oferta}
+              contexto={contexto}
+              promocao={promocao}
+              antes={antesDaConta}
+            />
+          )}
         </div>
       </div>
     </article>
   );
 }
 
-function Linha({ rotulo, valor, tom = "" }: { rotulo: string; valor: string; tom?: string }) {
+function Linha({
+  rotulo,
+  valor,
+  tom = "",
+  antes,
+}: {
+  rotulo: string;
+  valor: string;
+  tom?: string;
+  antes?: string;
+}) {
   return (
-    <div className="flex justify-between gap-4 py-1">
-      <dt className="text-tinta-2">{rotulo}</dt>
-      <dd className={`numero text-right ${tom}`}>{valor}</dd>
+    <div className="flex items-baseline justify-between gap-4 py-1">
+      <dt className="text-apagado">{rotulo}</dt>
+      <dd className={`text-right ${tom}`}>
+        {antes && `${antes} `}
+        <span className={/\d/.test(valor) ? "font-mono tabular-nums" : ""}>{valor}</span>
+      </dd>
     </div>
+  );
+}
+
+function Evidencia({ selo, oferta }: { selo: Selo; oferta: Oferta }) {
+  return (
+    <li>
+      <span className={TOM[selo.tom]}>{selo.texto}</span>
+      {selo.tipo === "anunciado" && oferta.preco_original ? (
+        <span className="text-apagado">
+          : de <s className="text-tenue">{reais(oferta.preco_original)}</s> por{" "}
+          {reais(oferta.preco)}.
+        </span>
+      ) : (
+        <span className="text-apagado">: {selo.evidencia}.</span>
+      )}
+    </li>
   );
 }
 
@@ -383,30 +321,41 @@ function Detalhes({
   oferta,
   contexto,
   promocao,
+  antes,
 }: {
   oferta: Oferta;
   contexto: Contexto;
   promocao: Promocao;
+  antes?: ReactNode;
 }) {
   const t = oferta.totais;
   const frete = oferta.frete;
   const custo = oferta.parcelamento ? custoDoParcelamento(oferta.preco, oferta.parcelamento) : null;
   const serie = contexto.historico[oferta.id];
-  const linhas: { rotulo: string; valor: string; tom?: string }[] = [
+  const quando = oferta.consultado_em ? haQuanto(oferta.consultado_em, contexto.agora) : null;
+  // o desconto do Pix já aparece na conta; repetir como selo seria dizer a mesma coisa duas vezes
+  const selos = [...seloDoTipico(contexto.tipico(oferta)), ...promocao.selos].filter(
+    (s) => s.tipo !== "pix",
+  );
+  const historicoCurto = selos.some((s) => s.tipo === "historico_insuficiente");
+  const noCarrinho = oferta.origem === "marketplace" && oferta.link_carrinho;
+
+  const linhas: { rotulo: string; valor: string; tom?: string; antes?: string }[] = [
     { rotulo: "Produto", valor: reais(oferta.preco) },
   ];
   if (oferta.preco_pix !== null && oferta.preco_pix < oferta.preco)
     linhas.push({
       rotulo: "Desconto no Pix",
-      valor: `menos ${reais(oferta.preco - oferta.preco_pix)}`,
-      tom: "text-economia",
+      valor: reais(oferta.preco - oferta.preco_pix),
+      antes: "menos",
+      tom: "text-exato",
     });
   if (frete.status === "calculado" || frete.status === "estimado")
     linhas.push({
       rotulo: contexto.cep ? `Frete para ${mascararCep(contexto.cep)}` : "Frete",
       valor: frete.valor ? reais(frete.valor) : "grátis",
     });
-  else linhas.push({ rotulo: "Frete", valor: "não incluído", tom: "text-tinta-3" });
+  else linhas.push({ rotulo: "Frete", valor: "não incluído", tom: "text-tenue" });
   if (oferta.importacao)
     linhas.push({
       rotulo: "Impostos estimados",
@@ -422,24 +371,32 @@ function Detalhes({
       valor: reais(t.parcelado),
     });
 
+  const fatos: [string, string][] = [];
+  if (oferta.origem === "marketplace" && oferta.vendedor)
+    fatos.push(["Vendido por", oferta.vendedor]);
+  if (oferta.voltagem) fatos.push(["Voltagem", oferta.voltagem]);
+  if (oferta.condicao && CONDICAO[oferta.condicao])
+    fatos.push(["Condição", CONDICAO[oferta.condicao]]);
+  if (quando) fatos.push(["Preço consultado", quando]);
+
   return (
-    <div className="mt-2 grid gap-x-8 gap-y-5 border-t border-fio pt-4 md:grid-cols-2">
-      <section aria-label="A conta" className="text-[0.875rem]">
-        <h4 className="rotulo-campo">A conta</h4>
-        <dl className="mt-1.5">
+    <div className="mt-4 grid gap-x-12 gap-y-7 border-t border-traco pt-5 pb-2 text-[0.875rem] md:grid-cols-2">
+      <section aria-label="A conta">
+        <h4 className="font-medium">A conta</h4>
+        <dl className="mt-2">
           {linhas.map((l) => (
             <Linha key={l.rotulo} {...l} />
           ))}
         </dl>
         {totais.length > 0 && (
-          <dl className="mt-1.5 border-t border-dashed border-borda pt-1.5 font-semibold">
+          <dl className="mt-1.5 border-t border-dashed border-traco-forte pt-1.5">
             {totais.map((l) => (
-              <Linha key={l.rotulo} {...l} />
+              <Linha key={l.rotulo} {...l} tom="text-tinta" />
             ))}
           </dl>
         )}
         {custo && custo.juros > 0 && (
-          <p className="mt-2 text-alerta">
+          <p className="mt-2.5 text-alerta">
             O parcelamento custa {reais(custo.juros)} a mais: {porcentagem(custo.mensal)} ao mês,{" "}
             {porcentagem(custo.anual)} ao ano.
           </p>
@@ -447,14 +404,18 @@ function Detalhes({
         {oferta.importacao && <Importado importacao={oferta.importacao} />}
         {frete.status === "calculado" && frete.opcoes.length > 1 && (
           <>
-            <h4 className="rotulo-campo mt-4">
+            <h4 className="mt-5 font-medium">
               Entrega
-              {frete.cotado_em ? `, cotada às ${horaCotacao(frete.cotado_em)}` : ""}
+              {frete.cotado_em && (
+                <span className="font-normal text-apagado">
+                  , cotada às {horaCotacao(frete.cotado_em)}
+                </span>
+              )}
             </h4>
             <ul className="mt-1.5">
               {frete.opcoes.map((o, i) => (
                 <li key={`${o.nome}-${i}`} className="flex justify-between gap-4 py-1">
-                  <span className="min-w-0 text-tinta-2">
+                  <span className="min-w-0 text-apagado">
                     {o.tipo === "retirada" ? "Retirada: " : ""}
                     {o.nome}
                     {o.entrega_ate
@@ -463,7 +424,9 @@ function Detalhes({
                         ? `, ${o.prazo}`
                         : ""}
                   </span>
-                  <span className="numero shrink-0">{o.valor ? reais(o.valor) : "grátis"}</span>
+                  <span className={`shrink-0 ${o.valor ? "font-mono tabular-nums" : ""}`}>
+                    {o.valor ? reais(o.valor) : "grátis"}
+                  </span>
                 </li>
               ))}
             </ul>
@@ -471,29 +434,60 @@ function Detalhes({
         )}
       </section>
 
-      <section aria-label="Sobre o preço" className="min-w-0 text-[0.875rem]">
-        {promocao.selos.length > 0 && (
-          <>
-            <h4 className="rotulo-campo">De onde vem cada selo</h4>
-            <ul className="mt-1.5 space-y-1.5">
-              {promocao.selos.map((s) => (
-                <li key={`${s.tipo}-${s.texto}`}>
-                  <span className="font-medium">{s.texto}</span>
-                  <span className="text-tinta-2">: {s.evidencia}.</span>
-                </li>
-              ))}
-            </ul>
-          </>
+      <section aria-label="Sobre o preço" className="min-w-0">
+        <h4 className="font-medium">Sobre o preço</h4>
+        {antes && <div className="mt-2 text-apagado">{antes}</div>}
+        {(oferta.alertas.length > 0 || selos.length > 0) && (
+          <ul className="mt-2 space-y-1.5">
+            {oferta.alertas.map((a) => (
+              <li key={a} className="text-alerta">
+                {ALERTAS[a]}.
+              </li>
+            ))}
+            {selos.map((s) => (
+              <Evidencia key={`${s.tipo}-${s.texto}`} selo={s} oferta={oferta} />
+            ))}
+          </ul>
         )}
-        {serie?.some((p) => p.dia < contexto.hoje) ? (
-          <div className={promocao.selos.length ? "mt-4" : ""}>
+        <div className="mt-4">
+          {serie?.some((p) => p.dia < contexto.hoje) ? (
             <GraficoPreco pontos={serie} atual={oferta.preco} hoje={contexto.hoje} />
-          </div>
-        ) : (
-          <p className={`text-tinta-2 ${promocao.selos.length ? "mt-4" : ""}`}>
-            Ainda não há histórico de preço desta oferta. Ele se forma com as buscas feitas no
-            Zpektral.
+          ) : historicoCurto ? null : (
+            <p className="text-apagado">
+              Ainda não há histórico de preço desta oferta. Ele se forma com as buscas feitas no
+              Zpektral.
+            </p>
+          )}
+        </div>
+        {(noCarrinho || oferta.origem === "comparador") && (
+          <p className="mt-4 text-apagado">
+            {noCarrinho ? (
+              <>
+                O botão abre a oferta direto no carrinho da {oferta.loja.nome}.{" "}
+                <a
+                  href={oferta.link}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="text-tinta underline decoration-traco-forte hover:decoration-current"
+                >
+                  Ver a página do produto
+                  <span className="sr-only"> (abre em nova aba)</span>
+                </a>
+              </>
+            ) : (
+              `O preço foi lido no Buscapé, e o botão leva para a página da oferta lá.`
+            )}
           </p>
+        )}
+        {fatos.length > 0 && (
+          <dl className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1">
+            {fatos.map(([rotulo, valor]) => (
+              <div key={rotulo} className="contents">
+                <dt className="text-apagado">{rotulo}</dt>
+                <dd className="min-w-0 break-words">{valor}</dd>
+              </div>
+            ))}
+          </dl>
         )}
       </section>
     </div>
@@ -506,14 +500,14 @@ function dolares(centavos: number): string {
 
 function Importado({ importacao }: { importacao: Importacao }) {
   return (
-    <div className="mt-3 border-t border-fio pt-2">
+    <div className="mt-3 border-t border-traco pt-2">
       <dl>
         <Linha rotulo="Produto em dólar" valor={dolares(importacao.produto_usd)} />
         <Linha rotulo="Dólar (PTAX)" valor={reais(Math.round(importacao.cotacao_dolar * 100))} />
         <Linha rotulo="Imposto de importação" valor={reais(importacao.imposto_importacao)} />
         <Linha rotulo="ICMS" valor={reais(importacao.icms)} />
       </dl>
-      <p className="mt-2 text-tinta-2">
+      <p className="mt-2 text-apagado">
         Estimativa fora do Remessa Conforme. A Receita define o valor final na chegada.
       </p>
     </div>

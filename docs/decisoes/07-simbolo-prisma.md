@@ -8,7 +8,7 @@ O símbolo anterior era um Z montado com barras de gráfico e um efeito de inter
 
 ## Decisão
 
-O símbolo é um Z que funciona como um prisma. A barra de cima é um feixe único, o preço anunciado. A diagonal é um bloco translúcido com as duas arestas longas marcadas. A barra de baixo se abre em linhas finas de comprimentos diferentes, uma por loja, e a mais curta, na cor de ação (azul), é o menor total. O redesenho da etiqueta trocou o ouro original por essa cor, a mesma dos links e botões.
+O símbolo é um Z que funciona como um prisma. A barra de cima é um feixe único, o preço anunciado. A diagonal é um bloco translúcido com as duas arestas longas marcadas. A barra de baixo se abre em linhas finas de comprimentos diferentes, uma por loja, e a mais curta, em ouro, é o menor total. O redesenho da etiqueta tinha trocado o ouro por azul; o ouro voltou com o tema escuro, e é a mesma cor do botão principal e da marca do menor total na lista.
 
 As linhas vêm do mesmo espectro de preços que já movia o favicon durante a busca (`nucleo/espectro.ts`), e a geometria fica em `nucleo/simbolo.ts`, usada pelo componente, pelo favicon ao vivo, pelo ícone da Apple e pela imagem de compartilhamento. O `icon.svg` é um arquivo estático e precisa acompanhar à mão qualquer mudança nela. O "z" do nome usa a mesma inclinação da diagonal.
 

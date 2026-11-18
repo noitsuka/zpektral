@@ -1,20 +1,20 @@
 "use client";
 
-import { ChevronDown, CircleX, MapPin, RotateCw } from "lucide-react";
+import { ChevronDown, RotateCw, TrendingDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { FormularioBusca, ID_CAMPO_CEP } from "@/componentes/formulario-busca";
+import { FormularioBusca, ID_CAMPO_CEP, ID_CAMPO_PRODUTO } from "@/componentes/formulario-busca";
 import type { Contexto } from "@/componentes/linha-oferta";
 import { Logo } from "@/componentes/logo";
-import { BotaoFiltros, ChipsFiltros, PainelFiltros } from "@/componentes/painel-filtros";
-import { StatusBusca } from "@/componentes/status-busca";
+import { BotaoFiltros, ChipsFiltros } from "@/componentes/painel-filtros";
+import { LinhaProgresso, StatusBusca } from "@/componentes/status-busca";
 import {
-  CartaoGrupo,
   EsqueletoGrupos,
   EsqueletoMelhor,
-  EtiquetaMelhor,
+  GrupoProduto,
+  MelhorTotal,
   Vazio,
 } from "@/componentes/vitrine";
 import { useAtalhoBusca } from "@/ganchos/use-atalho-busca";
@@ -27,6 +27,7 @@ import { REPOUSO, espectroDe } from "@/nucleo/espectro";
 import {
   ORDENS,
   ORDENS_LOCAIS,
+  PAGAMENTOS,
   facetasDe,
   filtrosDosParametros,
   filtrosParaParametros,
@@ -68,11 +69,12 @@ function useAgora(ms: number): Date {
 const POR_VEZ = 40;
 const ESPERA_MS = 15_000;
 
-function focarCep() {
-  const campo = document.getElementById(ID_CAMPO_CEP) as HTMLInputElement | null;
+function focar(id: string) {
+  const campo = document.getElementById(id) as HTMLInputElement | null;
   campo?.focus();
   campo?.select();
 }
+const focarCep = () => focar(ID_CAMPO_CEP);
 
 export function Resultados() {
   const params = useSearchParams();
@@ -277,10 +279,10 @@ export function Resultados() {
 
   return (
     <div className="min-h-dvh">
-      <header
-        ref={cabecalho}
-        className="sticky top-0 z-30 border-b border-fio bg-etiqueta/95 backdrop-blur-sm"
-      >
+      <a href="#ofertas" className="pular">
+        Pular para as ofertas
+      </a>
+      <header ref={cabecalho} className="sticky top-0 z-30 bg-fundo/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5 sm:gap-5 sm:px-6">
           <Logo compacto espectro={espectro} />
           <div className="min-w-0 flex-1">
@@ -292,245 +294,274 @@ export function Resultados() {
           </div>
           <Link
             href="/ofertas"
-            className="hidden shrink-0 text-[0.875rem] font-medium text-tinta-2 hover:text-tinta lg:block"
+            title="Quedas de preço"
+            className="-mr-2 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center text-[0.875rem] text-apagado transition-colors hover:text-tinta md:mr-0 md:min-w-0"
           >
-            Quedas de preço
+            <TrendingDown className="size-5 md:hidden" aria-hidden />
+            <span className="sr-only md:not-sr-only">Quedas de preço</span>
           </Link>
+        </div>
+        <div className="relative border-b border-traco">
+          <LinhaProgresso fontes={transmissao.fontes} terminou={terminou} />
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 pt-5 pb-24 sm:px-6">
-        <h1 className="text-[1.5rem] leading-tight font-semibold tracking-[-0.01em] break-words sm:text-[1.75rem]">
+      <main className="mx-auto max-w-6xl px-4 pt-5 pb-24 sm:px-6 sm:pt-10">
+        <h1 className="text-[1.625rem] leading-tight font-semibold tracking-[-0.02em] break-words [font-stretch:104%] sm:text-[2.25rem]">
           {q}
         </h1>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 text-[0.9375rem]">
-          {cep ? (
-            <p className="flex items-start gap-1.5 text-tinta-2">
-              <MapPin className="mt-1 size-4 shrink-0" aria-hidden />
-              <span>
-                <span className="hidden sm:inline">Entrega em </span>
-                {endereco?.cidade && `${endereco.cidade}, ${endereco.uf} · `}
-                <span className="numero font-semibold whitespace-nowrap text-acao">
-                  CEP {mascararCep(cep)}
-                </span>
-              </span>
-            </p>
-          ) : (
-            <p className="text-tinta-2">Sem CEP de entrega</p>
-          )}
-          <button
-            type="button"
-            onClick={focarCep}
-            className="min-h-11 text-[0.875rem] font-medium whitespace-nowrap text-acao underline"
-          >
-            {cep ? (
-              <>
-                Trocar<span className="sr-only sm:not-sr-only"> CEP</span>
-              </>
-            ) : (
-              "Informar CEP"
-            )}
-          </button>
-        </div>
-        <div className="mt-2">
-          <StatusBusca
-            fontes={transmissao.fontes}
-            terminou={terminou}
-            ofertas={ranqueadas.length}
-            interrompida={transmissaoFalhou && !final}
-          />
-        </div>
-
-        {!cep && (
-          <p className="mt-3 rounded-etiqueta border border-alerta/40 bg-alerta-suave px-4 py-3 text-[0.9375rem] text-alerta">
-            Sem CEP, os valores mostram só o preço do produto. Informe o CEP para incluir o frete de
-            cada loja no total.
-          </p>
-        )}
-
-        {mensagemDeErro && (
+        {cepNaoExiste ? (
           <div
             role="alert"
-            className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-etiqueta border-2 border-falha bg-etiqueta px-4 py-3"
+            className="mt-4 rounded-quadro border border-falha/35 bg-falha-suave px-4 py-4"
           >
-            <p className="flex flex-wrap items-center gap-2">
-              <span className="carimbo text-falha">
-                <CircleX className="size-3" strokeWidth={2.5} aria-hidden />
-                Interrompida
-              </span>
-              {mensagemDeErro}
+            <p className="max-w-[62ch]">
+              Não achamos o CEP {mascararCep(cep ?? "")}. Confira os números ou busque sem CEP (os
+              preços virão sem o frete).
             </p>
-            {cepNaoExiste ? (
-              <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={focarCep} className="botao botao-secundario">
-                  Corrigir o CEP
-                </button>
-                <Link href={`${pathname}?${semCep}`} className="botao botao-secundario">
-                  Buscar sem CEP
-                </Link>
-              </div>
-            ) : (
-              <button type="button" onClick={tentarDeNovo} className="botao botao-secundario">
-                <RotateCw className="size-4" aria-hidden />
-                Tentar de novo
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" onClick={focarCep} className="botao botao-linha">
+                Corrigir o CEP
               </button>
-            )}
+              <Link href={`${pathname}?${semCep}`} className="botao botao-linha">
+                Buscar sem CEP
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="mt-1.5 flex min-w-0 items-center gap-x-2 text-[0.9375rem] text-apagado sm:mt-2">
+              {cep ? (
+                <p className="flex min-w-0 items-center gap-x-2">
+                  {endereco?.cidade && (
+                    <span className="truncate">
+                      {/* no celular só a cidade: rua e bairro empurrariam as ofertas para baixo */}
+                      <span className="hidden sm:inline">
+                        {[endereco.logradouro, endereco.bairro].filter(Boolean).join(", ")}
+                        {(endereco.logradouro || endereco.bairro) && ", "}
+                      </span>
+                      {endereco.cidade}/{endereco.uf}
+                    </span>
+                  )}
+                  {endereco?.cidade && <span aria-hidden>·</span>}
+                  <span className="font-mono text-[0.875rem] whitespace-nowrap text-tinta">
+                    {mascararCep(cep)}
+                  </span>
+                </p>
+              ) : (
+                <p className="min-w-0">Sem CEP: os preços não incluem o frete.</p>
+              )}
+              <span aria-hidden>·</span>
+              <button
+                type="button"
+                onClick={focarCep}
+                className="botao-texto shrink-0 text-ouro underline decoration-ouro/40 hover:text-ouro hover:decoration-ouro"
+              >
+                {cep ? (
+                  <span>
+                    Trocar<span className="sr-only sm:not-sr-only"> CEP</span>
+                  </span>
+                ) : (
+                  "Informar CEP"
+                )}
+              </button>
+            </div>
+            <StatusBusca
+              fontes={transmissao.fontes}
+              terminou={terminou}
+              ofertas={principais.length}
+              interrompida={transmissaoFalhou && !final}
+            />
+          </>
+        )}
+
+        {mensagemDeErro && !cepNaoExiste && (
+          <div
+            role="alert"
+            className="mt-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-3 rounded-quadro border border-falha/35 bg-falha-suave px-4 py-3.5"
+          >
+            <p>{mensagemDeErro}</p>
+            <button type="button" onClick={tentarDeNovo} className="botao botao-linha">
+              <RotateCw className="size-4" aria-hidden />
+              Tentar de novo
+            </button>
           </div>
         )}
 
         <div
-          className={`mt-5 ${semFerramentas ? "" : "lg:grid lg:grid-cols-[14.5rem_minmax(0,1fr)] lg:gap-8"}`}
+          hidden={semFerramentas}
+          className="sticky top-[var(--altura-cabecalho,4rem)] z-20 -mx-4 mt-3 border-b border-traco bg-fundo/90 px-4 py-2 backdrop-blur-md sm:-mx-6 sm:mt-4 sm:px-6 sm:py-2.5"
         >
-          <aside
-            aria-label="Filtros"
-            hidden={semFerramentas}
-            className="hidden lg:sticky lg:top-[calc(var(--altura-cabecalho,4rem)+1rem)] lg:block lg:max-h-[calc(100dvh-var(--altura-cabecalho,4rem)-2rem)] lg:overflow-y-auto lg:pr-2"
-          >
-            <PainelFiltros filtros={filtros} facetas={facetas} onChange={setFiltros} />
-          </aside>
+          <div className="flex items-center gap-1.5 sm:justify-end sm:gap-2">
+            <Seletor
+              rotulo="Pagar com"
+              curto="Pagar"
+              classe="flex-[1.55]"
+              valor={filtros.pagamento}
+              opcoes={PAGAMENTOS}
+              aoMudar={(pagamento) => setFiltros({ ...filtros, pagamento })}
+            />
+            <Seletor
+              rotulo="Ordenar"
+              valor={filtros.ordem}
+              opcoes={ORDENS}
+              aoMudar={(ordem) => setFiltros({ ...filtros, ordem })}
+            />
+            <BotaoFiltros
+              filtros={filtros}
+              facetas={facetas}
+              onChange={setFiltros}
+              visiveis={ranqueadas.length}
+            />
+          </div>
+        </div>
 
-          <div className="min-w-0">
-            <div
-              hidden={semFerramentas}
-              className="sticky top-[var(--altura-cabecalho,4rem)] z-20 -mx-4 border-b border-fio bg-fundo/95 px-4 py-2 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none"
-            >
-              <div className="flex items-center gap-2">
-                <p className="numero hidden flex-1 text-[0.9375rem] text-tinta-2 lg:block">
-                  {plural(principais.length, "oferta", "ofertas")}
-                  {grupos.length !== principais.length &&
-                    ` de ${plural(grupos.length, "produto", "produtos")}`}
-                </p>
-                <div className="flex flex-1 gap-2 lg:hidden">
-                  <BotaoFiltros
-                    filtros={filtros}
-                    facetas={facetas}
-                    onChange={setFiltros}
-                    visiveis={ranqueadas.length}
+        <div className="mt-3 space-y-2 empty:hidden">
+          <ChipsFiltros filtros={filtros} facetas={facetas} onChange={setFiltros} />
+          {esperandoHistorico && (
+            <p role="status" className="text-[0.875rem] text-apagado">
+              Conferindo o histórico de preço das ofertas.
+            </p>
+          )}
+        </div>
+
+        <div id="ofertas" tabIndex={-1} className="mt-4 scroll-mt-40 outline-none">
+          {melhor ? (
+            <MelhorTotal
+              melhor={melhor}
+              contexto={contexto}
+              outrasLojas={outrasLojas}
+              chaveGrupo={grupoDoMelhor?.chave ?? ""}
+              provisoria={varrendo}
+            />
+          ) : !terminou ? (
+            <EsqueletoMelhor />
+          ) : cep && principais.length > 0 ? (
+            <p className="text-[0.9375rem] text-apagado">
+              Nenhuma loja confirmou o frete para este CEP nas ofertas abaixo, então não há um total
+              para recomendar. Os valores mostram o preço sem frete.
+            </p>
+          ) : null}
+
+          {ocultas > 0 && (
+            <p className="border-t border-traco py-3 text-[0.875rem] text-apagado sm:px-4">
+              {plural(
+                ocultas,
+                "oferta usada ou recondicionada está escondida.",
+                "ofertas usadas ou recondicionadas estão escondidas.",
+              )}{" "}
+              <button
+                type="button"
+                onClick={() =>
+                  setFiltros({ ...filtros, condicao: ["novo", "recondicionado", "usado"] })
+                }
+                className="text-ouro underline decoration-ouro/40 hover:decoration-ouro"
+              >
+                Mostrar também
+              </button>
+            </p>
+          )}
+
+          {vazio ? (
+            <Vazio
+              motivo={motivo ?? "nada_correspondente"}
+              fora={lojasFora(transmissao.fontes)}
+              q={q}
+              cep={cep}
+              aoTentarDeNovo={tentarDeNovo}
+              aoLimparFiltros={() => setFiltros(limparFiltros(filtros))}
+              aoCorrigirBusca={() => focar(ID_CAMPO_PRODUTO)}
+              hrefSemCep={`${pathname}?${semCep}`}
+            />
+          ) : (
+            <section aria-labelledby="titulo-ofertas">
+              <h2 id="titulo-ofertas" className="sr-only">
+                Ofertas por produto
+              </h2>
+              {mostrados.length ? (
+                mostrados.map((g) => (
+                  <GrupoProduto
+                    key={g.chave}
+                    grupo={g}
+                    contexto={contexto}
+                    omitir={melhor?.oferta.id}
                   />
-                </div>
-                <label className="campo relative flex h-11 flex-1 items-center lg:flex-none">
-                  <span className="sr-only lg:not-sr-only lg:pl-3 lg:text-[0.875rem] lg:text-tinta-2">
-                    Ordenar
-                  </span>
-                  <select
-                    value={filtros.ordem}
-                    onChange={(e) =>
-                      setFiltros({ ...filtros, ordem: e.target.value as Filtros["ordem"] })
-                    }
-                    className="h-full w-full cursor-pointer appearance-none bg-transparent pr-8 pl-3 text-[0.9375rem] font-medium outline-none lg:w-auto lg:pl-1.5"
-                  >
-                    {ORDENS.map((o) => (
-                      <option key={o.valor} value={o.valor}>
-                        {o.rotulo}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    className="pointer-events-none absolute right-2.5 size-4 text-tinta-2"
-                    aria-hidden
-                  />
-                </label>
-              </div>
-            </div>
-
-            <div className="mt-3 space-y-2">
-              <ChipsFiltros filtros={filtros} facetas={facetas} onChange={setFiltros} />
-              {ocultas > 0 && (
-                <p className="text-[0.875rem] text-tinta-2">
-                  {plural(
-                    ocultas,
-                    "oferta usada ou recondicionada está escondida.",
-                    "ofertas usadas ou recondicionadas estão escondidas.",
-                  )}{" "}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFiltros({ ...filtros, condicao: ["novo", "recondicionado", "usado"] })
-                    }
-                    className="font-medium text-acao underline"
-                  >
-                    Mostrar também
-                  </button>
-                </p>
-              )}
-              {esperandoHistorico && (
-                <p role="status" className="text-[0.875rem] text-tinta-2">
-                  Conferindo o histórico de preço das ofertas.
-                </p>
-              )}
-            </div>
-
-            <div className="mt-4 space-y-4">
-              {melhor ? (
-                <EtiquetaMelhor
-                  melhor={melhor}
-                  contexto={contexto}
-                  outrasLojas={outrasLojas}
-                  chaveGrupo={grupoDoMelhor?.chave ?? ""}
-                  provisoria={varrendo}
-                />
-              ) : !terminou ? (
-                <EsqueletoMelhor />
-              ) : cep && principais.length > 0 ? (
-                <p className="rounded-etiqueta border border-tinta bg-etiqueta px-4 py-3 text-[0.9375rem] text-tinta-2">
-                  Nenhuma loja confirmou o frete para este CEP nas ofertas abaixo, então não há um
-                  total para recomendar. Os valores mostram o preço sem frete.
-                </p>
+                ))
+              ) : !terminou || esperandoHistorico ? (
+                <EsqueletoGrupos />
               ) : null}
 
-              {vazio ? (
-                <Vazio
-                  motivo={motivo ?? "nada_correspondente"}
-                  fora={lojasFora(transmissao.fontes)}
-                  q={q}
-                  cep={cep}
-                  aoTentarDeNovo={tentarDeNovo}
-                  aoLimparFiltros={() => setFiltros(limparFiltros(filtros))}
-                  hrefSemCep={`${pathname}?${semCep}`}
-                />
-              ) : (
-                <section aria-labelledby="titulo-ofertas">
-                  <h2 id="titulo-ofertas" className="sr-only">
-                    Ofertas por produto
-                  </h2>
-                  {mostrados.length ? (
-                    <div className="space-y-3">
-                      {mostrados.map((g) => (
-                        <CartaoGrupo key={g.chave} grupo={g} contexto={contexto} />
-                      ))}
-                    </div>
-                  ) : !terminou || esperandoHistorico ? (
-                    <EsqueletoGrupos />
-                  ) : null}
-
-                  {podeCarregarMais && mostrados.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={carregarMais}
-                      disabled={carregandoMais}
-                      className="botao botao-secundario mx-auto mt-5 flex"
-                    >
-                      {carregandoMais
-                        ? "Carregando"
-                        : `Mais ofertas (${plural(restantes, "restante", "restantes")})`}
-                    </button>
-                  )}
-                </section>
+              {podeCarregarMais && mostrados.length > 0 && (
+                <button
+                  type="button"
+                  onClick={carregarMais}
+                  disabled={carregandoMais}
+                  className="botao botao-linha mx-auto mt-8 flex"
+                >
+                  {carregandoMais
+                    ? "Carregando"
+                    : `Mais ofertas (${plural(restantes, "restante", "restantes")})`}
+                </button>
               )}
+            </section>
+          )}
 
-              {gruposParecidos.length > 0 && (
-                <Parecidos
-                  grupos={gruposParecidos}
-                  quantas={parecidos.length}
-                  contexto={contexto}
-                  abertos={!principais.length}
-                />
-              )}
-            </div>
-          </div>
+          {gruposParecidos.length > 0 && (
+            <Parecidos
+              grupos={gruposParecidos}
+              quantas={parecidos.length}
+              contexto={contexto}
+              abertos={!principais.length}
+            />
+          )}
         </div>
       </main>
     </div>
+  );
+}
+
+function Seletor<T extends string>({
+  rotulo,
+  curto,
+  classe = "flex-1",
+  valor,
+  opcoes,
+  aoMudar,
+}: {
+  rotulo: string;
+  /** rótulo visível no celular, onde o completo não cabe */
+  curto?: string;
+  classe?: string;
+  valor: T;
+  opcoes: { valor: T; rotulo: string }[];
+  aoMudar: (valor: T) => void;
+}) {
+  return (
+    <label className={`seletor min-w-0 sm:flex-none ${classe}`}>
+      {curto && (
+        <span aria-hidden className="shrink-0 pl-2 text-apagado sm:pl-2.5 md:hidden">
+          {curto}
+        </span>
+      )}
+      <span className="sr-only md:not-sr-only md:shrink-0 md:pl-3 md:text-apagado">{rotulo}</span>
+      <select
+        value={valor}
+        onChange={(e) => aoMudar(e.target.value as T)}
+        className={`h-[2.625rem] w-full min-w-0 cursor-pointer appearance-none truncate bg-transparent pr-6 text-[0.8125rem] font-medium sm:pr-8 sm:text-[0.875rem] md:w-auto md:max-w-[10.5rem] md:pl-1.5 ${
+          curto ? "pl-1.5" : "pl-2 sm:pl-3"
+        }`}
+      >
+        {opcoes.map((o) => (
+          <option key={o.valor} value={o.valor}>
+            {o.rotulo}
+          </option>
+        ))}
+      </select>
+      <ChevronDown
+        className="pointer-events-none absolute right-1.5 size-3.5 text-apagado sm:right-2.5 sm:size-4"
+        aria-hidden
+      />
+    </label>
   );
 }
 
@@ -555,21 +586,19 @@ function Parecidos({
   const [limite, setLimite] = useState(POR_VEZ);
   const mostrados = fatiar(grupos, limite);
   return (
-    <details open={abertos} className="gaveta-detalhes group">
-      <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-etiqueta border border-tinta bg-etiqueta px-4">
+    <details open={abertos} className="gaveta-detalhes mt-10 border-t border-traco-forte">
+      <summary className="flex min-h-14 cursor-pointer items-center justify-between gap-3 text-apagado transition-colors hover:text-tinta">
         <span>
-          <h2 className="inline font-semibold">Parecidos</h2>
-          <span className="text-tinta-2">
-            {" "}
-            · {plural(quantas, "oferta que não bate", "ofertas que não batem")} com tudo o que foi
-            buscado
-          </span>
+          <h2 className="inline font-medium text-tinta">Parecidos</h2>
+          {" · "}
+          {plural(quantas, "oferta que não bate", "ofertas que não batem")} com tudo o que foi
+          buscado
         </span>
-        <ChevronDown className="seta-detalhes size-5 shrink-0 transition-transform" aria-hidden />
+        <ChevronDown className="chevron size-5 shrink-0" aria-hidden />
       </summary>
-      <div className="mt-3 space-y-3">
+      <div>
         {mostrados.map((g) => (
-          <CartaoGrupo
+          <GrupoProduto
             key={g.chave}
             grupo={g}
             contexto={contexto}
@@ -580,7 +609,7 @@ function Parecidos({
           <button
             type="button"
             onClick={() => setLimite((n) => n + POR_VEZ)}
-            className="botao botao-secundario mx-auto flex"
+            className="botao botao-linha mx-auto mt-6 flex"
           >
             Mais parecidos
           </button>

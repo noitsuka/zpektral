@@ -2,272 +2,243 @@
 
 @theme inline {
   --font-sans: var(--fonte-texto), ui-sans-serif, system-ui, sans-serif;
-
-  --color-fundo: var(--fundo);
-  --color-etiqueta: var(--etiqueta);
-  --color-etiqueta-2: var(--etiqueta-2);
-  --color-tinta: var(--tinta);
-  --color-tinta-2: var(--tinta-2);
-  --color-tinta-3: var(--tinta-3);
-  --color-fio: var(--fio);
-  --color-borda: var(--borda);
-  --color-acao: var(--acao);
-  --color-acao-forte: var(--acao-forte);
-  --color-sobre-acao: var(--sobre-acao);
-  --color-acao-suave: var(--acao-suave);
-  --color-economia: var(--economia);
-  --color-economia-suave: var(--economia-suave);
-  --color-confirmado: var(--confirmado);
-  --color-confirmado-suave: var(--confirmado-suave);
-  --color-alerta: var(--alerta);
-  --color-alerta-suave: var(--alerta-suave);
-  --color-falha: var(--falha);
-  --color-falha-suave: var(--falha-suave);
+  --font-mono: var(--fonte-leitura), ui-monospace, "SFMono-Regular", monospace;
 }
 
 @theme {
-  --radius-controle: 4px;
-  --radius-etiqueta: 6px;
+  --color-fundo: #070707;
+  --color-painel: #0e0e0d;
+  --color-relevo: #171716;
+  --color-tinta: #f2f3f1;
+  --color-apagado: #a1a6a2;
+  /* clareado do #6c726e original para passar de 4,5:1 até sobre o relevo */
+  --color-tenue: #828783;
+  --color-traco: rgb(255 255 255 / 0.08);
+  --color-traco-forte: #272a29;
+  /* borda de campo de texto: 3:1 contra o fundo, para o campo se ver sem foco */
+  --color-contorno: #5e6360;
+  --color-ouro: #e9c46a;
+  --color-ouro-suave: rgb(233 196 106 / 0.12);
+  --color-exato: #7ee2a8;
+  --color-alerta: #f2b84b;
+  --color-falha: #f07a6a;
+  --color-falha-suave: rgb(240 122 106 / 0.08);
 
-  --text-rotulo: 0.75rem;
-  --text-rotulo--line-height: 1rem;
-  --text-rotulo--letter-spacing: 0.04em;
+  --radius-peca: 2px;
+  --radius-quadro: 3px;
 
   --ease-saida: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Etiqueta clara: papel branco sobre cinza frio, tinta quase preta, azul de caneta para ação. */
-:root {
-  color-scheme: light;
-  --fundo: #eceef1;
-  --etiqueta: #ffffff;
-  --etiqueta-2: #f5f6f8;
-  --tinta: #15171a;
-  --tinta-2: #4b5058;
-  --tinta-3: #60666e;
-  --fio: #d8dce2;
-  --borda: #858a93;
-  --acao: #2b3db8;
-  --acao-forte: #1f2e94;
-  --sobre-acao: #ffffff;
-  --acao-suave: #e8ebfa;
-  --economia: #17713f;
-  --economia-suave: #e2f2e7;
-  --confirmado: #6b2fa3;
-  --confirmado-suave: #f1e9f9;
-  --alerta: #8a5300;
-  --alerta-suave: #fcf0d9;
-  --falha: #b3261e;
-  --falha-suave: #fbe7e5;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --fundo: #0e1012;
-    --etiqueta: #16191c;
-    --etiqueta-2: #1d2125;
-    --tinta: #eef0ee;
-    --tinta-2: #b4bab8;
-    --tinta-3: #8f9692;
-    --fio: #2a2f33;
-    --borda: #6a716d;
-    --acao: #9eaeff;
-    --acao-forte: #c2ccff;
-    --sobre-acao: #0e1012;
-    --acao-suave: #1f2647;
-    --economia: #6ccf8e;
-    --economia-suave: #14291d;
-    --confirmado: #c6a4f2;
-    --confirmado-suave: #261b36;
-    --alerta: #f0bd5a;
-    --alerta-suave: #2e2410;
-    --falha: #ff8c80;
-    --falha-suave: #34171a;
-  }
-}
-
 @layer base {
   html {
-    background: var(--fundo);
-    color: var(--tinta);
+    color-scheme: dark;
+    background: var(--color-fundo);
+    color: var(--color-tinta);
+    scrollbar-color: var(--color-traco-forte) transparent;
+    scrollbar-width: thin;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    scrollbar-color: var(--borda) transparent;
     -webkit-tap-highlight-color: transparent;
+    interpolate-size: allow-keywords;
   }
   body {
     font-size: 0.9375rem;
     line-height: 1.5;
   }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
   ::selection {
-    background: var(--acao);
-    color: var(--sobre-acao);
+    background: var(--color-ouro);
+    color: var(--color-fundo);
   }
   :focus-visible {
-    outline: 2px solid var(--acao);
+    outline: 2px solid var(--color-ouro);
     outline-offset: 2px;
   }
   input,
-  select {
-    caret-color: var(--acao);
+  select,
+  textarea {
+    caret-color: var(--color-ouro);
   }
   input::placeholder {
-    color: var(--tinta-3);
+    color: var(--color-tenue);
     opacity: 1;
   }
+  select option {
+    background: var(--color-painel);
+    color: var(--color-tinta);
+  }
   a {
-    text-underline-offset: 0.2em;
+    text-underline-offset: 0.22em;
+    text-decoration-thickness: 1px;
   }
   dialog::backdrop {
-    background: rgb(14 16 18 / 0.55);
+    background: rgb(0 0 0 / 0.62);
   }
 }
 
 @layer components {
-  /* Rótulo de campo da etiqueta: Archivo estreita, caixa alta, só dentro de campos. */
-  .rotulo-campo {
-    font-size: var(--text-rotulo);
-    line-height: var(--text-rotulo--line-height);
-    letter-spacing: var(--text-rotulo--letter-spacing);
-    font-weight: 700;
-    font-stretch: 80%;
-    text-transform: uppercase;
-    color: var(--tinta-2);
-  }
-
-  /* Números da etiqueta: Archivo estreita, no mesmo eixo tabular em todas as lojas. */
   .numero {
-    font-stretch: 84%;
     font-variant-numeric: tabular-nums lining-nums;
-    font-feature-settings:
-      "tnum" 1,
-      "lnum" 1;
-  }
-
-  /* Carimbo: estado com borda, ícone e palavra, nunca só cor. */
-  .carimbo {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    border: 1.5px solid currentColor;
-    border-radius: var(--radius-controle);
-    padding: 0 0.35rem;
-    font-size: 0.6875rem;
-    line-height: 1.15rem;
-    font-weight: 700;
-    font-stretch: 80%;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  .selo {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    border-radius: var(--radius-controle);
-    padding: 0.05rem 0.4rem;
-    font-size: 0.8125rem;
-    line-height: 1.25rem;
   }
 
   .botao {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
+    gap: 0.45rem;
     min-height: 2.75rem;
-    border-radius: var(--radius-controle);
+    border-radius: var(--radius-quadro);
     padding: 0 1rem;
-    font-weight: 600;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    white-space: nowrap;
     transition:
-      background-color 0.15s ease,
-      border-color 0.15s ease,
-      color 0.15s ease;
-  }
-  .botao-primario {
-    background: var(--acao);
-    color: var(--sobre-acao);
-  }
-  .botao-primario:hover {
-    background: var(--acao-forte);
-  }
-  .botao-secundario {
-    border: 1px solid var(--borda);
-    background: var(--etiqueta);
-    color: var(--tinta);
-  }
-  .botao-secundario:hover {
-    border-color: var(--tinta);
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      filter 0.25s ease,
+      transform 0.15s ease;
   }
   .botao:disabled {
     cursor: not-allowed;
-    opacity: 0.55;
+    opacity: 0.5;
   }
 
+  /* O brilho atravessa o botão no hover, como no ouro original. */
+  .botao-ouro {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--color-ouro);
+    color: var(--color-fundo);
+    font-weight: 600;
+  }
+  .botao-ouro::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(
+      110deg,
+      transparent 35%,
+      rgb(255 255 255 / 0.45) 50%,
+      transparent 65%
+    );
+    transform: translateX(-120%);
+    transition: transform 0.8s var(--ease-saida);
+  }
+  .botao-ouro:hover {
+    filter: brightness(1.06);
+  }
+  .botao-ouro:hover::after,
+  .botao-ouro:focus-visible::after {
+    transform: translateX(120%);
+  }
+  .botao-ouro:active {
+    transform: scale(0.98);
+  }
+
+  .botao-linha {
+    border: 1px solid var(--color-traco-forte);
+    color: var(--color-tinta);
+  }
+  .botao-linha:hover {
+    border-color: rgb(233 196 106 / 0.55);
+    background: rgb(233 196 106 / 0.06);
+  }
+
+  .botao-texto {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 2.25rem;
+    color: var(--color-apagado);
+    font-size: 0.875rem;
+    transition: color 0.2s ease;
+  }
+  .botao-texto:hover,
+  .botao-texto[aria-expanded="true"] {
+    color: var(--color-tinta);
+  }
+  @media (pointer: coarse) {
+    .botao-texto {
+      min-height: 2.75rem;
+    }
+  }
+
+  .seta {
+    transition: transform 0.3s var(--ease-saida);
+  }
+  a:hover > .seta {
+    transform: translate(2px, -2px);
+  }
+  .chevron {
+    transition: transform 0.3s var(--ease-saida);
+  }
+  [aria-expanded="true"] > .chevron,
+  details[open] > summary .chevron {
+    transform: rotate(180deg);
+  }
+
+  /* Caixa de busca: o foco acende a borda inteira, e o rótulo do campo ativo fica dourado. */
   .campo {
-    border: 1px solid var(--borda);
-    border-radius: var(--radius-controle);
-    background: var(--etiqueta);
-    transition: border-color 0.15s ease;
+    border: 1px solid var(--color-contorno);
+    border-radius: var(--radius-quadro);
+    background: var(--color-fundo);
+    transition: border-color 0.2s ease;
   }
   .campo:hover {
-    border-color: var(--tinta-2);
+    border-color: #7a7f7b;
   }
   .campo:focus-within {
-    border-color: var(--acao);
-    box-shadow: 0 0 0 1px var(--acao);
+    border-color: var(--color-ouro);
   }
-  .campo input:focus-visible,
-  .campo select:focus-visible {
+  .campo :is(input, select):focus-visible {
     outline: none;
   }
 
-  .esqueleto {
-    background: linear-gradient(
-      90deg,
-      var(--etiqueta-2) 30%,
-      var(--fio) 50%,
-      var(--etiqueta-2) 70%
-    );
-    background-size: 300% 100%;
-    animation: reluzir 1.6s ease-in-out infinite;
-    border-radius: var(--radius-controle);
+  .seletor {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    border: 1px solid var(--color-traco-forte);
+    border-radius: var(--radius-quadro);
+    font-size: 0.875rem;
+    transition: border-color 0.2s ease;
+  }
+  .seletor:hover {
+    border-color: #3d413f;
+  }
+  .seletor:focus-within {
+    border-color: var(--color-ouro);
+  }
+  .seletor select:focus-visible {
+    outline: none;
   }
 
-  /* Faixa de lojas: um traço por loja, como as barras de uma etiqueta. */
-  .traco-loja {
-    flex: 1 1 0;
-    max-width: 5px;
-    min-width: 1px;
-    height: 0.875rem;
-    border-radius: 1px;
-    background: var(--fio);
-    transform-origin: bottom;
-    transition:
-      background-color 0.25s ease,
-      transform 0.35s var(--ease-saida);
+  /* O único momento coreografado: cada oferta entra quando a loja responde. */
+  .linha-oferta {
+    animation: entrar 0.5s var(--ease-saida) backwards;
+    animation-delay: calc(min(var(--i, 0), 8) * 40ms);
+    transition: background-color 0.25s ease;
   }
-  .traco-loja[data-estado="aguardando"] {
-    transform: scaleY(0.45);
-  }
-  .traco-loja[data-estado="catalogo"] {
-    background: var(--borda);
-    transform: scaleY(0.7);
-  }
-  .traco-loja[data-estado="final"] {
-    background: var(--tinta);
-  }
-  .traco-loja[data-estado="fora"] {
-    background: transparent;
-    box-shadow: inset 0 0 0 1px var(--falha);
+  @media (hover: hover) {
+    .linha-oferta[data-realce]:hover,
+    .linha-oferta[data-realce]:focus-within {
+      background-color: rgb(255 255 255 / 0.025);
+    }
   }
 
   .gaveta {
     display: grid;
     grid-template-rows: 0fr;
-    transition: grid-template-rows 0.22s var(--ease-saida);
+    transition: grid-template-rows 0.32s var(--ease-saida);
   }
   .gaveta > div {
     overflow: hidden;
@@ -280,8 +251,8 @@
     block-size: 0;
     overflow: hidden;
     transition:
-      block-size 0.2s var(--ease-saida),
-      content-visibility 0.2s allow-discrete;
+      block-size 0.3s var(--ease-saida),
+      content-visibility 0.3s allow-discrete;
   }
   .gaveta-detalhes[open]::details-content {
     block-size: auto;
@@ -292,46 +263,113 @@
   .gaveta-detalhes > summary::-webkit-details-marker {
     display: none;
   }
-  .gaveta-detalhes[open] > summary .seta-detalhes {
-    transform: rotate(180deg);
+
+  /* Progresso da busca: um fio dourado na base do cabeçalho. */
+  .linha-progresso {
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 2px;
+    overflow: hidden;
+    transition: opacity 0.6s ease 0.3s;
+  }
+  .linha-progresso > span {
+    position: absolute;
+    inset: 0;
+    background: var(--color-ouro);
+    transform-origin: left;
+    transition: transform 0.6s var(--ease-saida);
+  }
+  .linha-progresso[data-terminou="true"] {
+    opacity: 0;
   }
 
+  .esqueleto {
+    border-radius: var(--radius-peca);
+    background-color: rgb(255 255 255 / 0.04);
+    background-image: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.05), transparent);
+    background-size: 50% 100%;
+    background-repeat: no-repeat;
+    animation: reluzir 1.6s ease-in-out infinite;
+  }
+
+  .globo {
+    opacity: 0;
+    transition: opacity 0.8s var(--ease-saida);
+  }
+  .globo[data-pronto] {
+    opacity: 1;
+  }
+
+  /* Gaveta de filtros: painel à direita; no celular, sobe de baixo. */
   .dialogo-filtros {
-    margin: auto 0 0;
-    width: 100%;
+    margin: 0 0 0 auto;
+    width: min(25rem, 100%);
     max-width: 100%;
-    max-height: 90dvh;
-    border-radius: var(--radius-etiqueta) var(--radius-etiqueta) 0 0;
-    background: var(--etiqueta);
-    color: var(--tinta);
+    height: 100dvh;
+    max-height: 100dvh;
+    border-left: 1px solid var(--color-traco);
+    background: var(--color-painel);
+    color: var(--color-tinta);
     padding: 0;
   }
   .dialogo-filtros[open] {
-    animation: subir 0.22s var(--ease-saida);
+    animation: deslizar 0.32s var(--ease-saida);
   }
-
-  /* O carimbo assenta quando o estado do frete chega ou muda; começa visível. */
-  .carimbo {
-    animation: carimbar 0.22s var(--ease-saida);
-  }
-  @keyframes carimbar {
-    from {
-      transform: scale(1.14);
-      opacity: 0.55;
+  @media (max-width: 639px) {
+    .dialogo-filtros {
+      margin: auto 0 0;
+      width: 100%;
+      height: auto;
+      max-height: 88dvh;
+      border-left: 0;
+      border-top: 1px solid var(--color-traco);
+      border-radius: var(--radius-quadro) var(--radius-quadro) 0 0;
+    }
+    .dialogo-filtros[open] {
+      animation-name: subir;
     }
   }
 
+  .pular {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 60;
+    transform: translateY(-200%);
+    border-radius: var(--radius-quadro);
+    background: var(--color-ouro);
+    color: var(--color-fundo);
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+  }
+  .pular:focus {
+    transform: none;
+  }
+
+  @keyframes entrar {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
   @keyframes reluzir {
     from {
-      background-position: 100% 0;
+      background-position: -60% 0;
     }
     to {
-      background-position: 0 0;
+      background-position: 160% 0;
+    }
+  }
+  @keyframes deslizar {
+    from {
+      transform: translateX(2rem);
+      opacity: 0;
     }
   }
   @keyframes subir {
     from {
-      transform: translateY(24px);
+      transform: translateY(2rem);
       opacity: 0;
     }
   }
@@ -343,8 +381,10 @@
   *::after,
   *::details-content {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
 }
 
@@ -352,8 +392,4 @@
   .gaveta-detalhes::details-content {
     transition: none;
   }
-}
-
-:root {
-  interpolate-size: allow-keywords;
 }

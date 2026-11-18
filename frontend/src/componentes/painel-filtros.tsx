@@ -7,7 +7,6 @@ import {
   CONDICOES,
   FILTROS_PADRAO,
   FRETES,
-  PAGAMENTOS,
   contarFiltrosAtivos,
   limparFiltros,
   voltagemFazSentido,
@@ -29,8 +28,8 @@ const ROTULO_VOLTAGEM: Record<string, string> = {
 
 function Secao({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
-    <fieldset className="border-b border-fio px-4 py-4 last:border-0 lg:px-0">
-      <legend className="float-left mb-2 w-full text-[0.875rem] font-semibold">{titulo}</legend>
+    <fieldset className="border-t border-traco px-5 py-5 first:border-t-0">
+      <legend className="float-left mb-2 w-full text-[0.9375rem] font-medium">{titulo}</legend>
       <div className="clear-both">{children}</div>
     </fieldset>
   );
@@ -52,17 +51,19 @@ function Escolha({
   contagem?: number;
 }) {
   return (
-    <label className="flex min-h-11 cursor-pointer items-center gap-2.5 text-[0.9375rem] lg:min-h-8 lg:text-[0.875rem]">
+    <label className="flex min-h-10 cursor-pointer items-center gap-3 text-[0.9375rem] text-apagado transition-colors hover:text-tinta has-checked:text-tinta pointer-coarse:min-h-11">
       <input
         type={tipo}
         name={nome}
         checked={marcado}
         onChange={aoMudar}
-        className="size-4 shrink-0 accent-[var(--acao)]"
+        className="size-4 shrink-0 accent-[var(--color-ouro)]"
       />
       <span className="min-w-0 flex-1">{children}</span>
       {contagem !== undefined && (
-        <span className="numero text-[0.8125rem] text-tinta-3">{quantidade(contagem)}</span>
+        <span className="font-mono text-[0.8125rem] text-tenue tabular-nums">
+          {quantidade(contagem)}
+        </span>
       )}
     </label>
   );
@@ -96,10 +97,10 @@ function CampoPreco({
     setRascunho(null);
   };
   return (
-    <label className="flex min-w-0 flex-1 flex-col gap-1">
-      <span className="text-[0.8125rem] text-tinta-2">{rotulo}</span>
-      <span className="campo flex items-center gap-1.5 px-2.5">
-        <span className="text-[0.8125rem] text-tinta-3" aria-hidden>
+    <label className="flex min-w-0 flex-1 flex-col gap-1.5">
+      <span className="text-[0.8125rem] text-apagado">{rotulo}</span>
+      <span className="campo flex items-center gap-1.5 px-3">
+        <span className="text-[0.8125rem] text-tenue" aria-hidden>
           R$
         </span>
         <input
@@ -109,14 +110,14 @@ function CampoPreco({
           onKeyDown={(e) => e.key === "Enter" && confirmar()}
           inputMode="decimal"
           placeholder={dica}
-          className="numero h-10 w-full min-w-0 bg-transparent text-base outline-none"
+          className="h-11 w-full min-w-0 bg-transparent font-mono text-[0.9375rem] tabular-nums outline-none placeholder:font-sans"
         />
       </span>
     </label>
   );
 }
 
-export function PainelFiltros({ filtros, facetas, onChange }: Props) {
+function PainelFiltros({ filtros, facetas, onChange }: Props) {
   const [todasLojas, setTodasLojas] = useState(false);
   const aplicar = (alteracao: Partial<Filtros>) => onChange({ ...filtros, ...alteracao });
 
@@ -128,59 +129,6 @@ export function PainelFiltros({ filtros, facetas, onChange }: Props) {
 
   return (
     <div>
-      <Secao titulo="Pagar com">
-        {PAGAMENTOS.map((p) => (
-          <Escolha
-            key={p.valor}
-            tipo="radio"
-            nome="pagamento"
-            marcado={filtros.pagamento === p.valor}
-            aoMudar={() => aplicar({ pagamento: p.valor })}
-          >
-            {p.rotulo}
-            <span className="block text-[0.8125rem] leading-tight text-tinta-3">{p.dica}</span>
-          </Escolha>
-        ))}
-      </Secao>
-
-      <Secao titulo="Total">
-        <div className="flex gap-2">
-          <CampoPreco
-            rotulo="De"
-            dica="mín."
-            centavos={filtros.preco_min}
-            aoConfirmar={(c) => aplicar({ preco_min: c })}
-          />
-          <CampoPreco
-            rotulo="Até"
-            dica="máx."
-            centavos={filtros.preco_max}
-            aoConfirmar={(c) => aplicar({ preco_max: c })}
-          />
-        </div>
-        {/* fora do campo: valor no placeholder parece filtro já aplicado e não cabe na largura */}
-        {facetas?.preco_min != null && facetas.preco_max != null && (
-          <p className="mt-1.5 text-[0.8125rem] text-tinta-3">
-            Nesta busca: <span className="numero">{reais(facetas.preco_min)}</span> a{" "}
-            <span className="numero">{reais(facetas.preco_max)}</span>
-          </p>
-        )}
-      </Secao>
-
-      <Secao titulo="Preço">
-        <Escolha
-          tipo="checkbox"
-          nome="queda"
-          marcado={filtros.queda_verificada}
-          aoMudar={() => aplicar({ queda_verificada: !filtros.queda_verificada })}
-        >
-          Só com queda verificada
-          <span className="block text-[0.8125rem] leading-tight text-tinta-3">
-            abaixo do habitual da própria loja, nas buscas do Zpektral
-          </span>
-        </Escolha>
-      </Secao>
-
       <Secao titulo="Frete">
         {FRETES.map((s) => (
           <Escolha
@@ -202,6 +150,44 @@ export function PainelFiltros({ filtros, facetas, onChange }: Props) {
         ))}
       </Secao>
 
+      <Secao titulo="Total">
+        <div className="flex gap-3">
+          <CampoPreco
+            rotulo="De"
+            dica="mín."
+            centavos={filtros.preco_min}
+            aoConfirmar={(c) => aplicar({ preco_min: c })}
+          />
+          <CampoPreco
+            rotulo="Até"
+            dica="máx."
+            centavos={filtros.preco_max}
+            aoConfirmar={(c) => aplicar({ preco_max: c })}
+          />
+        </div>
+        {/* fora do campo: valor no placeholder parece filtro já aplicado e não cabe na largura */}
+        {facetas?.preco_min != null && facetas.preco_max != null && (
+          <p className="mt-2 text-[0.8125rem] text-apagado">
+            Nesta busca, de <span className="numero">{reais(facetas.preco_min)}</span> a{" "}
+            <span className="numero">{reais(facetas.preco_max)}</span>
+          </p>
+        )}
+      </Secao>
+
+      <Secao titulo="Preço">
+        <Escolha
+          tipo="checkbox"
+          nome="queda"
+          marcado={filtros.queda_verificada}
+          aoMudar={() => aplicar({ queda_verificada: !filtros.queda_verificada })}
+        >
+          Só com queda verificada
+          <span className="block text-[0.8125rem] leading-snug text-tenue">
+            abaixo do habitual da própria loja, nas buscas do Zpektral
+          </span>
+        </Escolha>
+      </Secao>
+
       {(lojas.length > 1 || filtros.lojas.length > 0) && (
         <Secao titulo="Lojas">
           {lojasVisiveis.map((s) => (
@@ -220,7 +206,7 @@ export function PainelFiltros({ filtros, facetas, onChange }: Props) {
             <button
               type="button"
               onClick={() => setTodasLojas((v) => !v)}
-              className="mt-1 min-h-11 text-[0.875rem] font-medium text-acao underline lg:min-h-8"
+              className="botao-texto mt-1 text-ouro underline decoration-ouro/40 hover:text-ouro"
             >
               {todasLojas ? "Mostrar menos" : `Ver as ${lojas.length} lojas`}
             </button>
@@ -272,7 +258,7 @@ export function PainelFiltros({ filtros, facetas, onChange }: Props) {
               {c.rotulo}
             </Escolha>
           ))}
-          <p className="mt-1 text-[0.8125rem] text-tinta-3">
+          <p className="mt-1 text-[0.8125rem] text-tenue">
             Lido do anúncio. Lojas que não informam a condição contam como novo.
           </p>
         </Secao>
@@ -283,24 +269,28 @@ export function PainelFiltros({ filtros, facetas, onChange }: Props) {
 
 export function BotaoFiltros({ visiveis, ...props }: Props & { visiveis: number }) {
   const dialogo = useRef<HTMLDialogElement>(null);
+  const botao = useRef<HTMLButtonElement>(null);
   const [aberto, setAberto] = useState(false);
   const ativos = contarFiltrosAtivos(props.filtros);
 
   return (
     <>
       <button
+        ref={botao}
         type="button"
         onClick={() => {
           setAberto(true);
           dialogo.current?.showModal();
         }}
         aria-haspopup="dialog"
-        className="botao botao-secundario flex-1 px-3 text-[0.9375rem]"
+        className={`botao botao-linha shrink-0 gap-1.5 px-2.5 text-[0.875rem] sm:gap-2 sm:px-3.5 ${
+          ativos ? "border-ouro/50 text-ouro" : ""
+        }`}
       >
         <SlidersHorizontal className="size-4" aria-hidden />
         Filtros
         {ativos > 0 && (
-          <span className="numero grid min-w-5 place-items-center rounded-full bg-acao px-1 text-[0.75rem] text-sobre-acao">
+          <span className="grid min-w-5 place-items-center rounded-full bg-ouro px-1 font-mono text-[0.75rem] leading-5 text-fundo">
             {ativos}
             <span className="sr-only"> ativos</span>
           </span>
@@ -309,41 +299,44 @@ export function BotaoFiltros({ visiveis, ...props }: Props & { visiveis: number 
       <dialog
         ref={dialogo}
         aria-labelledby="titulo-filtros"
-        onClose={() => setAberto(false)}
+        onClose={() => {
+          setAberto(false);
+          botao.current?.focus();
+        }}
         onClick={(e) => e.target === dialogo.current && dialogo.current?.close()}
         className="dialogo-filtros"
       >
         {aberto && (
-          <div className="flex max-h-[90dvh] flex-col">
-            <div className="flex items-center justify-between border-b border-fio py-1 pr-1 pl-4">
-              <h2 id="titulo-filtros" className="font-semibold">
+          <div className="flex h-full max-h-[inherit] flex-col">
+            <div className="flex items-center justify-between py-2 pr-2 pl-5">
+              <h2 id="titulo-filtros" className="text-[1.0625rem] font-semibold">
                 Filtros
               </h2>
               <button
                 type="button"
                 onClick={() => dialogo.current?.close()}
-                className="grid size-11 place-items-center text-tinta-2 hover:text-tinta"
+                className="grid size-11 place-items-center rounded-quadro text-apagado transition-colors hover:text-tinta"
               >
                 <X className="size-5" aria-hidden />
                 <span className="sr-only">Fechar os filtros</span>
               </button>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-traco">
               <PainelFiltros {...props} />
             </div>
-            <div className="flex items-center gap-3 border-t border-fio px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+            <div className="flex items-center gap-3 border-t border-traco px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
               <button
                 type="button"
                 disabled={!ativos}
                 onClick={() => props.onChange(limparFiltros(props.filtros))}
-                className="botao botao-secundario"
+                className="botao botao-linha"
               >
                 Limpar
               </button>
               <button
                 type="button"
                 onClick={() => dialogo.current?.close()}
-                className="botao botao-primario flex-1"
+                className="botao botao-ouro flex-1"
               >
                 Ver {plural(visiveis, "oferta", "ofertas")}
               </button>
@@ -411,7 +404,7 @@ export function ChipsFiltros({ filtros, facetas, onChange }: Props) {
           <button
             type="button"
             onClick={() => onChange({ ...filtros, ...c.remover })}
-            className="inline-flex min-h-8 items-center gap-1.5 rounded-controle border border-acao bg-acao-suave px-2.5 text-[0.8125rem] font-medium text-acao hover:bg-etiqueta"
+            className="inline-flex min-h-8 items-center gap-1.5 rounded-quadro border border-ouro/40 bg-ouro-suave px-2.5 text-[0.8125rem] text-ouro transition-colors hover:border-ouro/80 pointer-coarse:min-h-11"
           >
             {c.rotulo}
             <X className="size-3.5" aria-hidden />
@@ -423,7 +416,7 @@ export function ChipsFiltros({ filtros, facetas, onChange }: Props) {
         <button
           type="button"
           onClick={() => onChange(limparFiltros(filtros))}
-          className="min-h-8 px-1.5 text-[0.8125rem] font-medium text-tinta-2 underline hover:text-tinta"
+          className="botao-texto min-h-8 px-1.5 text-[0.8125rem] pointer-coarse:min-h-11"
         >
           Limpar tudo
         </button>

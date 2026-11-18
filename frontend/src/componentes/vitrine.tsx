@@ -1,92 +1,60 @@
 "use client";
 
-import { ArrowUpRight, CircleX, RotateCw } from "lucide-react";
+import { RotateCw } from "lucide-react";
 
-import {
-  CarimboTotal,
-  LinhaOferta,
-  ListaSelos,
-  rotuloDoTotal,
-  textoDoFrete,
-  type Contexto,
-} from "@/componentes/linha-oferta";
 import { Foto } from "@/componentes/foto";
-import { linkDaOferta, totalPara } from "@/nucleo/filtros";
-import { textoDoPagamento } from "@/nucleo/pagamento";
-import { dataEntrega, haQuanto, mascararCep, plural, reais } from "@/nucleo/formato";
-import type { Oferta } from "@/nucleo/tipos";
+import { LinhaOferta, type Contexto } from "@/componentes/linha-oferta";
+import { mascararCep, plural, reais } from "@/nucleo/formato";
 import type { EstadoFonte } from "@/nucleo/transmissao";
-import { estadoDoTotal, type Grupo, type MelhorOferta, type MotivoVazio } from "@/nucleo/vitrine";
+import type { Grupo, MelhorOferta, MotivoVazio } from "@/nucleo/vitrine";
 
 const idDoGrupo = (chave: string) => `produto-${chave.replace(/[^a-z0-9]/gi, "-")}`;
 
-function faixaDoGrupo(ofertas: Oferta[], contexto: Contexto): string | null {
-  const totais = ofertas
-    .filter((o) => o.disponivel && o.frete.status !== "nao_entrega")
-    .map((o) => totalPara(o, contexto.pagamento));
-  const lojas = new Set(ofertas.map((o) => o.loja.id)).size;
-  if (lojas < 2 || !totais.length) return null;
-  const menor = Math.min(...totais);
-  const maior = Math.max(...totais);
-  return menor === maior
-    ? `${reais(menor)} em ${lojas} lojas`
-    : `De ${reais(menor)} a ${reais(maior)} em ${lojas} lojas`;
-}
+const CONDICAO: Record<string, string> = { usado: "Usado", recondicionado: "Recondicionado" };
 
-export function CartaoGrupo({
+export function GrupoProduto({
   grupo,
   contexto,
   motivo,
+  omitir,
 }: {
   grupo: Grupo;
   contexto: Contexto;
   motivo?: string;
+  /** oferta já mostrada no destaque do menor total */
+  omitir?: string;
 }) {
   const [primeira] = grupo.ofertas;
+  const linhas = omitir ? grupo.ofertas.filter((o) => o.id !== omitir) : grupo.ofertas;
+  if (!linhas.length) return null;
   const comFoto = grupo.ofertas.find((o) => o.imagem) ?? primeira;
-  const faixa = faixaDoGrupo(grupo.ofertas, contexto);
   const id = idDoGrupo(grupo.chave);
-  const disponiveis = grupo.ofertas.filter((o) => o.disponivel && o.frete.status !== "nao_entrega");
-  const maisBarata =
-    disponiveis.length > 1
-      ? disponiveis.reduce((m, o) =>
-          totalPara(o, contexto.pagamento) < totalPara(m, contexto.pagamento) ? o : m,
-        )
-      : null;
-  const extras = [
-    primeira.marca,
-    primeira.voltagem,
-    primeira.condicao !== "novo" ? primeira.condicao : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const condicao = primeira.condicao ? CONDICAO[primeira.condicao] : undefined;
 
   return (
     <section
       id={id}
       aria-labelledby={`${id}-titulo`}
-      className="scroll-mt-32 overflow-hidden rounded-etiqueta border border-tinta bg-etiqueta"
+      className="scroll-mt-40 border-t border-traco pt-5 pb-1"
     >
-      <header className="flex gap-3 px-4 pt-4 pb-3">
-        <Foto imagem={comFoto.imagem} tamanho="size-16" />
-        <div className="min-w-0">
-          <h3 id={`${id}-titulo`} className="line-clamp-2 leading-snug font-semibold">
+      {/* do tablet para cima a foto fica na coluna do recuo, e a primeira loja encosta no título */}
+      <header className="flex items-start gap-4 sm:relative sm:pr-4 sm:pl-20">
+        <Foto imagem={comFoto.imagem} tamanho="size-12 sm:absolute sm:top-0 sm:left-4" />
+        <div className="min-w-0 pt-0.5">
+          <h3 id={`${id}-titulo`} className="line-clamp-2 text-[1rem] leading-snug font-medium">
             {primeira.titulo}
           </h3>
-          {(extras || faixa) && (
-            <p className="mt-1 text-[0.8125rem] text-tinta-2">
-              {extras && <span className="capitalize">{extras}</span>}
-              {extras && faixa && " · "}
-              {faixa && <span className="numero">{faixa}</span>}
+          {(condicao || motivo) && (
+            <p className="mt-0.5 text-[0.8125rem] text-alerta">
+              {[condicao, motivo].filter(Boolean).join(" · ")}
             </p>
           )}
-          {motivo && <p className="mt-1 text-[0.8125rem] font-medium text-alerta">{motivo}</p>}
         </div>
       </header>
-      <ol className="divide-y divide-fio border-t border-fio">
-        {grupo.ofertas.map((o) => (
+      <ol className="divide-y divide-traco sm:pl-16 [&>li:first-child>article]:pt-2 lg:[&>li:first-child>article]:pt-1">
+        {linhas.map((o, i) => (
           <li key={o.id}>
-            <LinhaOferta oferta={o} contexto={contexto} destaque={o === maisBarata} />
+            <LinhaOferta oferta={o} contexto={contexto} indice={i} />
           </li>
         ))}
       </ol>
@@ -94,24 +62,8 @@ export function CartaoGrupo({
   );
 }
 
-function Campo({
-  rotulo,
-  bordas,
-  children,
-}: {
-  rotulo: string;
-  bordas: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className={`min-w-0 border-tinta px-4 py-3 ${bordas}`}>
-      <dt className="rotulo-campo">{rotulo}</dt>
-      <dd className="numero mt-1 font-semibold">{children}</dd>
-    </div>
-  );
-}
-
-export function EtiquetaMelhor({
+// O menor total é a primeira linha da lista: mesmo desenho das outras, com o fio e o rótulo em ouro.
+export function MelhorTotal({
   melhor,
   contexto,
   outrasLojas,
@@ -124,133 +76,52 @@ export function EtiquetaMelhor({
   chaveGrupo: string;
   provisoria: boolean;
 }) {
+  const confirmado = melhor.motivo === "confirmado";
   const { oferta } = melhor;
-  const estado = estadoDoTotal(oferta, contexto.cep !== null);
-  const total = totalPara(oferta, contexto.pagamento);
-  const frete = oferta.frete;
-  const t = oferta.totais;
-  const quando = oferta.consultado_em ? haQuanto(oferta.consultado_em, contexto.agora) : null;
-  const selos = contexto.promocoes(oferta).selos;
-  const entrega = frete.entrega_ate
-    ? `até ${dataEntrega(frete.entrega_ate)}`
-    : (frete.prazo ?? "não informada");
-
   return (
-    <section
-      aria-labelledby="titulo-melhor"
-      className="overflow-hidden rounded-etiqueta border-2 border-tinta bg-etiqueta"
-    >
-      <h2
-        id="titulo-melhor"
-        className="bg-tinta px-4 py-2 text-[0.9375rem] font-semibold text-etiqueta"
-      >
-        {melhor.motivo === "confirmado"
-          ? `Menor total com entrega no CEP ${mascararCep(contexto.cep ?? "")}`
-          : "Menor preço, ainda sem o frete"}
+    <section aria-labelledby="titulo-melhor" className="border-t border-ouro/70 pt-4 pb-1">
+      <h2 id="titulo-melhor" className="text-[0.8125rem] font-medium text-ouro sm:px-4">
+        {confirmado ? "Menor total no seu CEP" : "Menor preço, ainda sem o frete"}
+        {provisoria && <span className="font-normal text-apagado"> até agora</span>}
       </h2>
-
-      <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-3 p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
-        <Foto imagem={oferta.imagem} tamanho="size-16 sm:size-20" />
-        <div className="min-w-0">
-          <p className="line-clamp-3 text-[1.0625rem] leading-snug font-semibold">
-            {oferta.titulo}
-          </p>
-          <p className="mt-1 text-[0.875rem] text-tinta-2">
-            <span className="font-semibold text-tinta">{oferta.loja.nome}</span>
-            {oferta.origem === "marketplace" && oferta.vendedor && (
-              <> · vendido por {oferta.vendedor}</>
-            )}
-          </p>
-        </div>
-        <div className="col-span-full sm:col-span-1 sm:text-right">
-          <p className="text-[0.8125rem] text-tinta-2">{rotuloDoTotal(estado, oferta)}</p>
-          <p className="numero text-[2.25rem] leading-none font-bold">{reais(total)}</p>
-          <p className="mt-1 text-[0.8125rem] text-tinta-2">
-            {textoDoPagamento(oferta, contexto.pagamento)}
-          </p>
-        </div>
-        {selos.length > 0 && (
-          <div className="col-span-full">
-            <ListaSelos selos={selos} />
-          </div>
-        )}
+      <div className="mt-2 flex items-start gap-4 sm:relative sm:pr-4 sm:pl-20">
+        <Foto imagem={oferta.imagem} tamanho="size-12 sm:absolute sm:top-0 sm:left-4" />
+        <p className="line-clamp-2 pt-0.5 text-[1rem] leading-snug font-medium">{oferta.titulo}</p>
       </div>
-
-      <dl className="grid grid-cols-2 border-t-2 border-tinta sm:grid-cols-4">
-        <Campo rotulo="Produto" bordas="border-r border-b sm:border-b-0">
-          {reais(oferta.preco)}
-        </Campo>
-        <Campo
-          rotulo={contexto.cep ? `Frete ${mascararCep(contexto.cep)}` : "Frete"}
-          bordas="border-b sm:border-r sm:border-b-0"
-        >
-          <span className="flex flex-wrap items-center gap-1.5">
-            {estado === "confirmado"
-              ? frete.valor
-                ? reais(frete.valor)
-                : "Grátis"
-              : "Não incluído"}
-            <CarimboTotal estado={estado} />
-          </span>
-        </Campo>
-        <Campo rotulo="No Pix" bordas="border-r">
-          {t?.pix != null && t.pix < t.avista ? (
-            reais(t.pix)
-          ) : (
-            <span className="font-normal text-tinta-2">sem desconto</span>
-          )}
-        </Campo>
-        <Campo rotulo="Entrega" bordas="">
-          {estado === "confirmado" ? (
-            entrega
-          ) : (
-            <span className="font-normal text-tinta-2">
-              {textoDoFrete(oferta, estado, contexto.cep)}
-            </span>
-          )}
-        </Campo>
-      </dl>
-
-      <div className="flex flex-col gap-3 border-t-2 border-tinta p-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="max-w-[60ch] text-[0.875rem] text-tinta-2">
-          <p>
-            {melhor.motivo === "confirmado"
-              ? `É o menor total entre ${plural(melhor.comparadas, "oferta com frete confirmado", "ofertas com frete confirmado")} para este CEP.`
-              : `É o menor preço entre ${plural(melhor.comparadas, "oferta", "ofertas")}. Informe o CEP para comparar com o frete.`}
-            {melhor.segunda && melhor.diferenca !== null && (
-              <>
-                {" "}
-                A próxima loja, {melhor.segunda.loja.nome}, cobra{" "}
-                <span className="numero font-semibold text-tinta">{reais(melhor.diferenca)}</span> a
-                mais.
-              </>
-            )}
-          </p>
-          {(quando || provisoria) && (
-            <p className="mt-1 text-tinta-3">
-              {quando && `Preço consultado ${quando}. `}
-              {provisoria && "Ainda há lojas respondendo; o menor total pode mudar."}
+      <div className="sm:pl-16 [&>article]:pt-2 lg:[&>article]:pt-1">
+        <LinhaOferta
+          oferta={oferta}
+          contexto={contexto}
+          principal
+          antesDaConta={
+            <p>
+              {confirmado
+                ? `É o menor total entre ${plural(melhor.comparadas, "oferta com frete confirmado", "ofertas com frete confirmado")} para este CEP.`
+                : `É o menor preço entre ${plural(melhor.comparadas, "oferta", "ofertas")}. Informe o CEP para comparar com o frete.`}
+              {melhor.segunda && melhor.diferenca !== null && (
+                <>
+                  {" "}
+                  A próxima loja, {melhor.segunda.loja.nome}, cobra{" "}
+                  <span className="numero whitespace-nowrap text-tinta">
+                    {reais(melhor.diferenca)}
+                  </span>{" "}
+                  a mais.
+                </>
+              )}
+              {outrasLojas > 0 && (
+                <>
+                  {" "}
+                  <a
+                    href={`#${idDoGrupo(chaveGrupo)}`}
+                    className="text-tinta underline decoration-traco-forte hover:decoration-current"
+                  >
+                    Comparar em {plural(outrasLojas, "outra loja", "outras lojas")}
+                  </a>
+                </>
+              )}
             </p>
-          )}
-          {outrasLojas > 0 && (
-            <a
-              href={`#${idDoGrupo(chaveGrupo)}`}
-              className="mt-2 inline-block font-medium text-acao underline"
-            >
-              Comparar este produto em {plural(outrasLojas, "outra loja", "outras lojas")}
-            </a>
-          )}
-        </div>
-        <a
-          href={linkDaOferta(oferta)}
-          target="_blank"
-          rel="noopener noreferrer nofollow"
-          className="botao botao-primario w-full shrink-0 sm:w-auto"
-        >
-          Ir para {oferta.loja.nome}
-          <ArrowUpRight className="size-4" aria-hidden />
-          <span className="sr-only"> (abre em nova aba)</span>
-        </a>
+          }
+        />
       </div>
     </section>
   );
@@ -258,37 +129,46 @@ export function EtiquetaMelhor({
 
 export function EsqueletoMelhor() {
   return (
-    <div aria-hidden className="rounded-etiqueta border-2 border-fio bg-etiqueta">
-      <div className="h-9 border-b border-fio" />
-      <div className="flex gap-4 p-4">
-        <div className="esqueleto size-16 sm:size-20" />
+    <div aria-hidden className="border-t border-traco pt-4 pb-1 sm:px-4">
+      <div className="esqueleto h-3.5 w-40" />
+      <div className="mt-3 flex gap-4">
+        <div className="esqueleto size-12" />
         <div className="flex-1 space-y-2 pt-1">
-          <div className="esqueleto h-4 w-4/5" />
-          <div className="esqueleto h-4 w-2/5" />
+          <div className="esqueleto h-4 w-3/4" />
         </div>
-        <div className="esqueleto hidden h-9 w-32 sm:block" />
       </div>
-      <div className="h-[8.5rem] border-t border-fio sm:h-[7.75rem]" />
+      <div className="flex justify-between gap-4 py-4 sm:pl-16">
+        <div className="space-y-2">
+          <div className="esqueleto h-4 w-24" />
+          <div className="esqueleto h-3.5 w-40" />
+        </div>
+        <div className="esqueleto h-6 w-28" />
+      </div>
     </div>
   );
 }
 
 export function EsqueletoGrupos() {
   return (
-    <div aria-hidden className="space-y-3">
+    <div aria-hidden>
       {[0, 1, 2].map((i) => (
-        <div key={i} className="rounded-etiqueta border border-fio bg-etiqueta">
-          <div className="flex gap-3 p-4">
-            <div className="esqueleto size-16" />
+        <div key={i} className="border-t border-traco pt-5 pb-1 sm:px-4">
+          <div className="flex gap-4">
+            <div className="esqueleto size-12" />
             <div className="flex-1 space-y-2 pt-1">
               <div className="esqueleto h-4 w-3/4" />
-              <div className="esqueleto h-3 w-1/3" />
+              <div className="esqueleto h-3.5 w-1/4" />
             </div>
           </div>
-          <div className="flex justify-between border-t border-fio p-4">
-            <div className="esqueleto h-4 w-28" />
-            <div className="esqueleto h-6 w-24" />
-          </div>
+          {[0, 1].map((j) => (
+            <div key={j} className="flex justify-between gap-4 py-4 sm:pl-16">
+              <div className="space-y-2">
+                <div className="esqueleto h-4 w-24" />
+                <div className="esqueleto h-3.5 w-40" />
+              </div>
+              <div className="esqueleto h-6 w-28" />
+            </div>
+          ))}
         </div>
       ))}
     </div>
@@ -314,12 +194,19 @@ const TEXTOS_VAZIO: Record<MotivoVazio, (q: string, cep: string | null) => [stri
   ],
 };
 
+const SITUACAO: Partial<Record<EstadoFonte, string>> = {
+  bloqueada: "recusou a consulta",
+  tempo_esgotado: "não respondeu a tempo",
+  erro: "respondeu com erro",
+};
+
 export function Vazio({
   motivo,
   q,
   cep,
   aoTentarDeNovo,
   aoLimparFiltros,
+  aoCorrigirBusca,
   hrefSemCep,
   fora = [],
 }: {
@@ -328,48 +215,49 @@ export function Vazio({
   cep: string | null;
   aoTentarDeNovo: () => void;
   aoLimparFiltros: () => void;
+  aoCorrigirBusca: () => void;
   hrefSemCep: string;
   fora?: { id: string; nome: string; situacao: EstadoFonte }[];
 }) {
   const [titulo, texto] = TEXTOS_VAZIO[motivo](q, cep);
   return (
-    <div className="rounded-etiqueta border border-tinta bg-etiqueta px-5 py-7 sm:px-8">
+    <div className="border-t border-traco py-10">
       <h2 className="text-[1.1875rem] font-semibold">{titulo}</h2>
-      <p className="mt-1.5 max-w-[60ch] text-tinta-2">{texto}</p>
-      <div className="mt-5 flex flex-wrap gap-2">
+      <p className="mt-1.5 max-w-[60ch] text-apagado">{texto}</p>
+      <div className="mt-6 flex flex-wrap gap-2">
         {motivo === "nenhuma_loja_respondeu" && (
-          <button type="button" onClick={aoTentarDeNovo} className="botao botao-primario">
+          <button type="button" onClick={aoTentarDeNovo} className="botao botao-ouro">
             <RotateCw className="size-4" aria-hidden />
             Tentar de novo
           </button>
         )}
+        {motivo === "nada_correspondente" && (
+          <button type="button" onClick={aoCorrigirBusca} className="botao botao-ouro">
+            Mudar a busca
+          </button>
+        )}
         {motivo === "filtros_escondem" && (
-          <button type="button" onClick={aoLimparFiltros} className="botao botao-primario">
+          <button type="button" onClick={aoLimparFiltros} className="botao botao-ouro">
             Limpar os filtros
           </button>
         )}
         {motivo === "cep_nao_atendido" && (
-          <a href={hrefSemCep} className="botao botao-secundario">
+          <a href={hrefSemCep} className="botao botao-ouro">
             Ver preços sem o CEP
           </a>
         )}
       </div>
       {motivo === "nenhuma_loja_respondeu" && fora.length > 0 && (
-        <ul className="mt-4 grid gap-x-6 gap-y-1.5 border-t border-tinta pt-3 text-[0.875rem] sm:grid-cols-2 lg:grid-cols-3">
-          {fora.map((f) => (
-            <li key={f.id} className="flex items-center justify-between gap-2">
-              <span className="truncate">{f.nome}</span>
-              <span className="carimbo text-falha">
-                <CircleX className="size-3" strokeWidth={2.5} aria-hidden />
-                {f.situacao === "bloqueada"
-                  ? "Recusou"
-                  : f.situacao === "tempo_esgotado"
-                    ? "Sem resposta"
-                    : "Erro"}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <details className="gaveta-detalhes mt-6 text-[0.875rem]">
+          <summary className="botao-texto cursor-pointer">Ver as lojas que ficaram de fora</summary>
+          <ul className="mt-2 grid gap-x-8 gap-y-1 text-apagado sm:grid-cols-2 lg:grid-cols-3">
+            {fora.map((f) => (
+              <li key={f.id}>
+                <span className="text-tinta">{f.nome}</span> {SITUACAO[f.situacao]}
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
     </div>
   );

@@ -81,7 +81,7 @@ export function GraficoPreco({
   return (
     <figure>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <figcaption className="rotulo-campo">Preço nesta loja</figcaption>
+        <figcaption className="font-medium">Preço nesta loja</figcaption>
         {janelas.length > 1 && (
           <div role="group" aria-label="Período" className="flex gap-1">
             {janelas.map((j) => (
@@ -93,10 +93,10 @@ export function GraficoPreco({
                   setEscolhida(j);
                   setIndice(null);
                 }}
-                className={`min-h-8 min-w-11 rounded-controle border px-2 text-[0.8125rem] font-medium ${
+                className={`min-h-8 min-w-11 rounded-quadro border px-2 text-[0.8125rem] transition-colors pointer-coarse:min-h-11 ${
                   j === janela
-                    ? "border-tinta bg-tinta text-etiqueta"
-                    : "border-fio text-tinta-2 hover:border-borda hover:text-tinta"
+                    ? "border-ouro/50 bg-ouro-suave text-ouro"
+                    : "border-traco-forte text-apagado hover:text-tinta"
                 }`}
               >
                 {j} dias
@@ -106,7 +106,7 @@ export function GraficoPreco({
         )}
       </div>
 
-      <p className="numero mt-2 text-[0.9375rem] font-semibold" aria-live="polite">
+      <p className="mt-2 font-mono text-[0.9375rem] tabular-nums" aria-live="polite">
         {legenda(selecionado)}
       </p>
 
@@ -119,7 +119,7 @@ export function GraficoPreco({
         aria-valuenow={visiveis.indexOf(selecionado)}
         aria-valuetext={legenda(selecionado)}
         onKeyDown={teclar}
-        className="mt-1 rounded-controle"
+        className="mt-1 rounded-quadro"
       >
         <svg
           viewBox={`0 0 ${LARGURA} ${ALTURA}`}
@@ -134,7 +134,7 @@ export function GraficoPreco({
             x2={LARGURA}
             y1={ALTURA}
             y2={ALTURA}
-            className="stroke-fio"
+            className="stroke-traco-forte"
             vectorEffect="non-scaling-stroke"
           />
           {habitual !== null && (
@@ -143,7 +143,7 @@ export function GraficoPreco({
               x2={LARGURA}
               y1={y(habitual)}
               y2={y(habitual)}
-              className="stroke-tinta-3"
+              className="stroke-tenue"
               strokeDasharray="4 4"
               vectorEffect="non-scaling-stroke"
             />
@@ -153,7 +153,7 @@ export function GraficoPreco({
             x2={x(selecionado.dia)}
             y1={0}
             y2={ALTURA}
-            className="stroke-borda"
+            className="stroke-traco-forte"
             vectorEffect="non-scaling-stroke"
           />
           {trechos(visiveis).map((trecho) =>
@@ -161,7 +161,7 @@ export function GraficoPreco({
               <polyline
                 key={trecho[0].dia}
                 points={trecho.map((p) => `${x(p.dia)},${y(p.preco)}`).join(" ")}
-                className="fill-none stroke-tinta"
+                className="fill-none stroke-tinta/80"
                 strokeWidth={1.75}
                 strokeLinejoin="round"
                 vectorEffect="non-scaling-stroke"
@@ -179,31 +179,31 @@ export function GraficoPreco({
               strokeWidth={
                 p === selecionado ? 9 : p.dia === hoje ? 7 : visiveis.length > 31 ? 3 : 4
               }
-              className={p.dia === hoje || p === selecionado ? "stroke-acao" : "stroke-tinta"}
+              className={p.dia === hoje || p === selecionado ? "stroke-ouro" : "stroke-tinta/80"}
               vectorEffect="non-scaling-stroke"
             />
           ))}
         </svg>
       </div>
 
-      <div className="mt-1.5 flex justify-between text-[0.75rem] text-tinta-3">
+      <div className="mt-1.5 flex justify-between text-[0.8125rem] text-tenue">
         <span>{diaAbreviado(new Date(inicio).toISOString().slice(0, 10))}</span>
         <span>hoje</span>
       </div>
-      <p className="numero mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem] text-tinta-2">
+      <p className="numero mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[0.8125rem] text-apagado">
         <span>Menor {reais(menor)}</span>
         <span>Maior {reais(maior)}</span>
         {habitual !== null && (
           <span>
             <span
               aria-hidden
-              className="mr-1 inline-block w-4 border-t border-dashed border-tinta-3 align-middle"
+              className="mr-1 inline-block w-4 border-t border-dashed border-tenue align-middle"
             />
             Habitual {reais(Math.round(habitual))}
           </span>
         )}
       </p>
-      <p className="mt-1 text-[0.75rem] text-tinta-3">
+      <p className="mt-1 text-[0.8125rem] text-tenue">
         Dias sem consulta ficam sem linha. Preços vistos nas buscas feitas no Zpektral.
       </p>
     </figure>

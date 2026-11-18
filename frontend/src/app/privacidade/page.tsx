@@ -44,23 +44,21 @@ export default function Privacidade() {
   return (
     <div className="flex min-h-dvh flex-col">
       <Cabecalho />
-      <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-8 pb-16 sm:px-6 sm:pt-14">
-        <h1 className="text-[1.875rem] leading-tight font-semibold tracking-[-0.02em] sm:text-[2.25rem]">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-8 pb-16 sm:px-6 sm:pt-14">
+        <h1 className="text-[1.875rem] leading-tight font-semibold tracking-[-0.02em] [font-stretch:104%] sm:text-[2.25rem]">
           O que fica guardado, e onde
         </h1>
-        <dl className="mt-8 overflow-hidden rounded-etiqueta border-2 border-tinta bg-etiqueta">
-          {ITENS.map((item, i) => (
-            <div
+        <div className="mt-10 max-w-4xl">
+          {ITENS.map((item) => (
+            <section
               key={item.titulo}
-              className={`grid gap-1.5 px-4 py-5 sm:grid-cols-[11rem_1fr] sm:gap-8 sm:px-6 ${
-                i ? "border-t border-tinta" : ""
-              }`}
+              className="grid gap-1.5 border-t border-traco py-6 sm:grid-cols-[11rem_1fr] sm:gap-8"
             >
-              <dt className="rotulo-campo pt-0.5">{item.titulo}</dt>
-              <dd className="max-w-[65ch] leading-relaxed text-tinta-2">{item.texto}</dd>
-            </div>
+              <h2 className="font-medium">{item.titulo}</h2>
+              <p className="max-w-[65ch] leading-relaxed text-apagado">{item.texto}</p>
+            </section>
           ))}
-        </dl>
+        </div>
       </main>
       <Rodape />
     </div>

@@ -1,5 +1,11 @@
 import { FILTROS_PADRAO, ORDENS_LOCAIS, filtrosParaParametros } from "@/nucleo/filtros";
-import type { Filtros, HistoricoOfertas, PaginaResultados, RespostaQuedas } from "@/nucleo/tipos";
+import type {
+  Filtros,
+  HistoricoOfertas,
+  PaginaResultados,
+  RespostaQuedas,
+  Endereco,
+} from "@/nucleo/tipos";
 
 const URL_API = (process.env.NEXT_PUBLIC_URL_API ?? "http://localhost:8000").replace(/\/$/, "");
 const LIMITE_MS = 30_000;
@@ -94,4 +100,8 @@ export function historicoDasOfertas(
 
 export function quedasDePreco(dias: number, signal?: AbortSignal): Promise<RespostaQuedas> {
   return obter<RespostaQuedas>(`/ofertas/quedas?dias=${dias}&limite=60`, signal);
+}
+
+export function enderecoDoCep(cep: string, signal?: AbortSignal): Promise<Endereco> {
+  return obter<Endereco>(`/cep/${cep}`, signal);
 }
