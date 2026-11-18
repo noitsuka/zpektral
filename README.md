@@ -41,8 +41,11 @@ O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produ
 - Conta aberta de cada oferta: desconto no Pix, frete e o custo dos juros do parcelamento em reais
 - Aviso quando a oferta está abaixo ou acima do preço típico do produto entre as lojas
 - Histórico do preço na própria loja, com o aviso "menor preço desta loja em N dias" quando for o caso
+- Desconto com evidência: o desconto anunciado pela loja aparece como anunciado, a queda em relação ao histórico aparece como verificada, e o preço "de" que nunca foi visto ganha um alerta
+- Página de quedas de preço observadas nas buscas, com mediana, menor preço e dias de observação
+- Ofertas parecidas separadas das que casam com a busca, dizendo o que falta em cada uma
 - Busca que entende nomes diferentes para o mesmo produto, como "máquina de lavar louça" e "lava-louças", corrige erros de digitação e acentos esquecidos, como "geladiera" e "fogao", e aceita o código de barras (EAN) do produto
-- Separação entre o produto e as peças dele: o cesto da air fryer não aparece como air fryer
+- Separação entre o produto e as peças dele: o cesto da air fryer não aparece como air fryer, e produtos de marcas ou EANs diferentes não se misturam
 - Filtros por voltagem, condição e forma de pagamento
 - Buscas recentes guardadas só no navegador
 
@@ -51,7 +54,8 @@ O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produ
 - O valor exibido vem do carrinho da loja, sem estimativa; o que a loja não informa aparece como não informado
 - Parte das cotações é refeita em paralelo, e o vendedor que devolve valores diferentes para o mesmo carrinho perde o selo de preço exato
 - Nenhum bloqueio das lojas contra robôs é contornado, e a loja que passa a proibir o acesso no robots.txt sai da lista (`pytest -m live` confere)
-- O histórico guarda só os cinco primeiros dígitos do CEP e apaga registros com mais de 180 dias
+- O histórico guarda o texto da busca e só os cinco primeiros dígitos do CEP, e apaga registros com mais de 180 dias
+- As buscas mais feitas são refeitas a cada 6 horas para manter o histórico em dia
 
 ## Lojas
 
@@ -91,9 +95,9 @@ backend/app/
   historico.py    histórico de preços por oferta
   limites.py      limites por endereço e cabeçalhos de segurança
 frontend/src/
-  app/            página inicial, resultados e privacidade
-  componentes/    globo das rotas, linha da oferta com a conta, filtros
-  nucleo/         filtros, juros, preço típico e tendência (funções puras)
+  app/            página inicial, resultados, quedas de preço e privacidade
+  componentes/    etiqueta da melhor oferta, linhas por loja, filtros, histórico
+  nucleo/         filtros, juros, tendência e promoções com evidência (funções puras)
 docs/decisoes/    registro das decisões
 ```
 
@@ -107,6 +111,7 @@ docs/decisoes/    registro das decisões
 6. [Importados com total estimado](docs/decisoes/06-importados-com-total-estimado.md). Imposto de importação e ICMS calculados à parte e marcados.
 7. [Símbolo em forma de prisma](docs/decisoes/07-simbolo-prisma.md). O Z separa o preço anunciado nas linhas de cada loja.
 8. [Histórico de preço na própria loja](docs/decisoes/08-historico-por-oferta.md). O preço de hoje comparado com o habitual daquela loja.
+9. [Atualização agendada de preços](docs/decisoes/09-atualizacao-agendada-de-precos.md). GitHub Actions a cada 6 horas, porque o cron gratuito da Vercel roda uma vez por dia.
 
 ## Segurança
 
@@ -129,7 +134,7 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Mais de 800 testes, com respostas reais das lojas gravadas, testes de propriedades e 300 entradas aleatórias contra a API. A suíte `pytest -m live` busca cinco produtos em cinco capitais, sorteia ofertas e refaz o carrinho na loja para conferir o total; na última execução, 300 ofertas conferidas e nenhuma divergência. No frontend, `npm test`, `npm run lint` e `npx knip`, e a CI confere tipos e o build.
+Mais de 1.000 testes, com respostas reais das lojas gravadas, testes de propriedades e 300 entradas aleatórias contra a API. A suíte `pytest -m live` busca cinco produtos em cinco capitais, sorteia ofertas e refaz o carrinho na loja para conferir o total; na última execução, 300 ofertas conferidas e nenhuma divergência. No frontend, `npm test`, `npm run lint` e `npx knip`, e a CI confere tipos e o build.
 
 ## Executando localmente
 
