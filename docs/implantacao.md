@@ -50,7 +50,7 @@ A API vai primeiro: o site novo manda `apenas_disponiveis=false` na transmissão
 ## 4. Conferência depois do deploy
 
 1. `GET https://zpektral-api.vercel.app/saude` responde 200.
-2. Uma busca com CEP no site mostra a etiqueta do menor total e as lojas que responderam.
+2. Uma busca com CEP no site mostra o menor total no CEP na primeira linha e quantas lojas responderam.
 3. Uma busca com CEP de outra região (por exemplo `69900-001`, em Rio Branco) mostra "Nenhuma loja entrega no CEP" quando for o caso.
 4. `GET /ofertas/quedas` responde 200. A lista fica vazia até o histórico ter 5 dias de observações por oferta.
 5. Depois de uma busca, `select count(*) from historico_precos where consulta is not null` cresce.

@@ -96,7 +96,7 @@ backend/app/
   limites.py      limites por endereço e cabeçalhos de segurança
 frontend/src/
   app/            página inicial, resultados, quedas de preço e privacidade
-  componentes/    etiqueta da melhor oferta, linhas por loja, filtros, histórico
+  componentes/    menor total, linhas por loja, filtros, histórico
   nucleo/         filtros, juros, tendência e promoções com evidência (funções puras)
 docs/decisoes/    registro das decisões
 ```
