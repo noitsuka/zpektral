@@ -60,7 +60,6 @@ export function InicioBusca() {
                 autoComplete="off"
                 enterKeyHint="search"
                 spellCheck={false}
-                placeholder="nome, marca ou modelo"
                 className="mt-0.5 w-full bg-transparent text-[1.0625rem] outline-none"
               />
             </label>
