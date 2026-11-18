@@ -3,7 +3,9 @@ import unicodedata
 from dataclasses import dataclass, field
 from functools import lru_cache
 from importlib import resources
+from itertools import pairwise
 
+from app.modelos import voltagem_do_titulo
 from app.sinonimos import PALAVRAS_DE_PRODUTO, SINONIMOS, Sinonimo
 
 _NAO_ALFANUMERICO = re.compile(r"[^a-z0-9]+")
@@ -32,6 +34,13 @@ COLETIVOS = frozenset({"jogo", "kit", "conjunto", "par", "combo", "caixa", "paco
 PALAVRAS_BRINQUEDO = frozenset(
     {"brinquedo", "toy", "infantil", "kid", "miniatura", "jr", "divertido", "divertida"}
 )
+# só na busca: quem pede um destes quer o brinquedo, e a loja de brinquedos não perde nota
+BUSCA_DE_BRINQUEDO = frozenset(
+    "lego barbie boneca boneco pelucia playmobil nerf wheel massinha puzzle".split()
+)
+VERSOES_DE_MODELO = frozenset("pro max promax mini plus ultra fe lite".split())
+TENSOES = frozenset({"110", "127", "220"})
+TONS = {"menta": "verde"}
 
 EQUIVALENTES = {
     "litro": "l",
@@ -57,6 +66,7 @@ EQUIVALENTES = {
     "prateado": "prata",
     "prateada": "prata",
     "roxa": "roxo",
+    "bt": "bluetooth",
 }
 CORES = frozenset(
     """
@@ -66,6 +76,7 @@ CORES = frozenset(
     """.split()
 )
 LETRAS_UNIDADE = frozenset("lvwkgx")
+UNIDADES = LETRAS_UNIDADE | frozenset("gb tb mb kg ml mm cm m hz ghz mah pol btu".split())
 
 
 def normalizar(texto: str) -> str:
@@ -244,13 +255,28 @@ class Consulta:
     numeros: tuple[bool, ...] = field(init=False)
     pares: tuple[tuple[str, str, str, bool], ...] = field(init=False)
     cores: frozenset[str] = field(init=False)
+    voltagem: str | None = field(init=False)
+    tensao: frozenset[str] = field(init=False)
+    modelos: tuple[str, ...] = field(init=False)
 
     # o que só depende da consulta sai daqui uma vez, e não a cada título pontuado
     def __post_init__(self) -> None:
-        pares = ((a, b, a + b) for a, b in zip(self.termos, self.termos[1:], strict=False))
-        object.__setattr__(self, "numeros", tuple(map(_tem_numero, self.termos)))
+        termos = self.termos
+        seguintes = (*termos[1:], "") if termos else ()
+        pares = ((a, b, a + b) for a, b in pairwise(termos))
+        numeros = tuple(map(_tem_numero, termos))
+        tensao = {t for t, s in zip(termos, seguintes, strict=True) if t in TENSOES and s == "v"}
+        modelos = tuple(
+            t
+            for t, s, n in zip(termos, seguintes, numeros, strict=True)
+            if n and s not in UNIDADES and t not in tensao
+        )
+        object.__setattr__(self, "numeros", numeros)
         object.__setattr__(self, "pares", tuple((*p, len(p[2]) >= 6) for p in pares))
-        object.__setattr__(self, "cores", CORES.intersection(self.termos))
+        object.__setattr__(self, "cores", CORES.intersection(termos))
+        object.__setattr__(self, "voltagem", voltagem_do_titulo(self.texto) if tensao else None)
+        object.__setattr__(self, "tensao", frozenset(tensao | {"v"} if tensao else ()))
+        object.__setattr__(self, "modelos", modelos)
 
     @property
     def esta_vazia(self) -> bool:
@@ -297,7 +323,7 @@ def interpretar_consulta(texto: str) -> Consulta:
 def termos_ausentes(consulta: Consulta, titulo: str, ean: object = None) -> list[str]:
     if consulta.gtin and normalizar_ean(ean) == consulta.gtin:
         return []
-    achados = _acertos(consulta, termos_do_texto(titulo))
+    achados = _acertos(consulta, termos_do_texto(titulo), titulo)
     trechos: list[list[str]] = []
     vazias: list[str] = []
     aberto = False
@@ -333,7 +359,7 @@ def _tem_numero(termo: str) -> bool:
     return any(c.isdigit() for c in termo)
 
 
-def _acertos(consulta: Consulta, palavras_titulo: tuple[str, ...]) -> dict[str, int]:
+def _acertos(consulta: Consulta, palavras_titulo: tuple[str, ...], titulo: str) -> dict[str, int]:
     achados: dict[str, int] = {}
     posicoes: dict[str, int] = {}
     for i, t in enumerate(palavras_titulo):
@@ -355,14 +381,42 @@ def _acertos(consulta: Consulta, palavras_titulo: tuple[str, ...]) -> dict[str, 
         for termo in faltam:
             if termo in colado and not any(termo in t for t in palavras_titulo):
                 achados[termo] = len(palavras_titulo)
+    # 127 V é a tensão de 110 V, e bivolt serve para as duas
+    if (
+        consulta.tensao
+        and not consulta.tensao <= achados.keys()
+        and voltagem_do_titulo(titulo) in (consulta.voltagem, "bivolt")
+    ):
+        for termo in consulta.tensao:
+            achados.setdefault(termo, len(palavras_titulo))
+    for tom, cor in TONS.items():
+        if cor in consulta.cores and cor not in achados and tom in posicoes:
+            achados[cor] = posicoes[tom]
     return achados
+
+
+def _outra_versao(consulta: Consulta, palavras_titulo: tuple[str, ...]) -> bool:
+    for modelo in consulta.modelos:
+        lugares = [i for i, t in enumerate(palavras_titulo) if t == modelo]
+        if lugares and all(_versao_nao_pedida(consulta, palavras_titulo[i + 1 :]) for i in lugares):
+            return True
+    return False
+
+
+def _versao_nao_pedida(consulta: Consulta, seguintes: tuple[str, ...]) -> bool:
+    for t in seguintes:
+        if t not in VERSOES_DE_MODELO:
+            return False
+        if t not in consulta.termos:
+            return True
+    return False
 
 
 def pontuar(consulta: Consulta, titulo: str) -> int:
     if consulta.esta_vazia:
         return 100
     palavras_titulo = termos_do_texto(titulo)
-    achados = _acertos(consulta, palavras_titulo)
+    achados = _acertos(consulta, palavras_titulo, titulo)
 
     casado = 0.0
     total = sum(consulta.pesos)
@@ -371,7 +425,7 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
     primeira_palavra = len(palavras_titulo)
     for termo, peso, numero in zip(consulta.termos, consulta.pesos, consulta.numeros, strict=True):
         consumir = termo in achados
-        if not numero:
+        if not numero and termo not in UNIDADES:
             palavras += 1
             palavras_achadas += consumir
             if consumir:
@@ -382,12 +436,10 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
             falta_numero = True
 
     resultado = casado / total * 95
-    if (
-        consulta.cores
-        and (no_titulo := CORES.intersection(palavras_titulo))
-        and not consulta.cores & no_titulo
-    ):
-        resultado = min(resultado, 40)
+    if consulta.cores and (no_titulo := CORES.intersection(palavras_titulo)):
+        familias = no_titulo | {TONS[c] for c in no_titulo & TONS.keys()}
+        if not consulta.cores & familias:
+            resultado = min(resultado, 40)
     if falta_numero:
         resultado = min(resultado, 40)
     if palavras and not palavras_achadas:
@@ -397,6 +449,9 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
         frase = " ".join(t for t in palavras_titulo if t not in PALAVRAS_VAZIAS)
         if len(consulta.termos) == 1 or " ".join(consulta.termos) in frase:
             resultado += 5
+    # todos os termos casam, mas o título é outra versão do modelo ("15 pro" para "iphone 15")
+    if consulta.modelos and _outra_versao(consulta, palavras_titulo):
+        resultado = min(resultado, 40)
 
     if (
         not consulta.pede_acessorio
@@ -458,7 +513,9 @@ def pontuar_com_vendedor(consulta: Consulta, titulo: str, vendedor: str | None) 
 
 
 def pontuar_loja_brinquedos(consulta: Consulta, resultado: int) -> int:
-    return resultado if consulta.pede_acessorio else round(resultado * 0.6)
+    if consulta.pede_acessorio or not BUSCA_DE_BRINQUEDO.isdisjoint(consulta.termos):
+        return resultado
+    return round(resultado * 0.6)
 
 
 def eh_titulo_de_acessorio(titulo: str) -> bool:

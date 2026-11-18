@@ -63,6 +63,7 @@ SINONIMOS = (
     Sinonimo("cafeteira", None, ("cafeteira", "máquina de café")),
     Sinonimo("roboaspirador", None, ("robô aspirador", "aspirador robô")),
     Sinonimo("estante", "estante", ("estante", "livreiro")),
+    Sinonimo("cachorro", None, ("cachorro", "cão", "cães")),
 )
 
 PALAVRAS_DE_PRODUTO = """

@@ -125,3 +125,15 @@ def teste_livreiro_e_estante():
     assert chave_cache("livreiro multy verde", None) == chave_cache("estante multy verde", None)
     q = interpretar_consulta("livreiro multy verde")
     assert pontuar(q, "Estante Multy Verde Menta") >= 95
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        ("coleira antipulgas cachorro", "Coleira Antipulgas Seresto para Cães"),
+        ("petisco para caes", "Petisco Keldog para Cachorro"),
+        ("racao cao adulto", "Ração Pedigree Cachorros Adultos"),
+    ],
+)
+def teste_cao_e_cachorro(consulta, titulo):
+    assert pontuar(interpretar_consulta(consulta), titulo) >= 95

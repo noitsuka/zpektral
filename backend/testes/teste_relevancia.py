@@ -267,3 +267,67 @@ def teste_termos_ausentes_usam_as_palavras_da_busca(consulta, titulo, ausentes):
     from app.relevancia import termos_ausentes
 
     assert termos_ausentes(interpretar_consulta(consulta), titulo) == ausentes
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo", "baixo", "alto"),
+    [
+        ("geladeira inox 110v", "Geladeira Consul Frost Free 337L Inox 127V", 95, 100),
+        ("geladeira inox 110v", "Geladeira Consul Frost Free Inox Bivolt", 95, 100),
+        ("geladeira inox 110v", "Geladeira Consul Frost Free Inox 220V", 0, 40),
+        ("furadeira de impacto 220v", "Furadeira de Impacto Bosch 127/220V", 95, 100),
+        ("furadeira de impacto 220v", "Furadeira de Impacto Bosch 127V", 0, 40),
+        ("geladeira 127v", "Geladeira Brastemp 110 Volts", 95, 100),
+    ],
+)
+def teste_voltagem_pedida_aceita_127_e_bivolt(consulta, titulo, baixo, alto):
+    assert baixo <= s(consulta, titulo) <= alto
+
+
+def teste_unidade_sozinha_nao_conta_como_palavra_achada():
+    assert s("iphone 15 128gb", "Notebook Lenovo 15.6 SSD 128GB") <= 15
+    assert s("geladeira 110v", "Ventilador de Mesa 110V") <= 15
+    assert s("tv 55 pol", "Smart TV LG 55 Polegadas") >= 95
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        ("iphone 15 128gb", "Apple iPhone 15 Pro 128GB Titânio"),
+        ("capinha iphone 13", "Capinha Para Iphone 13 Pro Max Acrílica"),
+        ("iphone 13 pro", "iPhone 13 Pro Max 256GB"),
+        ("galaxy s23", "Samsung Galaxy S23 Ultra 256GB"),
+    ],
+)
+def teste_versao_do_modelo_que_nao_foi_pedida_fica_escondida(consulta, titulo):
+    assert s(consulta, titulo) <= 40
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        ("iphone 15 pro", "Apple iPhone 15 Pro 128GB"),
+        ("capinha iphone 13", "Capa Capinha Para iPhone 13/13 Pro/13 Pro Max Silicone"),
+        ("galaxy s23 ultra", "Samsung Galaxy S23 Ultra 256GB"),
+    ],
+)
+def teste_versao_pedida_ou_compativel_continua(consulta, titulo):
+    assert s(consulta, titulo) >= 95
+
+
+def teste_tom_da_cor_pedida_casa_mas_o_contrario_nao():
+    menta = "Estante Para Livros Com 4 Prateleiras Multy Menta Artely"
+    assert s("livreiro multy verde", menta) >= 95
+    assert s("estante multy menta", "Estante Multy Verde") <= 40
+
+
+def teste_bt_e_bluetooth():
+    assert s("caixa de som bluetooth", "Caixa de Som Xplode 4 50W BT/AUX/USB Pulse") >= 95
+
+
+def teste_loja_de_brinquedo_nao_perde_nota_em_busca_de_brinquedo():
+    from app.relevancia import pontuar_loja_brinquedos
+
+    assert pontuar_loja_brinquedos(interpretar_consulta("lego star wars"), 100) == 100
+    assert pontuar_loja_brinquedos(interpretar_consulta("carrinho hot wheels"), 100) == 100
+    assert pontuar_loja_brinquedos(interpretar_consulta("garrafa termica"), 100) == 60
