@@ -81,7 +81,9 @@ async def obter_historico_ofertas(
         Query(max_length=8200, description="ids das ofertas separados por vírgula, até 50"),
     ],
     dias: Annotated[int, Query(ge=7, le=365)] = 90,
+    cep: ParametroCep = None,
 ) -> Response:
+    regiao = normalizar_cep(cep) if cep else None
     lista = list(dict.fromkeys(i for i in ids.split(",") if i))
     if not lista or len(lista) > OFERTAS_POR_CONSULTA or not all(map(_ID_OFERTA.match, lista)):
         return RespostaJson(
@@ -93,7 +95,7 @@ async def obter_historico_ofertas(
             {"detail": "Histórico de preços desativado neste servidor"},
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
-    return RespostaJson(await historico.resumo_ofertas(lista, dias))
+    return RespostaJson(await historico.resumo_ofertas(lista, dias, regiao))
 
 
 @roteador.get(
@@ -116,6 +118,8 @@ async def obter_quedas(
             {"detail": "Histórico de preços desativado neste servidor"},
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
         )
+    # só três janelas: variar os dias não força um cálculo novo a cada pedido
+    dias = min((7, 30, 90), key=lambda janela: abs(janela - dias))
     nomes = {f.id: f.nome for f in servico.fontes}
     return RespostaJson(
         await historico.quedas(dias, limite, nomes),

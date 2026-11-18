@@ -36,3 +36,11 @@ def teste_oferta_com_o_mesmo_ean_nao_tem_termo_ausente():
     consulta = interpretar_consulta("7899307521331")
     assert termos_ausentes(consulta, "Estante Multy", "7899307521331") == []
     assert termos_ausentes(consulta, "Estante Multy") == ["7899307521331"]
+
+
+def teste_busca_por_ean_com_texto_diferente_nao_divide_o_cache():
+    from app.busca import chave_cache
+
+    pessoal = chave_cache("7908631607168 Fulano de Tal CPF 123.456.789-00", None)
+    assert pessoal != chave_cache("7908631607168", None)
+    assert chave_cache("7908631607168", None) == chave_cache(" 7908631607168 ", None)

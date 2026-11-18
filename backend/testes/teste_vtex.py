@@ -723,6 +723,27 @@ def teste_cota_primeiro_as_relevantes_mais_baratas():
         oferta("irrelevante", 40, 1000, 2),
     ]
     escolhidas = escolher_para_cotar(ofertas, 65, 3, lambda o: o)
-    assert [o.id for o in escolhidas] == ["barata_no_fim", "media", "cara_no_topo"]
+    assert {o.id for o in escolhidas} == {"cara_no_topo", "media", "barata_no_fim"}
     todas = escolher_para_cotar(ofertas, 65, 10, lambda o: o)
     assert [o.id for o in todas][-1] == "parecida_barata"
+    assert "irrelevante" not in {o.id for o in todas}
+
+
+def teste_pecas_baratas_com_nota_alta_nao_tiram_o_produto_da_cotacao():
+    from app.fontes.base import escolher_para_cotar
+
+    def oferta(id_, preco, posicao):
+        return Oferta(
+            id=id_,
+            titulo="x",
+            link="https://x",
+            loja=Loja("s", "S"),
+            preco=preco,
+            relevancia=100,
+            posicao=posicao,
+        )
+
+    pecas = [oferta(f"peca{i}", 5000 + i, i + 1) for i in range(30)]
+    notebook = oferta("notebook", 399900, 0)
+    escolhidas = escolher_para_cotar([*pecas, notebook], 65, 20, lambda o: o)
+    assert "notebook" in {o.id for o in escolhidas}

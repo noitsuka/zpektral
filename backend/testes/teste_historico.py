@@ -264,7 +264,9 @@ async def teste_resumo_por_oferta_tem_um_ponto_por_dia_com_o_menor_preco(sessoes
         await _gravar(sessoes, "a:1", agora - timedelta(days=dias), preco)
     await _gravar(sessoes, "b:9", agora - timedelta(days=1), 99900, loja="b")
 
-    resumo = await RegistroHistorico(sessoes).resumo_ofertas(["a:1", "b:9", "c:0"], dias=90)
+    resumo = await RegistroHistorico(sessoes).resumo_ofertas(
+        ["a:1", "b:9", "c:0"], dias=90, cep="30130010"
+    )
     assert set(resumo) == {"a:1", "b:9"}
     pontos = resumo["a:1"]
     assert [p.preco for p in pontos] == [30000, 27000, 29000, 25000]
@@ -284,7 +286,9 @@ async def teste_rota_de_historico_por_oferta(config, sessoes, simulador):
     app.state.guarda = Guarda.das_configuracoes(config)
     transporte = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transporte, base_url="http://testserver") as cliente:
-        r = await cliente.get("/historico/ofertas", params={"ids": "carrefour:123,amazon:B0X"})
+        r = await cliente.get(
+            "/historico/ofertas", params={"ids": "carrefour:123,amazon:B0X", "cep": "30130-010"}
+        )
         assert r.status_code == 200
         corpo = r.json()
         assert list(corpo) == ["carrefour:123"]
@@ -319,7 +323,7 @@ async def teste_resumo_por_oferta_ignora_a_atualizacao_agendada(sessoes):
     await _gravar(sessoes, "a:1", ontem, 30000)
     async with sessoes() as sessao, sessao.begin():
         sessao.add(_linha("a:1", ontem, 10000, agendada=True, prefixo_cep=None))
-    resumo = await RegistroHistorico(sessoes).resumo_ofertas(["a:1"], dias=90)
+    resumo = await RegistroHistorico(sessoes).resumo_ofertas(["a:1"], dias=90, cep="30130010")
     assert [p.preco for p in resumo["a:1"]] == [30000]
 
 
@@ -429,6 +433,8 @@ async def teste_rota_de_quedas(config, sessoes, simulador):
         corpo = r.json()
         assert set(corpo) == {"janela_dias", "gerado_em", "itens"}
         assert corpo["janela_dias"] == 30
+        janela = (await cliente.get("/ofertas/quedas", params={"dias": 8})).json()["janela_dias"]
+        assert janela == 7
         item = corpo["itens"][0]
         assert item == {
             "oferta": "a:hoje",
@@ -459,7 +465,7 @@ async def teste_rota_de_quedas(config, sessoes, simulador):
     [
         ("Geladeira Frost Free", "geladeira frost free"),
         ("  Estante  MULTY menta ", "estante multy menta"),
-        ("estante 7899307521331", "7899307521331"),
+        ("estante 7899307521331", "estante 7899307521331"),
         ("joao@exemplo.com geladeira", None),
         ("geladeira 123.456.789-09", None),
         ("geladeira 11987654321", None),
@@ -486,3 +492,26 @@ async def teste_expurgo_apaga_o_texto_da_busca_antigo_e_mantem_o_preco(sessoes):
             (await sessao.execute(select(HistoricoPreco.oferta, HistoricoPreco.consulta))).all()
         )
     assert linhas == {"a:velha": None, "a:nova": "tv"}
+
+
+async def teste_resumo_por_oferta_nao_mistura_regioes(sessoes):
+    ontem = datetime.now(UTC) - timedelta(days=1)
+    async with sessoes() as sessao, sessao.begin():
+        sessao.add(_linha("a:1", ontem, 20000, prefixo_cep="01310"))
+        sessao.add(_linha("a:1", ontem, 10000, prefixo_cep="69900"))
+    registro = RegistroHistorico(sessoes)
+    paulista = await registro.resumo_ofertas(["a:1"], dias=90, cep="01310100")
+    assert [p.preco for p in paulista["a:1"]] == [20000]
+    assert await registro.resumo_ofertas(["a:1"], dias=90) == {}
+
+
+async def teste_resumo_por_oferta_corta_o_passado_e_nao_os_dias_recentes(sessoes, monkeypatch):
+    import app.historico as historico
+
+    monkeypatch.setattr(historico, "LINHAS_MAXIMAS_SERIE", 3)
+    agora = datetime.now(UTC)
+    async with sessoes() as sessao, sessao.begin():
+        for dias in range(6, 0, -1):
+            sessao.add(_linha("a:1", agora - timedelta(days=dias), 10000 + dias))
+    resumo = await RegistroHistorico(sessoes).resumo_ofertas(["a:1"], dias=90)
+    assert [p.preco for p in resumo["a:1"]] == [10003, 10002, 10001]

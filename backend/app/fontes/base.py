@@ -119,11 +119,14 @@ def aplicar_cotacao_navegador(
 def escolher_para_cotar[T](
     itens: Iterable[T], piso: int, limite: int, oferta: Callable[[T], Oferta]
 ) -> list[T]:
-    # a comparação é por menor total: entre as que casam com a busca, cota primeiro as baratas
-    return sorted(
-        (i for i in itens if oferta(i).relevancia >= piso),
-        key=lambda i: (oferta(i).relevancia < 90, oferta(i).preco, oferta(i).posicao),
-    )[:limite]
+    candidatas = [i for i in itens if oferta(i).relevancia >= piso]
+    # metade na ordem da própria loja, que protege o produto quando peças baratas
+    # ganham nota alta; o resto nas mais baratas, porque a comparação é por menor total
+    pela_loja = sorted(candidatas, key=lambda i: (-oferta(i).relevancia, oferta(i).posicao))
+    escolhidas = pela_loja[: (limite + 1) // 2]
+    restantes = [i for i in candidatas if i not in escolhidas]
+    restantes.sort(key=lambda i: (oferta(i).relevancia < 90, oferta(i).preco, oferta(i).posicao))
+    return escolhidas + restantes[: limite - len(escolhidas)]
 
 
 async def cotar_pelo_navegador(

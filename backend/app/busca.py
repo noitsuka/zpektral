@@ -133,7 +133,10 @@ class TrabalhoBusca:
 
 
 def chave_cache(consulta: str, endereco: Endereco | None) -> tuple[str, str]:
-    chave = " ".join(normalizar(texto_para_lojas(consulta)).split())
+    para_lojas = texto_para_lojas(consulta)
+    # com EAN, a loja recebe só o código; a chave guarda o resto para não servir
+    # a busca de uma pessoa (e o texto dela) para outra
+    chave = " ".join(normalizar(consulta if para_lojas.isdigit() else para_lojas).split())
     return chave, endereco.cep if endereco else ""
 
 

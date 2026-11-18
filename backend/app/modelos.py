@@ -254,7 +254,8 @@ class Oferta:
     def desconto(self) -> float:
         if not self.preco_original:
             return 0.0
-        return 1 - self.melhor_preco / self.preco_original
+        # mesmo critério da loja: preço do produto contra o preço "de", sem o Pix
+        return 1 - self.preco / self.preco_original
 
 
 class StatusFonte(StrEnum):

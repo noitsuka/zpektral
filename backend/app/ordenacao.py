@@ -123,7 +123,7 @@ def _chave_ordenacao(f: Filtros, conjunto: list[Oferta]) -> Callable[[Oferta], t
             return lambda o: (-o.relevancia, o.total_para(pag), certeza(o))
         case Ordem.MENOR_TOTAL:
             # total sem frete não compete com total confirmado
-            return lambda o: (certeza(o), o.total_para(pag), -o.relevancia)
+            return lambda o: (certeza(o) > 1, o.total_para(pag), -o.relevancia)
         case Ordem.CUSTO_BENEFICIO:
             notas = notas_custo_beneficio(conjunto, pag, f.pesos)
             return lambda o: (-notas[o.id], o.total_para(pag))

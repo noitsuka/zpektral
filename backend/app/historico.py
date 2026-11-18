@@ -217,7 +217,9 @@ class RegistroHistorico:
                 "histórico: %d linhas com mais de %d dias apagadas", apagadas, self._dias_retencao
             )
 
-    async def resumo_ofertas(self, ids: list[str], dias: int) -> dict[str, list[PontoDia]]:
+    async def resumo_ofertas(
+        self, ids: list[str], dias: int, cep: str | None = None
+    ) -> dict[str, list[PontoDia]]:
         desde = datetime.now(UTC) - timedelta(days=dias)
         consulta = (
             select(HistoricoPreco.oferta, HistoricoPreco.observado_em, HistoricoPreco.preco)
@@ -227,8 +229,13 @@ class RegistroHistorico:
                 # A atualização agendada lê sem CEP; misturar com a busca da pessoa
                 # mudaria o habitual de lojas com preço regional.
                 HistoricoPreco.agendada.is_(False),
+                # o habitual de uma região não serve para outra
+                HistoricoPreco.prefixo_cep == cep[:5]
+                if cep
+                else HistoricoPreco.prefixo_cep.is_(None),
             )
-            .order_by(HistoricoPreco.observado_em)
+            # mais recentes primeiro: o limite corta o passado distante, não os dias de agora
+            .order_by(HistoricoPreco.observado_em.desc())
             .limit(LINHAS_MAXIMAS_SERIE)
         )
         async with self._sessoes() as sessao:
