@@ -8,7 +8,9 @@ const pontos = (lista: [string, number][]) => lista.map(([dia, preco]) => ({ dia
 describe("preço atual contra o histórico da mesma loja", () => {
   const passado = pontos([
     ["2026-09-01", 30000],
+    ["2026-09-10", 29500],
     ["2026-09-20", 28000],
+    ["2026-10-01", 29500],
     ["2026-10-10", 29000],
     ["2026-10-20", 31000],
   ]);
@@ -33,7 +35,9 @@ describe("preço atual contra o histórico da mesma loja", () => {
     const pouco = pontos([
       ["2026-09-01", 30000],
       ["2026-09-20", 25000],
+      ["2026-10-01", 29000],
       ["2026-10-10", 32000],
+      ["2026-10-15", 31000],
     ]);
     expect(avaliarHistorico(28000, pouco, HOJE)!.situacao).toBe("abaixo");
   });

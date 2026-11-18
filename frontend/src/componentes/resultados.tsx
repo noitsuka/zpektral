@@ -94,7 +94,8 @@ export function Resultados() {
   const cabecalho = useRef<HTMLElement>(null);
   const requisicao = useRef<AbortController | null>(null);
   const agora = useAgora(30_000);
-  const hoje = useMemo(() => hojeEmBrasilia(), []);
+  // recalculado a cada render: uma aba aberta que passa da meia-noite muda de dia
+  const hoje = hojeEmBrasilia();
   useAtalhoBusca();
 
   const setFiltros = useCallback(
@@ -143,7 +144,7 @@ export function Resultados() {
   const final = transmissaoFalhou ? pagina : null;
   const varrendo = transmissao.fase === "transmitindo";
   const terminou = !varrendo && transmissao.fase !== "parada";
-  const { historico, carregando: carregandoHistorico, pedir } = useHistoricoOfertas();
+  const { historico, carregando: carregandoHistorico, pedir } = useHistoricoOfertas(cep);
 
   const base = useMemo(
     () => (final ? [...final.ofertas, ...extra] : transmitido),

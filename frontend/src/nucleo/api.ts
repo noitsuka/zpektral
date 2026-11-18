@@ -84,10 +84,11 @@ const DIAS_HISTORICO = 180;
 
 export function historicoDasOfertas(
   ids: string[],
+  cep: string | null,
   signal?: AbortSignal,
 ): Promise<HistoricoOfertas> {
   return obter<HistoricoOfertas>(
-    `/historico/ofertas?${new URLSearchParams({ ids: ids.join(","), dias: String(DIAS_HISTORICO) })}`,
+    `/historico/ofertas?${new URLSearchParams({ ids: ids.join(","), dias: String(DIAS_HISTORICO), ...(cep ? { cep } : {}) })}`,
     signal,
   );
 }

@@ -4,6 +4,9 @@ import type { Oferta, Pagamento } from "@/nucleo/tipos";
 const LOJAS_MINIMAS = 3;
 const DIFERENCA_MINIMA = 0.03;
 
+// Total com frete só se compara com total com frete; sem CEP, todos são o preço do produto.
+const comparavel = (o: Oferta) => o.total_exato || o.frete.status === "sem_cep";
+
 export function mediana(valores: number[]): number | null {
   if (!valores.length) return null;
   const ordenados = [...valores].sort((a, b) => a - b);
@@ -14,7 +17,7 @@ export function mediana(valores: number[]): number | null {
 export function precosTipicos(ofertas: Oferta[], pagamento: Pagamento): Map<string, number> {
   const porGrupo = new Map<string, Map<string, number>>();
   for (const o of ofertas) {
-    if (!o.grupo || !o.disponivel || o.frete.status === "nao_entrega") continue;
+    if (!o.grupo || !o.disponivel || !comparavel(o)) continue;
     const lojas = porGrupo.get(o.grupo) ?? new Map<string, number>();
     const total = totalPara(o, pagamento);
     const atual = lojas.get(o.loja.id);
@@ -36,7 +39,7 @@ export function comparadoAoTipico(
   tipicos: Map<string, number>,
 ): number | null {
   const tipico = oferta.grupo ? tipicos.get(oferta.grupo) : undefined;
-  if (!tipico) return null;
+  if (!tipico || !comparavel(oferta)) return null;
   const diferenca = totalPara(oferta, pagamento) / tipico - 1;
   return Math.abs(diferenca) < DIFERENCA_MINIMA ? null : diferenca;
 }

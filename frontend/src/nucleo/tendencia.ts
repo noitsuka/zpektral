@@ -1,7 +1,8 @@
 import { mediana } from "@/nucleo/referencia";
 import type { PontoHistorico } from "@/nucleo/tipos";
 
-const DIAS_MINIMOS = 3;
+// o mesmo mínimo das quedas do servidor
+const DIAS_MINIMOS = 5;
 const ESTAVEL = 0.03;
 const MS_POR_DIA = 86_400_000;
 

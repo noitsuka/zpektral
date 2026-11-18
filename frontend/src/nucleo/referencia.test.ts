@@ -11,6 +11,7 @@ function oferta(loja: string, total: number, grupo: string | null = "g1"): Ofert
     totais: null,
     grupo,
     disponivel: true,
+    total_exato: true,
     frete: { status: "calculado" },
   } as Oferta;
 }
@@ -42,7 +43,11 @@ describe("preço típico de um produto", () => {
 
   it("ignora indisponíveis e quem não entrega", () => {
     const fora = { ...oferta("d", 10), disponivel: false } as Oferta;
-    const naoEntrega = { ...oferta("e", 10), frete: { status: "nao_entrega" } } as Oferta;
+    const naoEntrega = {
+      ...oferta("e", 10),
+      total_exato: false,
+      frete: { status: "nao_entrega" },
+    } as Oferta;
     const tipicos = precosTipicos(
       [oferta("a", 100), oferta("b", 120), oferta("c", 110), fora, naoEntrega],
       "melhor",
@@ -56,5 +61,21 @@ describe("preço típico de um produto", () => {
     expect(comparadoAoTipico(oferta("a", 990), "melhor", tipicos)).toBeNull();
     expect(comparadoAoTipico(oferta("a", 1200), "melhor", tipicos)).toBeCloseTo(0.2);
     expect(comparadoAoTipico(oferta("a", 900, null), "melhor", tipicos)).toBeNull();
+  });
+
+  it("não compara preço sem frete com total que tem frete", () => {
+    const semFrete = {
+      ...oferta("d", 50),
+      total_exato: false,
+      frete: { status: "nao_informado" },
+    } as Oferta;
+    const tipicos = precosTipicos(
+      [oferta("a", 100), oferta("b", 120), oferta("c", 110), semFrete],
+      "melhor",
+    );
+    expect(tipicos.get("g1")).toBe(110);
+    expect(comparadoAoTipico(semFrete, "melhor", tipicos)).toBeNull();
+    const semCep = { ...semFrete, frete: { status: "sem_cep" } } as Oferta;
+    expect(comparadoAoTipico(semCep, "melhor", tipicos)).toBeCloseTo(50 / 110 - 1);
   });
 });

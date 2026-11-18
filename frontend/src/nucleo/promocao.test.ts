@@ -21,7 +21,9 @@ const serie = (lista: [string, number][]): PontoHistorico[] =>
 // mediana 29.500, menor 28.000, maior 31.000, 77 dias
 const HABITUAL = serie([
   ["2026-09-01", 30000],
+  ["2026-09-10", 29500],
   ["2026-09-20", 28000],
+  ["2026-10-01", 29500],
   ["2026-10-10", 29000],
   ["2026-10-20", 31000],
 ]);
@@ -103,9 +105,16 @@ describe("selos de promoção com evidência", () => {
   });
 
   it("mostra a validade só quando a loja informa e ela ainda não passou", () => {
-    const valida = avaliarPromocao(oferta({ preco_valido_ate: "2026-11-20" }), undefined, HOJE);
-    expect(valida.selos.map((s) => s.tipo)).toEqual(["validade"]);
-    expect(valida.selos[0].texto).toMatch(/20/);
+    // 15h em Brasília
+    const agora = Date.parse("2026-11-17T18:00:00Z");
+    const avaliar = (ate: string) =>
+      avaliarPromocao(oferta({ preco_valido_ate: ate }), undefined, HOJE, agora).selos;
+    // 23h59 de 20/11 em Brasília, que já é 21/11 em UTC
+    const valida = avaliar("2026-11-21T02:59:00+00:00");
+    expect(valida.map((s) => s.tipo)).toEqual(["validade"]);
+    expect(valida[0].texto).toMatch(/20/);
+    // venceu às 10h de hoje: às 15h não aparece mais
+    expect(avaliar("2026-11-17T13:00:00+00:00")).toEqual([]);
     expect(tipos(oferta({ preco_valido_ate: "2026-11-16" }))).toEqual([]);
     expect(tipos(oferta({ preco_valido_ate: null }))).toEqual([]);
     expect(tipos(oferta({ preco_valido_ate: "data ruim" }))).toEqual([]);

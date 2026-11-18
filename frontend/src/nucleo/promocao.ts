@@ -30,15 +30,20 @@ export type Promocao = {
 
 const MAXIMO_PROMOCOES = 3;
 
-function diaInformado(valor: string | null | undefined): string | null {
-  const dia = valor?.slice(0, 10);
-  return dia && /^\d{4}-\d{2}-\d{2}$/.test(dia) ? dia : null;
+const DIA_EM_SAO_PAULO = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" });
+
+// O instante decide se ainda vale; o dia mostrado é o de São Paulo, não o de UTC.
+function validadeInformada(valor: string | null | undefined, agora: number): string | null {
+  const instante = valor ? Date.parse(valor) : NaN;
+  if (!(instante > agora)) return null;
+  return DIA_EM_SAO_PAULO.format(instante);
 }
 
 export function avaliarPromocao(
   oferta: Oferta,
   serie: PontoHistorico[] | undefined,
   hoje: string,
+  agora: number = Date.now(),
 ): Promocao {
   const selos: Selo[] = [];
   const avaliacao = serie ? avaliarHistorico(oferta.preco, serie, hoje) : null;
@@ -114,8 +119,8 @@ export function avaliarPromocao(
     });
   }
 
-  const validade = diaInformado(oferta.preco_valido_ate);
-  if (validade && validade >= hoje) {
+  const validade = validadeInformada(oferta.preco_valido_ate, agora);
+  if (validade) {
     selos.push({
       tipo: "validade",
       texto: `Preço válido até ${diaAbreviado(validade)}`,
