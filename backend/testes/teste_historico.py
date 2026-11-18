@@ -515,3 +515,18 @@ async def teste_resumo_por_oferta_corta_o_passado_e_nao_os_dias_recentes(sessoes
             sessao.add(_linha("a:1", agora - timedelta(days=dias), 10000 + dias))
     resumo = await RegistroHistorico(sessoes).resumo_ofertas(["a:1"], dias=90)
     assert [p.preco for p in resumo["a:1"]] == [10003, 10002, 10001]
+
+
+async def teste_serie_por_produto_devolve_o_dia_e_nao_o_instante(sessoes):
+    from datetime import time
+
+    registro = RegistroHistorico(sessoes)
+    await _gravar(sessoes, "a:1", datetime.now(UTC) - timedelta(hours=30), 30000)
+    async with sessoes() as sessao, sessao.begin():
+        from sqlalchemy import update
+
+        from app.banco import HistoricoPreco
+
+        await sessao.execute(update(HistoricoPreco).values(produto="g:x"))
+    pontos = (await registro.serie("g:x", None, 30))[0].pontos
+    assert all(p.em.timetz().replace(tzinfo=None) == time(0) for p in pontos)

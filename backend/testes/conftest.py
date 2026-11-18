@@ -40,6 +40,15 @@ def config() -> Configuracoes:
     )
 
 
+@pytest.fixture(autouse=True)
+def sem_dns(monkeypatch):
+    # os testes usam hosts inventados; quem testa a resolução troca este resolvedor
+    async def publico(host: str) -> bool:
+        return False
+
+    monkeypatch.setattr("app.cliente_http._resolve_para_interno", publico)
+
+
 @pytest.fixture
 async def http(config: Configuracoes):
     async with ClienteHttp(config) as http:

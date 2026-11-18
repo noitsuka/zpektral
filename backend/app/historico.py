@@ -363,7 +363,10 @@ class RegistroHistorico:
                 atual=pontos[-1].total,
                 pontos=[
                     Ponto(
-                        em=_com_fuso(r.observado_em),
+                        # só o dia: o instante diria quando alguém daquela região buscou
+                        em=_com_fuso(r.observado_em)
+                        .astimezone(HORARIO_DE_BRASILIA)
+                        .replace(hour=0, minute=0, second=0, microsecond=0),
                         preco=r.preco,
                         preco_pix=r.preco_pix,
                         frete=r.frete,

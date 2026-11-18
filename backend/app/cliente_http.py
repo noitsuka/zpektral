@@ -1,6 +1,7 @@
 import asyncio
 import ipaddress
 import random
+import socket
 from collections import defaultdict
 from http.cookiejar import CookieJar, DefaultCookiePolicy
 from typing import Any
@@ -8,6 +9,7 @@ from typing import Any
 import httpx
 import orjson
 
+from app.cache import CacheComValidade
 from app.configuracao import Configuracoes
 
 STATUS_REPETIVEIS = {429, 500, 502, 503, 504}
@@ -48,8 +50,26 @@ def _host_interno(host: str) -> bool:
     return not ip.is_global
 
 
+_RESOLVIDOS: CacheComValidade[str, bool] = CacheComValidade(300, 1024)
+
+
+async def _resolve_para_interno(host: str) -> bool:
+    # um nome público pode apontar para 127.0.0.1 (localtest.me) ou rede interna
+    guardado = _RESOLVIDOS.obter(host)
+    if guardado is not None:
+        return guardado
+    try:
+        infos = await asyncio.get_running_loop().getaddrinfo(host, 443, type=socket.SOCK_STREAM)
+    except OSError:
+        return False  # sem endereço a conexão falha sozinha
+    interno = any(not ipaddress.ip_address(info[4][0]).is_global for info in infos)
+    _RESOLVIDOS.guardar(host, interno)
+    return interno
+
+
 async def _exigir_destino_publico(requisicao: httpx.Request) -> None:
-    if requisicao.url.scheme != "https" or _host_interno(requisicao.url.host):
+    host = requisicao.url.host
+    if requisicao.url.scheme != "https" or _host_interno(host) or await _resolve_para_interno(host):
         raise DestinoProibido(f"destino recusado: {requisicao.url.host}", request=requisicao)
 
 

@@ -15,7 +15,8 @@ class Configuracoes(BaseSettings):
     requisicoes_por_minuto: PositiveInt = 120
     rajada_requisicoes: PositiveInt = 40
     buscas_novas_por_minuto: PositiveInt = 12
-    rajada_buscas_novas: PositiveInt = 6
+    # com 8 buscas por instância, um IP sozinho não ocupa mais que 3 vagas de uma vez
+    rajada_buscas_novas: PositiveInt = 3
     # scripts/carga_simulada.py: com 24 a CPU satura e lojas saudáveis estouram o tempo
     maximo_buscas_em_andamento: PositiveInt = 8
     transmissoes_por_ip: PositiveInt = 3

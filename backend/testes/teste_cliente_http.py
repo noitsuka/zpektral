@@ -2,6 +2,7 @@ import httpx
 import pytest
 
 from app.cliente_http import ErroExterno, ler_json
+from app.cliente_http import _resolve_para_interno as resolver_real
 
 
 @pytest.mark.parametrize(
@@ -96,3 +97,32 @@ async def teste_cookie_de_uma_resposta_nao_vai_na_proxima(simulador, http):
     await http.requisitar("GET", "https://loja.com.br/a")
     await http.requisitar("GET", "https://loja.com.br/b")
     assert "cookie" not in seguinte.calls.last.request.headers
+
+
+async def teste_nome_publico_que_aponta_para_rede_interna_e_recusado(simulador, http, monkeypatch):
+    async def resolve(host: str) -> bool:
+        return host == "localtest.me"
+
+    monkeypatch.setattr("app.cliente_http._resolve_para_interno", resolve)
+    rota = simulador.get("https://localtest.me/api").mock(httpx.Response(200, json={}))
+    with pytest.raises(ErroExterno):
+        await http.requisitar("GET", "https://localtest.me/api")
+    assert not rota.called
+
+
+async def teste_resolucao_guarda_o_resultado_por_host(monkeypatch):
+    import asyncio
+
+    from app import cliente_http
+
+    chamadas = []
+
+    async def getaddrinfo(host, *args, **kwargs):
+        chamadas.append(host)
+        return [(2, 1, 6, "", ("127.0.0.1", 443))]
+
+    monkeypatch.setattr(asyncio.get_running_loop(), "getaddrinfo", getaddrinfo)
+    monkeypatch.setattr(cliente_http, "_RESOLVIDOS", cliente_http.CacheComValidade(300, 8))
+    assert await resolver_real("localtest.me") is True
+    assert await resolver_real("localtest.me") is True
+    assert chamadas == ["localtest.me"]
