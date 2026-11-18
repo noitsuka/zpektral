@@ -55,9 +55,9 @@ O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produ
 
 ## Lojas
 
-58 lojas da plataforma VTEX (Carrefour, Americanas, Atacadão, WebContinental, Quero-Quero, Drogaria São Paulo, Época Cosméticos, Asics, Obramax e outras de eletro, casa, construção, moda, esporte, beleza, farmácia e mercado), mais Amazon, KaBuM! e Buscapé. Mercado Livre, Shopee e eBay estão integrados pelas APIs oficiais e entram quando as credenciais são configuradas.
+95 lojas da plataforma VTEX (Carrefour, Americanas, Atacadão, WebContinental, Quero-Quero, KitchenAid, Drogaria São Paulo, Levi's, Vivara, H.Stern e outras de eletro, casa, construção, moda, calçados, esporte, beleza, farmácia, mercado, joias e ótica), mais Amazon, KaBuM! e Buscapé. Mercado Livre, Shopee e eBay estão integrados pelas APIs oficiais e entram quando as credenciais são configuradas. A lista completa, o estado medido de cada fonte e a pesquisa de novas fontes oficiais estão em [docs/fontes.md](docs/fontes.md).
 
-O frete é cotado no carrinho das lojas VTEX e dos vendedores dentro delas. Amazon, KaBuM! e Buscapé entram com o preço e o frete que mostram publicamente. Produtos do eBay vindos do exterior aparecem com o imposto de importação estimado e uma marca própria.
+O frete é cotado no carrinho das lojas VTEX e dos vendedores dentro delas. Amazon, KaBuM! e Buscapé entram com o preço e o frete que mostram publicamente. Produtos do eBay vindos do exterior aparecem com o imposto de importação estimado e uma marca própria. A loja que recusa o acesso (HTTP 401, 403, 429 ou verificação de robô) aparece como bloqueada, separada da loja fora do ar.
 
 ## Stack
 
@@ -160,10 +160,11 @@ Migrações: `alembic upgrade head` com `DATABASE_URL` apontando para o banco de
 ## Limitações e próximos passos
 
 - Magazine Luiza, Casas Bahia e outras lojas que bloqueiam acesso automatizado aparecem só pelo Buscapé, com preço e sem frete.
-- Leroy Merlin, MadeiraMadeira, Tok&Stok e Mobly não têm API pública que dê para usar ou proíbem o acesso no robots.txt.
-- KaBuM! e Amazon entram sem cotação de frete por CEP.
+- Leroy Merlin, MadeiraMadeira, Tok&Stok e Mobly não têm API pública que dê para usar ou proíbem o acesso no robots.txt. Riachuelo, Farm, Animale, Avon, Havaianas, Pandora e outras lojas VTEX ficam de fora pelo mesmo motivo.
+- Redes regionais, como Savegnago, Giassi, GBarbosa e Drogasmil, só cotam frete para CEPs da própria região e aparecem como "não entrega" nos outros.
+- KaBuM! e Amazon entram sem cotação de frete por CEP. A Creators API, que substituiu a PA-API da Amazon, também não traz frete e exige conta de Associados com vendas.
 - O total de produtos do eBay é estimado, porque o imposto final é definido pela Receita na chegada.
-- Próximo passo: feeds de afiliados para Casas Bahia, Centauro e Netshoes, e Redis para rodar mais de um processo.
+- Próximo passo: feeds de afiliados (Awin para Casas Bahia, Rakuten Advertising para Leroy Merlin), que dependem de conta do dono, e Redis para rodar mais de um processo.
 
 ## Licença
 
