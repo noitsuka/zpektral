@@ -1,0 +1,56 @@
+name: atualizar-precos
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      orcamento:
+        description: Máximo de buscas nesta execução
+        default: "20"
+
+concurrency:
+  group: atualizar-precos
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  segredo:
+    runs-on: ubuntu-latest
+    outputs:
+      configurado: ${{ steps.conferir.outputs.configurado }}
+    steps:
+      - id: conferir
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -n "$DATABASE_URL" ]; then
+            echo "configurado=sim" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::secret DATABASE_URL ausente, nada a atualizar"
+            echo "configurado=nao" >> "$GITHUB_OUTPUT"
+          fi
+
+  atualizar:
+    needs: segredo
+    if: needs.segredo.outputs.configurado == 'sim'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - run: pip install -e .
+      - name: atualizar
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ORCAMENTO: ${{ inputs.orcamento || '20' }}
+        run: python -m scripts.atualizar_precos --orcamento "$ORCAMENTO"

@@ -160,6 +160,25 @@ class RegistroHistorico:
             self._gravados.guardar(chave, total)
         await self.expurgar_se_preciso()
 
+    async def lembrar_gravados_hoje(self, agora: datetime) -> None:
+        # Cada execução agendada é um processo novo; sem isto regravaria o mesmo preço a cada 6 h.
+        inicio = agora.astimezone(HORARIO_DE_BRASILIA).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        restante = (inicio + timedelta(days=1) - agora).total_seconds()
+        consulta = (
+            select(HistoricoPreco.oferta, HistoricoPreco.total)
+            .where(
+                HistoricoPreco.observado_em >= inicio.astimezone(UTC),
+                HistoricoPreco.prefixo_cep.is_(None),
+                HistoricoPreco.oferta.is_not(None),
+            )
+            .order_by(HistoricoPreco.observado_em, HistoricoPreco.id)
+        )
+        async with self._sessoes() as sessao:
+            for oferta, total in (await sessao.execute(consulta)).all():
+                self._gravados.guardar((oferta, None), total, validade=restante)
+
     async def expurgar(self) -> int:
         limite = datetime.now(UTC) - timedelta(days=self._dias_retencao)
         async with self._sessoes() as sessao, sessao.begin():
