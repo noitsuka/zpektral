@@ -72,11 +72,12 @@ test("o histórico de preço responde para as ofertas da busca", async ({ page }
 });
 
 // Medida manual para comparar mudanças: as lojas respondem em ritmos diferentes, e a lista
-// não pode sacudir enquanto isso (CLS de sessão, como o Chrome mede). Outro CEP para a busca
-// não sair do cache: no desktop vem lote a lote; no celular, a mesma busca chega toda de uma vez.
+// não pode sacudir enquanto isso (CLS de sessão, como o Chrome mede). Um CEP por projeto e
+// diferente dos outros testes: com o mesmo, a busca sairia do cache e chegaria toda de uma vez.
 test("a lista não sacode enquanto as lojas respondem", async ({ page }) => {
   await registrarDeslocamentos(page);
-  const erros = await buscar(page, "geladeira frost free", "30130010");
+  const cep = test.info().project.name === "celular" ? "04538132" : "30130010";
+  const erros = await buscar(page, "geladeira frost free", cep);
   await page.waitForTimeout(1000);
   const medido = await cls(page);
   const maiores = await maioresDeslocamentos(page);
