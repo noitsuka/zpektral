@@ -1,4 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
-  "ignoreDependencies": ["@fontsource/archivo"]
+  "ignoreDependencies": ["@fontsource/archivo"],
+  "playwright": {
+    "config": ["playwright.config.ts", "playwright.real.config.ts"],
+    "entry": ["e2e/**/*.spec.ts", "e2e-real/**/*.spec.ts"]
+  }
 }
