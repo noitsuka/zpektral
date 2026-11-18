@@ -10,9 +10,9 @@ import { haQuanto, plural, porcentagem, reais } from "@/nucleo/formato";
 import type { RespostaQuedas } from "@/nucleo/tipos";
 
 const PERIODOS = [7, 30, 90];
+// a API só lista quedas de 10% ou mais, então o padrão já é esse
 const QUEDAS_MINIMAS = [
-  { valor: 0, rotulo: "Qualquer" },
-  { valor: 0.1, rotulo: "10% ou mais" },
+  { valor: 0, rotulo: "10% ou mais" },
   { valor: 0.2, rotulo: "20% ou mais" },
   { valor: 0.3, rotulo: "30% ou mais" },
 ];
@@ -262,7 +262,7 @@ export function Quedas() {
                     </h2>
                     <p className="mt-1 max-w-[60ch] text-tinta-2">
                       Uma queda entra aqui quando o mesmo produto foi visto na mesma loja em pelo
-                      menos 5 dias, com a última vez nas últimas 48 horas. A lista cresce conforme
+                      menos 5 dias, e a última vez foi há menos de 48 horas. A lista cresce conforme
                       as pessoas buscam no Zpektral.
                     </p>
                     <Link href="/" className="botao botao-primario mt-4">

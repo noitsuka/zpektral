@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+
 import { Cabecalho, Rodape } from "@/componentes/moldura";
 
 export const metadata: Metadata = {
   title: "Privacidade",
-  description: "O que o zpektral guarda, por quanto tempo e com quem compartilha.",
+  description: "O que o Zpektral guarda, por quanto tempo e com quem compartilha.",
 };
 
 const ITENS = [
@@ -35,7 +36,7 @@ const ITENS = [
   {
     titulo: "Lojas",
     texto:
-      "Ao abrir uma oferta você vai para o site da loja ou do Buscapé, e a partir daí vale a política de privacidade deles.",
+      "Ao abrir uma oferta, você vai para o site da loja ou do Buscapé, e a partir daí vale a política de privacidade deles.",
   },
 ];
 

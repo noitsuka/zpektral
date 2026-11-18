@@ -331,7 +331,7 @@ export function LinhaOferta({
           aria-controls={idDetalhes}
           className="inline-flex min-h-11 items-center gap-1 rounded-controle px-2 text-[0.875rem] font-medium text-tinta-2 hover:text-tinta sm:-mr-1"
         >
-          {aberta ? "Fechar a conta" : "Ver a conta"}
+          {aberta ? "Esconder a conta" : "Ver a conta"}
           <ChevronDown
             className={`size-4 transition-transform ${aberta ? "rotate-180" : ""}`}
             aria-hidden
