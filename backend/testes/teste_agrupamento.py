@@ -1,3 +1,5 @@
+import re
+
 import pytest
 
 from app.agrupamento import (
@@ -9,10 +11,12 @@ from app.agrupamento import (
 from app.modelos import Alerta, Loja, Oferta
 
 
-def oferta(id: str, titulo: str, preco: int = 1000, loja: str | None = None, ean=None) -> Oferta:
+def oferta(
+    id: str, titulo: str, preco: int = 1000, loja: str | None = None, ean=None, **campos
+) -> Oferta:
     id_loja = loja or id
     return Oferta(
-        id=id, titulo=titulo, link="x", loja=Loja(id_loja, id_loja), preco=preco, ean=ean
+        id=id, titulo=titulo, link="x", loja=Loja(id_loja, id_loja), preco=preco, ean=ean, **campos
     ).consolidar()
 
 
@@ -34,6 +38,7 @@ def grupos_de(ofertas):
         ("iPhone 15 128GB Preto", set()),
         ("Processador Ryzen 5 5600 AM4", set()),
         ("SSD NVMe 1TB PCIe 4.0", set()),
+        ("Estante Multy 4 Prateleiras 180x60x30 Menta", set()),
     ],
 )
 def teste_codigos_de_modelo_ignoram_medidas_e_familias(titulo, modelos):
@@ -123,6 +128,132 @@ def teste_chave_propria_prefere_ean():
     assert chave_propria(oferta("a", "TV 55QNED70BSA", ean="789")) == "g:789"
     assert chave_propria(oferta("a", "TV 55QNED70BSA")) == "g:55qned70bsa"
     assert chave_propria(oferta("a", "TV")) is None
+
+
+PNR = "7908631607168"
+ARTELY = "7899307521331"
+
+
+def juntos(g, *ids) -> bool:
+    return any(set(ids) <= membros for grupo, membros in g.items() if grupo)
+
+
+def teste_eans_diferentes_nunca_se_unem_mesmo_com_titulos_quase_iguais():
+    g = grupos_de(
+        [
+            oferta(
+                "pnr", "Estante Multy 4 Prateleiras Menta 180x60x30 MDP 15mm", ean=PNR, marca="PNR"
+            ),
+            oferta("panorama", "Estante Multy 80066 4 Prateleiras Menta 180x60x30", ean=PNR),
+            oferta("artely", "Estante Multy 4 Prateleiras Menta 180x60x30 MDP 15mm", ean=ARTELY),
+            oferta("s24", "Smartphone Galaxy SM-S921B 128GB Preto", ean="7891234567895"),
+            oferta("s24b", "Smartphone Galaxy SM-S921B 128GB Preto", ean="7896004000015"),
+        ]
+    )
+    assert g[f"g:{PNR}"] == {"pnr", "panorama"}
+    assert g[f"g:{ARTELY}"] == {"artely"}
+    assert not juntos(g, "s24", "s24b")
+
+
+@pytest.mark.parametrize(
+    "ofertas",
+    [
+        [
+            ("a", "Geladeira Brastemp BRM44HK Inox", "7891234567895"),
+            ("b", "Geladeira Brastemp BRM44HK", "7891234567895"),
+            ("c", "Geladeira Brastemp BRM44HK Branca", None),
+        ],
+        [
+            ("a", "Fone de Ouvido JBL Preto", "7891234567895"),
+            ("b", "Fone de Ouvido JBL Tune T520BT", "7891234567895"),
+            ("c", "Fone de Ouvido JBL Tune T520BT Branco", None),
+        ],
+    ],
+)
+def teste_ofertas_incompativeis_nao_se_unem_por_um_intermediario(ofertas):
+    g = grupos_de([oferta(id, titulo, ean=ean) for id, titulo, ean in ofertas])
+    assert not juntos(g, "a", "c")
+
+
+def teste_modelo_nao_une_marcas_diferentes():
+    g = grupos_de(
+        [
+            oferta("mondial", "Liquidificador Turbo L-1200 Preto", marca="Mondial"),
+            oferta("arno", "Liquidificador Turbo L-1200 Preto", marca="Arno"),
+            oferta("lg", 'Monitor 24MK430H 24"', marca="LG"),
+            oferta("lg2", "Monitor 24MK430H", marca="LG Electronics"),
+            oferta("sem", "Monitor 24MK430H Full HD"),
+        ]
+    )
+    assert not juntos(g, "mondial", "arno")
+    assert juntos(g, "lg", "lg2", "sem")
+
+
+@pytest.mark.parametrize(
+    ("titulo_a", "titulo_b"),
+    [
+        ("Geladeira Brastemp BRM44HK Inox", "Geladeira Brastemp BRM44HK Branca"),
+        ('Monitor Gamer AOC 24G2SP 24"', 'Monitor Gamer AOC 24G2SP 27"'),
+        ("Geladeira Brastemp BRM44HK 375 Litros", "Geladeira Brastemp BRM44HK 400L"),
+        ("Ar Condicionado LG S4-Q12JA31A 12000 BTUs", "Ar Condicionado LG S4-Q12JA31A 9000 BTUs"),
+        ("Estante Multy EM-4060 4 Prateleiras", "Estante Multy EM-4060 Cinco Prateleiras"),
+        ("Guarda-Roupa Araplac GR-2500 2 Portas", "Guarda-Roupa Araplac GR-2500 3 Portas"),
+        ("Cômoda Tcil CM-800 4 Gavetas", "Cômoda Tcil CM-800 6 Gavetas"),
+        ("Kit 2 Ventiladores Arno VE5560", "Ventilador Arno VE5560"),
+        ("Cerveja Heineken HK-350 Lata Pack com 12", "Cerveja Heineken HK-350 Lata"),
+        ("Pilha Duracell MN1500 4 Unidades", "Pilha Duracell MN1500 2un"),
+        ("iPhone 15 Apple MTP43BZ/A Usado", "iPhone 15 Apple MTP43BZ/A"),
+        ("iPhone 15 Apple MTP43BZ/A Recondicionado", "iPhone 15 Apple MTP43BZ/A Usado"),
+    ],
+)
+def teste_modelo_nao_une_atributos_criticos_em_conflito(titulo_a, titulo_b):
+    assert not juntos(grupos_de([oferta("a", titulo_a), oferta("b", titulo_b)]), "a", "b")
+
+
+@pytest.mark.parametrize(
+    ("titulo_a", "titulo_b"),
+    [
+        ("Fritadeira Mondial AF-55i Preta", "Fritadeira Mondial AF-55i Preta e Inox"),
+        ("Kit Teclado e Mouse Logitech MK270", "Teclado e Mouse Logitech MK270 Preto"),
+        ("Ventilador Arno VE5560 1 Unidade", "Ventilador Arno VE5560"),
+        ("Estante Multiuso EM-300 2 Portas 4 Prateleiras", "Estante Multiuso EM-300 2 Portas"),
+    ],
+)
+def teste_modelo_une_titulos_sem_conflito(titulo_a, titulo_b):
+    assert juntos(grupos_de([oferta("a", titulo_a), oferta("b", titulo_b)]), "a", "b")
+
+
+def teste_mesmo_ean_com_atributo_critico_em_conflito_se_separa():
+    ean = "7891234567895"
+    ofertas = [
+        oferta("a", "Ventilador de Mesa Arno VE5560 Preto", ean=ean),
+        oferta("b", "Ventilador Arno Turbo Silence Preto", ean=ean),
+        oferta("c", "Ventilador Arno", ean=ean),
+        oferta("kit", "Kit 2 Ventiladores Arno Preto", ean=ean),
+        oferta("usado", "Ventilador Arno VE5560 Preto Usado", ean=ean),
+    ]
+    g = grupos_de(ofertas)
+    assert g[f"g:{ean}"] == {"a", "b", "c"}
+    assert {"kit"} in g.values() and {"usado"} in g.values()
+    assert all(re.fullmatch(r"g:[a-z0-9/]{1,78}", grupo) for grupo in g)
+    assert grupos_de(ofertas[::-1]) == g
+
+
+def teste_mesmo_ean_com_titulos_compativeis_continua_junto():
+    g = grupos_de(
+        [
+            oferta("a1", "Estante Para Livros Com 4 Prateleiras Multy Menta", ean=ARTELY),
+            oferta(
+                "a2",
+                "Estante para Livros e Decoracao Multy 4 Prateleiras MDP 15mm 60cm Menta",
+                ean=ARTELY,
+            ),
+            oferta("a3", "Estante Com 5 Nichos Multy Menta", ean=ARTELY),
+            oferta("a4", "Estante Multy Menta", ean=ARTELY, marca="Artely"),
+            oferta("a5", "Estante Multy", ean=ARTELY, marca="Genérico"),
+        ]
+    )
+    assert g == {f"g:{ARTELY}": {"a1", "a2", "a3", "a4", "a5"}}
 
 
 def teste_fora_da_curva_so_com_lojas_suficientes():
