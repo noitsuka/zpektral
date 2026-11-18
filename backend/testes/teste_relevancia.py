@@ -430,3 +430,33 @@ def teste_outro_tipo_de_produto_nao_compete_com_o_buscado(consulta, titulo):
 )
 def teste_o_tipo_buscado_continua_no_topo(consulta, titulo):
     assert s(consulta, titulo) >= 90
+
+
+@pytest.mark.parametrize(
+    "titulo",
+    [
+        # títulos reais da loja da Brastemp e da WebContinental para a BRO85
+        "Geladeira French Door 3 Portas cor Inox 559 Litros Design e Tecnologia Premium "
+        "Brastemp - BRO85MK 110V",
+        "Geladeira French Door 559L Inox Design e Tecnologia Premium Brastemp RO85MK 110V",
+    ],
+)
+def teste_especificacao_casada_nao_some_por_palavra_generica(titulo):
+    from app.relevancia import termos_ausentes
+
+    q = interpretar_consulta("geladeira frost free 559l")
+    assert 70 <= pontuar(q, titulo) < 90
+    assert termos_ausentes(q, titulo) == ["frost free"]
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo", "teto"),
+    [
+        ("geladeira frost free 559l", "Geladeira Consul Frost Free Duplex 410L Branca", 40),
+        ("geladeira frost free 559l", "Freezer Horizontal Metalfrio 559 Litros", 15),
+        ("geladeira frost free 559l branca", "Geladeira French Door 559 Litros Inox Brastemp", 40),
+        ("geladeira frost free 559l", "Prateleira para Geladeira 559 Litros Brastemp", 40),
+    ],
+)
+def teste_especificacao_casada_nao_traz_outro_produto(consulta, titulo, teto):
+    assert s(consulta, titulo) <= teto

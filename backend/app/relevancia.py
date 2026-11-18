@@ -98,6 +98,7 @@ CORES = frozenset(
     carvalho nogueira freijo cinamomo imbuia castanho
     """.split()
 )
+PISO_ESPECIFICACAO = 72  # o site esconde abaixo de 70 e só cota frete a partir de 65
 LETRAS_UNIDADE = frozenset("lvwkgx")
 UNIDADES = LETRAS_UNIDADE | frozenset("gb tb mb kg ml mm cm m hz ghz mah pol btu".split())
 
@@ -285,6 +286,8 @@ class Consulta:
     voltagem: str | None = field(init=False)
     tensao: frozenset[str] = field(init=False)
     modelos: tuple[str, ...] = field(init=False)
+    unidades_pedidas: tuple[str, ...] = field(init=False)
+    tipo: str | None = field(init=False)
 
     # o que só depende da consulta sai daqui uma vez, e não a cada título pontuado
     def __post_init__(self) -> None:
@@ -304,6 +307,17 @@ class Consulta:
         object.__setattr__(self, "voltagem", voltagem_do_titulo(self.texto) if tensao else None)
         object.__setattr__(self, "tensao", frozenset(tensao | {"v"} if tensao else ()))
         object.__setattr__(self, "modelos", modelos)
+        # número com unidade (559 l, 55 pol, 256 gb): a especificação que identifica o produto
+        unidades = tuple(
+            s
+            for t, s, n in zip(termos, seguintes, numeros, strict=True)
+            if n and s in UNIDADES and t not in tensao
+        )
+        object.__setattr__(self, "unidades_pedidas", unidades)
+        tipo = next(
+            (t for t, n in zip(termos, numeros, strict=True) if not n and t in _produtos()), None
+        )
+        object.__setattr__(self, "tipo", tipo)
 
     @property
     def esta_vazia(self) -> bool:
@@ -463,6 +477,17 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
             falta_numero = True
 
     resultado = casado / total * 95
+    # A especificação pedida (559 l, 55 pol) e o tipo de produto estão no título: o que falta são
+    # palavras que o anúncio não repetiu, como "frost free" no da própria Brastemp. A oferta fica
+    # acima do corte do site, como parecida e com o que faltou indicado; as regras abaixo ainda a
+    # derrubam se for outra cor, outra versão ou um acessório.
+    if (
+        consulta.unidades_pedidas
+        and not falta_numero
+        and consulta.tipo in achados
+        and all(u in achados for u in consulta.unidades_pedidas)
+    ):
+        resultado = max(resultado, PISO_ESPECIFICACAO)
     if consulta.cores and (no_titulo := CORES.intersection(palavras_titulo)):
         familias = no_titulo | {TONS[c] for c in no_titulo & TONS.keys()}
         if not consulta.cores & familias:
