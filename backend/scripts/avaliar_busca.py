@@ -23,7 +23,8 @@ from app.ordenacao import Filtros, aplicar
 
 CONSULTAS = Path(__file__).resolve().parents[1] / "testes" / "dados" / "consultas_avaliacao.json"
 CONJUNTOS = ("desenvolvimento", "teste", "todas")
-# saíram do cadastro em 076f8e1 porque o robots.txt proíbe /api/; versões antigas ainda as chamam
+# saíram do cadastro quando a busca passou a respeitar o robots.txt, que proíbe /api/; versões
+# antigas ainda as chamam
 FORA_POR_ROBOTS = frozenset(
     {"casaevideo", "philco", "britania", "polishop", "pbkids", "lebiscuit", "zonasul"}
 )

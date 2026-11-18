@@ -2,7 +2,7 @@
 
 ## Estado conferido em 18/11/2026
 
-- **Git:** `main` e `release/homologacao` no mesmo commit, 60 commits à frente de `origin/main` (`195fc21`). Nada foi enviado ao GitHub.
+- **Git:** a `main` local está à frente de `origin/main` (`195fc21`), e a `release/homologacao` ainda não foi publicada. Nada foi enviado ao GitHub.
 - **GitHub:**
   - o repositório é público, sem secrets, variáveis ou environments;
   - o token padrão dos workflows só lê;
