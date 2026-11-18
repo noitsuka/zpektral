@@ -28,7 +28,7 @@ export default async function ImagemCompartilhamento() {
         width: "100%",
         height: "100%",
         display: "flex",
-        background: "#eef0ec",
+        background: "#eceef1",
         padding: 56,
         fontFamily: "Archivo",
         color: TINTA,

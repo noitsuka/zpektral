@@ -34,7 +34,7 @@ export default function Inicio() {
           <h2 id="titulo-total" className="text-[1.1875rem] font-semibold">
             O que entra no total
           </h2>
-          <p className="mt-1 max-w-[62ch] text-tinta-2">
+          <p className="mt-1 max-w-[62ch] text-pretty text-tinta-2">
             Quando a loja permite, o Zpektral põe o produto no carrinho com o seu CEP e lê o valor
             que seria cobrado. As ofertas aparecem conforme as lojas respondem.
           </p>

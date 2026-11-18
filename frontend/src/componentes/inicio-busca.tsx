@@ -30,7 +30,7 @@ export function InicioBusca() {
 
       <form onSubmit={aoEnviar} role="search" noValidate className="mt-6 sm:mt-8">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] overflow-hidden rounded-etiqueta border-2 border-tinta bg-etiqueta sm:grid-cols-[minmax(0,1fr)_11rem_auto]">
-          <label className="col-span-2 block border-b-2 border-tinta px-4 py-3 focus-within:bg-acao-suave/50 sm:col-span-1 sm:border-r-2 sm:border-b-0">
+          <label className="col-span-2 block border-b-2 border-tinta px-4 py-3 focus-within:bg-acao-suave/50 focus-within:ring-2 focus-within:ring-acao focus-within:ring-inset sm:col-span-1 sm:border-r-2 sm:border-b-0">
             <span className="rotulo-campo">Produto</span>
             <input
               value={busca.consulta}
@@ -44,7 +44,7 @@ export function InicioBusca() {
               className="mt-0.5 block w-full bg-transparent text-[1.125rem] outline-none"
             />
           </label>
-          <label className="block px-4 py-3 focus-within:bg-acao-suave/50 sm:border-r-2 sm:border-tinta">
+          <label className="block px-4 py-3 focus-within:bg-acao-suave/50 focus-within:ring-2 focus-within:ring-acao focus-within:ring-inset sm:border-r-2 sm:border-tinta">
             <span className="rotulo-campo">CEP de entrega</span>
             <input
               value={busca.cep}

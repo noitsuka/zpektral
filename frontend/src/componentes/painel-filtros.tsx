@@ -125,8 +125,6 @@ export function PainelFiltros({ filtros, facetas, onChange }: Props) {
   const voltagens = voltagemFazSentido(facetas) ? Object.entries(facetas?.voltagens ?? {}) : [];
   const condicoes = facetas?.condicoes ?? {};
   const temUsadoOuRecondicionado = (condicoes.usado ?? 0) + (condicoes.recondicionado ?? 0) > 0;
-  const semPreco = (centavos: number | null | undefined, padrao: string) =>
-    centavos != null ? reais(centavos).replace("R$", "").trim() : padrao;
 
   return (
     <div>
@@ -149,17 +147,24 @@ export function PainelFiltros({ filtros, facetas, onChange }: Props) {
         <div className="flex gap-2">
           <CampoPreco
             rotulo="De"
-            dica={semPreco(facetas?.preco_min, "mín.")}
+            dica="mín."
             centavos={filtros.preco_min}
             aoConfirmar={(c) => aplicar({ preco_min: c })}
           />
           <CampoPreco
             rotulo="Até"
-            dica={semPreco(facetas?.preco_max, "máx.")}
+            dica="máx."
             centavos={filtros.preco_max}
             aoConfirmar={(c) => aplicar({ preco_max: c })}
           />
         </div>
+        {/* fora do campo: valor no placeholder parece filtro já aplicado e não cabe na largura */}
+        {facetas?.preco_min != null && facetas.preco_max != null && (
+          <p className="mt-1.5 text-[0.8125rem] text-tinta-3">
+            Nesta busca: <span className="numero">{reais(facetas.preco_min)}</span> a{" "}
+            <span className="numero">{reais(facetas.preco_max)}</span>
+          </p>
+        )}
       </Secao>
 
       <Secao titulo="Preço">
