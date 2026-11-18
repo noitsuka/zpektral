@@ -45,10 +45,18 @@ test("CEP incompleto não inicia a busca", async ({ page }) => {
   await expect(page).toHaveURL(/\/$/);
 });
 
-test("CEP que não existe mostra o motivo", async ({ page }) => {
+test("CEP que não existe mostra o motivo e como seguir, sem repetir o erro", async ({ page }) => {
   await simularApi(page);
   await page.goto("/busca?q=geladeira+frost+free&cep=99999999");
-  await expect(page.getByText(/CEP não encontrado/)).toBeVisible();
+  const alerta = page.getByRole("alert").filter({ hasText: /CEP não encontrado/ });
+  await expect(alerta).toBeVisible();
+  await expect(alerta.getByRole("button", { name: "Tentar de novo" })).toHaveCount(0);
+  await expect(alerta.getByRole("link", { name: "Buscar sem CEP" })).toHaveAttribute(
+    "href",
+    "/busca?q=geladeira+frost+free",
+  );
+  await alerta.getByRole("button", { name: "Corrigir o CEP" }).click();
+  await expect(page.getByLabel(/cep/i).first()).toBeFocused();
 });
 
 test("CEP sem entrega diz que as lojas não atendem o endereço", async ({ page }) => {

@@ -89,7 +89,7 @@ export function Resultados() {
   const [extra, setExtra] = useState<Oferta[]>([]);
   const [proximaPagina, setProximaPagina] = useState(2);
   const [visiveis, setVisiveis] = useState({ chave: "", quantas: POR_VEZ });
-  const [erro, setErro] = useState<string | null>(null);
+  const [erro, setErro] = useState<Error | null>(null);
   const [carregandoMais, setCarregandoMais] = useState(false);
   const cabecalho = useRef<HTMLElement>(null);
   const requisicao = useRef<AbortController | null>(null);
@@ -121,7 +121,7 @@ export function Resultados() {
         setErro(null);
       })
       .catch((e: Error) => {
-        if (e.name !== "AbortError") setErro(e instanceof ErroApi ? e.message : "Algo deu errado.");
+        if (e.name !== "AbortError") setErro(e);
       });
     return () => controlador.abort();
   }, [q, cep, assentado, transmissaoFalhou]);
@@ -245,8 +245,7 @@ export function Resultados() {
       setProximaPagina((n) => n + 1);
       setVisiveis({ chave: chaveVisiveis, quantas: quantas + POR_VEZ });
     } catch (e) {
-      if ((e as Error).name !== "AbortError")
-        setErro(e instanceof ErroApi ? e.message : "Algo deu errado.");
+      if ((e as Error).name !== "AbortError") setErro(e as Error);
     } finally {
       setCarregandoMais(false);
     }
@@ -260,7 +259,15 @@ export function Resultados() {
 
   const semCep = new URLSearchParams(params);
   semCep.delete("cep");
-  const mensagemDeErro = erro ?? (final ? null : transmissao.erro);
+  const mensagemDeErro = erro
+    ? erro instanceof ErroApi
+      ? erro.message
+      : "Algo deu errado."
+    : final
+      ? null
+      : transmissao.erro;
+  // a API só responde 404 na busca quando o CEP não existe: tentar de novo repetiria o erro
+  const cepNaoExiste = erro instanceof ErroApi && erro.status === 404;
   const esperandoHistorico = precisaDeTudo && terminou && carregandoHistorico;
   const vazio = terminou && !ranqueadas.length && !esperandoHistorico && !mensagemDeErro;
   const motivo = vazio ? motivoDoVazio({ fontes: transmissao.fontes, ofertas: transmitido }) : null;
@@ -353,10 +360,21 @@ export function Resultados() {
               </span>
               {mensagemDeErro}
             </p>
-            <button type="button" onClick={tentarDeNovo} className="botao botao-secundario">
-              <RotateCw className="size-4" aria-hidden />
-              Tentar de novo
-            </button>
+            {cepNaoExiste ? (
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={focarCep} className="botao botao-secundario">
+                  Corrigir o CEP
+                </button>
+                <Link href={`${pathname}?${semCep}`} className="botao botao-secundario">
+                  Buscar sem CEP
+                </Link>
+              </div>
+            ) : (
+              <button type="button" onClick={tentarDeNovo} className="botao botao-secundario">
+                <RotateCw className="size-4" aria-hidden />
+                Tentar de novo
+              </button>
+            )}
           </div>
         )}
 
