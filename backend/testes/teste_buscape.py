@@ -117,3 +117,36 @@ async def teste_nenhuma_pagina_de_busca_devolve_vazio(simulador, http, config):
         contexto("produto inexistente qualquer coisa")
     )
     assert ofertas == [] and rota.call_count == 3
+
+
+async def teste_poucos_resultados_fortes_tentam_o_nucleo_da_busca(http, config, monkeypatch):
+    pedidas = []
+
+    async def resultados(self, texto):
+        pedidas.append(texto)
+        if texto == "multy 4 prateleiras menta":
+            return [
+                {
+                    "name": "Estante para Livros Multy 4 Prateleiras Menta - Pnr Móveis",
+                    "url": "/p/pnr",
+                    "bestOffer": {"merchantName": "Magazine Luiza"},
+                    "price": 261.9,
+                    "storeCount": 1,
+                }
+            ]
+        return [
+            {
+                "name": "Estante Escada para Livros com 4 Prateleiras Madesa",
+                "url": "/p/madesa",
+                "bestOffer": {"merchantName": "Americanas"},
+                "price": 220.0,
+                "storeCount": 1,
+            }
+        ]
+
+    monkeypatch.setattr(FonteBuscape, "_resultados", resultados)
+    ofertas = await FonteBuscape(http, config, lojas_diretas=[]).buscar(
+        contexto("estante para livros multy 4 prateleiras menta", None)
+    )
+    assert pedidas[1:] == ["multy 4 prateleiras menta"]
+    assert any("Pnr" in o.titulo and o.relevancia >= 95 for o in ofertas)

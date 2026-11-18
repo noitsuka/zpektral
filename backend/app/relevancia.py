@@ -588,3 +588,43 @@ def pontuar_loja_brinquedos(consulta: Consulta, resultado: int) -> int:
 
 def eh_titulo_de_acessorio(titulo: str) -> bool:
     return any(t in PALAVRAS_ACESSORIO for t in termos_do_texto(titulo)[:2])
+
+
+def nucleo_da_busca(texto: str) -> str | None:
+    """O que distingue a busca, sem o tipo genérico nem a finalidade.
+
+    "estante para livros multy 4 prateleiras menta" vira "multy 4 prateleiras menta": a
+    loja que lista o produto pelo nome da linha às vezes não o devolve na frase inteira.
+    """
+    palavras = corrigir(texto).split()
+    mantidas: list[str] = []
+    depois_de_para = False
+    for palavra in palavras:
+        termos = _termos_brutos(palavra)
+        if depois_de_para:
+            depois_de_para = False
+            continue
+        if termos and termos[0] in PALAVRAS_PARA:
+            depois_de_para = True
+            continue
+        if all(t in PALAVRAS_VAZIAS or t in _produtos() for t in termos):
+            continue
+        mantidas.append(palavra)
+    distintiva = any(_distintiva(normalizar(p)) for p in mantidas)
+    if len(mantidas) < 2 or len(mantidas) == len(palavras) or not distintiva:
+        return None
+    return " ".join(mantidas)
+
+
+def _distintiva(palavra: str) -> bool:
+    # nome de linha ou modelo pouco comum: fora do vocabulário dos títulos, sem ser cor,
+    # número ou unidade
+    return (
+        len(palavra) >= 3
+        and palavra.isalpha()
+        and palavra not in _PALAVRAS_REAIS
+        and palavra not in _VOCABULARIO
+        and palavra not in CORES
+        and palavra not in UNIDADES
+        and _singular(palavra) not in _produtos()
+    )

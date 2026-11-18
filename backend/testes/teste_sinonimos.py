@@ -137,3 +137,18 @@ def teste_livreiro_e_estante():
 )
 def teste_cao_e_cachorro(consulta, titulo):
     assert pontuar(interpretar_consulta(consulta), titulo) >= 95
+
+
+@pytest.mark.parametrize(
+    ("consulta", "nucleo"),
+    [
+        ("estante para livros multy 4 prateleiras menta", "multy 4 prateleiras menta"),
+        ("geladeira frost free", None),
+        ("smart tv 55", None),
+        ("air fryer mondial", None),
+    ],
+)
+def teste_nucleo_da_busca_fica_com_o_que_distingue(consulta, nucleo):
+    from app.relevancia import nucleo_da_busca
+
+    assert nucleo_da_busca(consulta) == nucleo

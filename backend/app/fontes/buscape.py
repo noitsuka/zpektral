@@ -12,7 +12,7 @@ from app.configuracao import Configuracoes
 from app.dinheiro import para_centavos
 from app.fontes.base import ContextoBusca, Previa, executar_no_prazo, montar_ofertas
 from app.modelos import Loja, Oferta, Origem, Parcelamento
-from app.relevancia import normalizar
+from app.relevancia import normalizar, nucleo_da_busca
 
 SITE = "https://www.buscape.com.br"
 PAGINAS_DE_PRODUTO = 8
@@ -40,6 +40,14 @@ class FonteBuscape:
     async def buscar(self, ctx: ContextoBusca, previa: Previa | None = None) -> list[Oferta]:
         inicio = time.monotonic()
         resultados = [r for r in await self._resultados(ctx.texto) if _caminho(r)]
+        fortes = sum(ctx.relevancia_de(_titulo(r)) >= 90 for r in resultados)
+        if fortes < BUSCAS_FORTES_MINIMAS and (nucleo := nucleo_da_busca(ctx.consulta.texto)):
+            vistos = {_caminho(r) for r in resultados}
+            try:
+                extras = await self._resultados(nucleo)
+            except ErroExterno:
+                extras = []
+            resultados += [r for r in extras if _caminho(r) and _caminho(r) not in vistos]
         vitrine = montar_ofertas(self.id, resultados, lambda r, p: self._da_vitrine(r, p, ctx))
         if previa is not None and vitrine:
             previa(vitrine)
@@ -150,6 +158,10 @@ class FonteBuscape:
 
     def _loja(self, lojista: str) -> Loja:
         return Loja(f"{self.id}:{_chave_lojista(lojista)}", lojista)
+
+
+# abaixo disso, uma segunda busca só com o que distingue a frase (nucleo_da_busca)
+BUSCAS_FORTES_MINIMAS = 3
 
 
 def url_de_busca(texto: str) -> str:
