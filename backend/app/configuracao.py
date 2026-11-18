@@ -32,7 +32,9 @@ class Configuracoes(BaseSettings):
     requisicoes_por_host: PositiveInt = 16
 
     produtos_por_loja: PositiveInt = 30
-    cotacoes_por_loja: PositiveInt = 20
+    # pelo menos uma por produto pedido: a oferta exibida sem cotação entra com o estoque do
+    # catálogo, sem confirmar disponibilidade nem entrega no CEP
+    cotacoes_por_loja: PositiveInt = 32
     relevancia_minima_cotacao: Annotated[int, Field(ge=0, le=100)] = 65
 
     segundos_cache_busca: PositiveInt = 300

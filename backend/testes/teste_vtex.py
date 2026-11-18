@@ -280,6 +280,15 @@ def teste_frete_nao_informado_padrao():
     assert Frete.desconhecido().status is StatusFrete.NAO_INFORMADO
 
 
+def teste_cotacao_padrao_cobre_todos_os_produtos_pedidos():
+    # sem cotar, a oferta entra só com o estoque do catálogo: na busca "micro ondas", 5 das 45
+    # ofertas exibidas sem cotação não estavam disponíveis no CEP; das 141 cotadas, nenhuma
+    from app.configuracao import Configuracoes
+
+    padrao = Configuracoes(_env_file=None)
+    assert padrao.cotacoes_por_loja >= padrao.produtos_por_loja
+
+
 def teste_cotacao_leva_seu_comprovante():
     oferta = oferta_vazia()
     aplicar_simulacao(oferta, gravacao_json("vtex_simulacao_bh.json"), tem_cep=True)
