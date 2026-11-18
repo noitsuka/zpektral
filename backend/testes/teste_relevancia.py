@@ -335,3 +335,41 @@ def teste_loja_de_brinquedo_nao_perde_nota_em_busca_de_brinquedo():
     assert pontuar_loja_brinquedos(interpretar_consulta("lego star wars"), 100) == 100
     assert pontuar_loja_brinquedos(interpretar_consulta("carrinho hot wheels"), 100) == 100
     assert pontuar_loja_brinquedos(interpretar_consulta("garrafa termica"), 100) == 60
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        ("ps5", "Console Sony PlayStation 5 Slim Digital"),
+        ("playstation 5", "Console PS5 Slim 1TB"),
+        ("air fryer", "Air Fryer Mondial Cesto Quadrado 4L"),
+        ("liquidificador", "Liquidificador Copo Vidro 12 Velocidades"),
+        ("ventilador", "Ventilador Controle Remoto 40cm"),
+        ("smart tv 55", "Smart TV 55 Controle por Voz"),
+        ("cadeira gamer", "Cadeira Gamer Base Giratória"),
+        ("echo dot 5", "Smart Speaker Amazon Echo Dot 5ª Geração"),
+        ("airpods pro 2", "Apple AirPods Pro (2ª geração)"),
+        ("fone branco", "Fone de Ouvido Bluetooth JBL White"),
+        ("notebook prata", "Notebook Dell Inspiron Silver"),
+    ],
+)
+def teste_revisao_produto_certo_nao_some(consulta, titulo):
+    assert s(consulta, titulo) >= 90
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        ("iphone 15", "iPhone 15 Plus 128GB"),
+        ("galaxy s24", "Galaxy S24 Plus 256GB"),
+        ("lavadora 12kg", "Máquina de Lavar 14 Kg Philco PLR14A 12 Programas"),
+        ("fogao 4 bocas", "Fogão 5 Bocas com 4 queimadores"),
+        ("iphone 13", "iPhone 13 Capa Silicone Preta"),
+    ],
+)
+def teste_revisao_outro_produto_nao_passa(consulta, titulo):
+    assert s(consulta, titulo) <= 40
+
+
+def teste_cinza_aceita_grafite_como_tom():
+    assert s("notebook cinza", "Notebook Lenovo Grafite") > 40

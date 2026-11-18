@@ -12,6 +12,7 @@ _NAO_ALFANUMERICO = re.compile(r"[^a-z0-9]+")
 _CONTAGEM = re.compile(r"\b(?:[2-9]|[1-9]\d) ([a-z]+s)\b")
 _LETRA_DIGITO = re.compile(r"(?<=[a-z])(?=\d)|(?<=\d)(?=[a-z])")
 _MARCA_POLEGADA = re.compile(r"(\d)\s*(?:\"|\u201d|'')")
+_ORDINAL = re.compile(r"(\d)\s*[\u00aa\u00ba\u00b0]")
 
 PALAVRAS_VAZIAS = frozenset(
     "a o as os de da do das dos e em no na nos nas com sem para por pra p um uma the".split()
@@ -23,11 +24,16 @@ PALAVRAS_ACESSORIO = frozenset(
     bolsa mochila maleta estojo base refil filtro peca borracha gaxeta prateleira gaveta
     puxador motoventilador termostato resistencia controle pulseira tampa painel rack
     acessorio cesto cuba botao copo jarra lamina helice mangueira valvula bico vedacao
-    engrenagem correia parafuso rodizio limpa limpador fusivel lampada armario grelha
+    engrenagem correia parafuso rodizio limpa limpador fusivel lampada grelha
     amortecedor tapete assadeira pe pes bandeja forma papel
     """.split()
 )
 
+# depois do nome do produto, descrevem o próprio produto ("Air Fryer Cesto Quadrado")
+PARTES_DESCRITIVAS = frozenset(
+    "cesto copo jarra base controle painel grelha tampa lampada gaveta prateleira "
+    "bandeja forma pe resistencia".split()
+)
 PALAVRAS_PARA = frozenset({"para", "pra", "p", "compativel", "compat"})
 PARTE_DE = frozenset({"de", "da", "do", "das", "dos"})
 COLETIVOS = frozenset({"jogo", "kit", "conjunto", "par", "combo", "caixa", "pacote", "linha"})
@@ -40,7 +46,7 @@ BUSCA_DE_BRINQUEDO = frozenset(
 )
 VERSOES_DE_MODELO = frozenset("pro max promax mini plus ultra fe lite".split())
 TENSOES = frozenset({"110", "127", "220"})
-TONS = {"menta": "verde"}
+TONS = {"menta": "verde", "grafite": "cinza", "chumbo": "cinza"}
 
 EQUIVALENTES = {
     "litro": "l",
@@ -67,6 +73,16 @@ EQUIVALENTES = {
     "prateada": "prata",
     "roxa": "roxo",
     "bt": "bluetooth",
+    "white": "branco",
+    "black": "preto",
+    "silver": "prata",
+    "gray": "cinza",
+    "grey": "cinza",
+    "blue": "azul",
+    "red": "vermelho",
+    "green": "verde",
+    "pink": "rosa",
+    "gold": "dourado",
 }
 CORES = frozenset(
     """
@@ -86,6 +102,8 @@ def normalizar(texto: str) -> str:
 
 
 def _singular(termo: str) -> str:
+    if termo.endswith("us"):  # plus, bonus, onibus
+        return termo
     if len(termo) > 4 and termo.endswith("oes"):
         return termo[:-3] + "ao"
     if len(termo) > 4 and termo.endswith("es") and termo[-3] in "rsz":
@@ -107,7 +125,8 @@ def _separar_codigo(termo: str) -> list[str]:
 
 def _termos_brutos(texto: str) -> list[str]:
     saida = []
-    for bruto in normalizar(_MARCA_POLEGADA.sub(r"\1 pol ", texto)).split():
+    texto = _ORDINAL.sub(r"\1 ", _MARCA_POLEGADA.sub(r"\1 pol ", texto))
+    for bruto in normalizar(texto).split():
         for peca in _separar_codigo(bruto):
             palavra = EQUIVALENTES.get(peca) or _singular(peca)
             saida.append(EQUIVALENTES.get(palavra, palavra))
@@ -440,7 +459,7 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
         familias = no_titulo | {TONS[c] for c in no_titulo & TONS.keys()}
         if not consulta.cores & familias:
             resultado = min(resultado, 40)
-    if falta_numero:
+    if falta_numero or _quantidade_trocada(consulta.termos, palavras_titulo):
         resultado = min(resultado, 40)
     if palavras and not palavras_achadas:
         resultado = min(resultado, 15)
@@ -460,6 +479,18 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
     ):
         resultado *= 0.3
     return round(resultado)
+
+
+def _pares(termos: tuple[str, ...]) -> set[tuple[str, str]]:
+    # a voltagem tem regra própria: 110 e 127 valem o mesmo
+    return {(a, b) for a, b in pairwise(termos) if a.isdigit() and b.isalpha() and b != "v"}
+
+
+def _quantidade_trocada(termos: tuple[str, ...], palavras_titulo: tuple[str, ...]) -> bool:
+    # "12 kg" pedido e o título traz "14 kg": o 12 que aparece é de outra coisa
+    do_titulo = _pares(palavras_titulo)
+    unidades = {b for _, b in do_titulo}
+    return any(b in unidades and (a, b) not in do_titulo for a, b in _pares(termos))
 
 
 def normalizar_ean(bruto: object) -> str | None:
@@ -484,7 +515,8 @@ def eh_secundario(
     titulo: str,
 ) -> bool:
     if any(
-        t in PALAVRAS_ACESSORIO and not (i > primeiro_acerto and t in _contados(titulo))
+        t in PALAVRAS_ACESSORIO
+        and not (i > primeiro_acerto and (t in PARTES_DESCRITIVAS or t in _contados(titulo)))
         for i, t in enumerate(palavras_titulo[:3])
     ):
         return True
