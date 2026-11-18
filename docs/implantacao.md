@@ -10,8 +10,11 @@ Nenhuma variável de ambiente nova é obrigatória.
 2. No Neon, criar um branch do banco de produção como ponto de restauração, com nome como `antes-0003`. É instantâneo e não copia dados de fato.
 3. Rodar a migração primeiro nesse branch, com a URL direta dele (não a do pooler):
 
+Antes de cada `alembic upgrade` deste documento, conferir o alvo como em `docs/homologacao.md`, passo 1: `DATABASE_URL_UNPOOLED` tem prioridade sobre `DATABASE_URL`, e um valor esquecido na sessão migraria outro banco.
+
 ```powershell
 cd backend
+Remove-Item Env:DATABASE_URL_UNPOOLED -ErrorAction SilentlyContinue
 $env:DATABASE_URL = "<url direta do branch antes-0003>"
 .venv\Scripts\python.exe -m alembic upgrade head
 .venv\Scripts\python.exe -m alembic check
@@ -24,6 +27,7 @@ $env:DATABASE_URL = "<url direta do branch antes-0003>"
 Com a URL direta de produção (`DATABASE_URL_UNPOOLED` na Vercel):
 
 ```powershell
+Remove-Item Env:DATABASE_URL_UNPOOLED -ErrorAction SilentlyContinue
 $env:DATABASE_URL = "<url direta de produção>"
 .venv\Scripts\python.exe -m alembic upgrade head
 ```
