@@ -16,7 +16,8 @@ class Configuracoes(BaseSettings):
     rajada_requisicoes: PositiveInt = 40
     buscas_novas_por_minuto: PositiveInt = 12
     rajada_buscas_novas: PositiveInt = 6
-    maximo_buscas_em_andamento: PositiveInt = 24
+    # scripts/carga_simulada.py: com 24 a CPU satura e lojas saudáveis estouram o tempo
+    maximo_buscas_em_andamento: PositiveInt = 8
     transmissoes_por_ip: PositiveInt = 3
 
     url_banco: str = Field(
@@ -39,7 +40,7 @@ class Configuracoes(BaseSettings):
     taxa_auditoria_cotacao: Annotated[float, Field(ge=0, le=1)] = 0.05
     aquecimento_auditoria_cotacao: Annotated[int, Field(ge=0)] = 20
     segundos_cache_cep: PositiveInt = 86_400
-    entradas_cache_busca: PositiveInt = 128
+    entradas_cache_busca: PositiveInt = 32
     entradas_cache_cep: PositiveInt = 4096
 
     ml_id_cliente: str = ""
