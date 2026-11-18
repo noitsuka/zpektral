@@ -25,7 +25,7 @@ $env:DATABASE_URL = "postgresql://postgres@127.0.0.1:5433/zpektral"
 .venv\Scripts\python.exe -m uvicorn app.main:app --port 8000
 ```
 
-Sem `DATABASE_URL`, o histórico vai para um SQLite local. Testes: `python -m pytest -q`; os que consultam lojas de verdade rodam com `-m live`. A CI repete as migrações com `alembic upgrade head`, `alembic check`, `alembic downgrade base` e `alembic upgrade head`.
+Sem `DATABASE_URL`, o histórico vai para um SQLite local. Testes: `.venv\Scripts\python.exe -m pytest -q`; os que consultam lojas de verdade rodam com `-m live`. A CI repete as migrações com `alembic upgrade head`, `alembic check`, `alembic downgrade base` e `alembic upgrade head`.
 
 ## Site
 

@@ -6,7 +6,6 @@
 - **GitHub:**
   - o repositório é público, sem secrets, variáveis ou environments;
   - o token padrão dos workflows só lê;
-  - a `main` não tem proteção de branch;
   - no remoto só existe o workflow `ci`. O `atualizar-precos` passa a existir no primeiro push da `main` e fica parado enquanto não houver o secret `DATABASE_URL`.
 - **CI:** roda em push na `main` e na `release/homologacao` e em pull requests. Migra só o Postgres do próprio executor, e o job `imagens` só constrói as imagens, sem publicar. Nenhum push publica nem migra nada fora da CI.
 - **Vercel:**
@@ -21,7 +20,7 @@
   - `alembic check` saiu limpo;
   - `downgrade 0002` e um novo `upgrade head` também não perderam linhas.
 
-Para ver o SQL exato sem conectar em nada: `.venv\Scripts\python.exe -m alembic upgrade 0002:0003 --sql`.
+Para ver o SQL exato sem conectar em nada, dentro de `backend`: `.venv\Scripts\python.exe -m alembic upgrade 0002:0003 --sql`.
 
 ## O que impede a homologação hoje
 
@@ -40,7 +39,7 @@ Os passos 1 a 3 resolvem os quatro. Todos dependem do dono: são mudanças no Ne
 | Homologação | branch `homologacao` do Neon | `zpektral-api-homologacao.vercel.app` (preview) | `zpektral-homologacao.vercel.app` (preview) |
 | Produção | branch principal do Neon | `zpektral-api.vercel.app` | `zpektral.vercel.app` |
 
-Os dois nomes de homologação respondiam `DEPLOYMENT_NOT_FOUND` em 18/11/2026, ou seja, estavam livres. Se algum estiver ocupado na hora, escolha outro e use o mesmo nos passos 2 e 3.
+Se algum dos dois nomes já estiver ocupado na hora do passo 3, escolha outro e use o mesmo nos passos 2 e 3.
 
 ## 1. Banco de homologação (Neon)
 
@@ -125,13 +124,13 @@ Remove-Item Env:SITE_REMOTO
 
    Espera-se 6 testes passando (3 no desktop e 3 no celular). Com `SITE_REMOTO`, a suíte não sobe servidor local. Esse caminho foi validado em 18/11/2026 contra servidores locais subidos à parte.
 
-3. Busca com CEP de outra região (por exemplo `69900-000`): quando ninguém entrega, a tela diz "Nenhuma loja entrega no CEP".
+3. Busca com CEP de outra região (por exemplo `69900-001`, em Rio Branco; o `69900-000` não existe para o serviço de CEP e cai no erro de CEP): quando ninguém entrega, a tela diz "Nenhuma loja entrega no CEP".
 4. `GET https://zpektral-api-homologacao.vercel.app/ofertas/quedas` responde 200 (lista vazia é esperada no começo).
 5. No branch `homologacao`, `select count(*) from historico_precos where consulta is not null` cresce depois das buscas, e nenhum texto tem e-mail ou sequência longa de números. Como a produção ainda está na `0002`, ela não tem a coluna `consulta`. Se o preview estivesse ligado nela, as gravações dariam erro, visível em `npx vercel@latest logs <url do preview da API>`.
 
 ## 5. Checklist da publicação controlada
 
-Já pronto (sessão de 18/11/2026):
+Já pronto em 18/11/2026:
 
 - [x] `release/homologacao` alinhada com a `main` por fast-forward.
 - [x] Backend: 1.068 testes passam e 4 são pulados, contra o Postgres 17.12 local; ruff limpo.

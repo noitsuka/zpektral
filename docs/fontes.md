@@ -70,7 +70,7 @@ Configurações que não são o padrão:
 
 ### Sondagem de novembro de 2026
 
-A sonda lê o robots.txt pela RFC 9309 (curingas, `$`, grupos com vários `User-agent`, grupo próprio do `zpektral` e a regra mais longa entre `Allow` e `Disallow`) contra as URLs que o app monta, e não pede caminho proibido. robots.txt com 5xx ou 429 conta como proibição total. Depois busca um termo do segmento, simula o carrinho de até três itens que tenham estoque e aprova a loja que devolve ao menos uma opção de entrega. Rodou com até quatro lojas em paralelo e o agente `zpektral/0.1`, sem guardar cookies.
+A sonda lê o robots.txt pela RFC 9309 (curingas, `$`, grupos com vários `User-agent`, grupo próprio do `zpektral` e a regra mais longa entre `Allow` e `Disallow`) contra as URLs que o app monta, e não pede caminho proibido. robots.txt com 5xx ou 429 conta como proibição total. Depois busca um termo do segmento, simula o carrinho de até três itens que tenham estoque e aprova a loja que devolve ao menos uma opção de entrega. Rodou com até quatro lojas em paralelo e o user agent `zpektral/0.1`, sem guardar cookies.
 
 ```bash
 cd backend
@@ -78,6 +78,8 @@ python -m scripts.sondar_lojas_vtex app/dados/lojas_vtex.json --paralelas 4
 python -m scripts.sondar_lojas_vtex regionais.json --cep 20040002
 pytest -m live testes/ao_vivo/teste_robots.py
 ```
+
+`regionais.json` não está no repositório: é uma lista à parte, no formato de `lojas_vtex.json`, só com as lojas da região do CEP.
 
 Lista atual (58 lojas antes da mudança):
 
@@ -109,7 +111,7 @@ Lida nas páginas oficiais em novembro de 2026. Onde a página recusou leitura a
 ### Mercado Livre (já integrado)
 
 - Entrega: busca e frete por CEP (`/items/{id}/shipping_options?zip_code=`), já usados por `app/fontes/mercadolivre.py`.
-- Não verificado: a documentação em developers.mercadolivre.com.br respondeu 403 à leitura automatizada. Pela busca na web, a página de erro 403 cita escopos inválidos como causa; o app já explica esse caso ("confira se o app tem acesso à busca") e agora o marca como `bloqueada`.
+- Não verificado: a documentação em developers.mercadolivre.com.br respondeu 403 à leitura automatizada. Pela busca na web, a página de erro 403 cita escopos inválidos como causa; o app já explica esse caso ("confira se o app tem acesso à busca") e o marca como `bloqueada`.
 - Passos do dono, como o projeto já espera:
   1. Criar um app em https://developers.mercadolivre.com.br/devcenter com um endereço de redirecionamento `https` que você controle.
   2. Em `backend`, rodar `python -m scripts.autorizar_mercadolivre`, informar App ID, Client Secret e o redirecionamento, abrir o link, autorizar e colar o endereço de volta.

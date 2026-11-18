@@ -23,7 +23,7 @@
 
 O preço de um anúncio raramente é o que se paga. O frete muda conforme o CEP, o Pix costuma ter desconto, o parcelamento pode ter juros e algumas lojas somam impostos que só aparecem no fim da compra.
 
-O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produto e o CEP, o site coloca o item no carrinho de cada loja, lê o valor que seria cobrado na hora de pagar e mostra as lojas lado a lado, da mais barata para a mais cara. Os resultados aparecem enquanto as lojas respondem, e a busca inteira leva poucos segundos.
+O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produto e o CEP, o site coloca o item no carrinho de cada loja, lê o valor que seria cobrado na hora de pagar e mostra as lojas lado a lado, da mais barata para a mais cara. Os resultados aparecem enquanto as lojas respondem. Na mediana de 10 buscas medidas sem CEP, a primeira oferta relevante chegou em 0,42 s e a busca inteira terminou em cerca de 7 s.
 
 **Para testar:** abra o [site](https://zpektral.vercel.app), digite "geladeira frost free" ou "air fryer" e um CEP qualquer.
 
@@ -51,8 +51,8 @@ O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produ
 
 **Por baixo**
 
-- O valor exibido vem do carrinho da loja, sem estimativa; o que a loja não informa aparece como não informado
-- Parte das cotações é refeita em paralelo, e o vendedor que devolve valores diferentes para o mesmo carrinho perde o selo de preço exato
+- O total exato vem do carrinho da loja, sem estimativa; o que a loja não informa aparece como não informado
+- Parte das cotações é refeita em paralelo, e o vendedor que devolve valores diferentes para o mesmo carrinho perde o selo de total exato
 - Nenhum bloqueio das lojas contra robôs é contornado, e a loja que passa a proibir o acesso no robots.txt sai da lista (`pytest -m live` confere)
 - O histórico guarda a busca simplificada (nunca com e-mail ou números longos, como CPF) e só os cinco primeiros dígitos do CEP; o texto da busca some em 14 dias e o resto em 180
 - As buscas mais feitas são refeitas a cada 6 horas para manter o histórico em dia
@@ -84,7 +84,7 @@ flowchart LR
     api --> banco[(PostgreSQL)]
 ```
 
-Cada busca vira um trabalho único por produto e CEP: quem pede a mesma coisa ao mesmo tempo espera o mesmo trabalho, e o resultado fica em cache por cinco minutos. As lojas respondem em paralelo e cada uma entra na tela assim que termina.
+Cada busca vira um trabalho único por consulta e CEP: quem pede a mesma coisa ao mesmo tempo espera o mesmo trabalho, e o resultado fica em cache por cinco minutos. As lojas respondem em paralelo e cada uma entra na tela assim que termina.
 
 ```
 backend/app/
@@ -103,7 +103,7 @@ docs/decisoes/    registro das decisões
 
 ## Decisões técnicas
 
-1. [O carrinho da loja é a fonte da verdade](docs/decisoes/01-checkout-como-fonte-da-verdade.md). Só o valor lido no carrinho recebe o selo de preço exato.
+1. [O carrinho da loja é a fonte da verdade](docs/decisoes/01-checkout-como-fonte-da-verdade.md). Só o valor lido no carrinho recebe o selo de total exato.
 2. [Só fontes abertas ou oficiais](docs/decisoes/02-fontes-abertas-ou-oficiais.md). Páginas públicas permitidas pelo `robots.txt` ou APIs oficiais.
 3. [Mesmo produto em lojas diferentes](docs/decisoes/03-identidade-do-produto.md). Agrupado por EAN e código de modelo, nunca só pelo título.
 4. [Um processo, com estado em memória](docs/decisoes/04-um-processo-com-estado-em-memoria.md). Cache e limites sem Redis, até o volume pedir.
@@ -124,7 +124,7 @@ docs/decisoes/    registro das decisões
 | HTML ou caracteres de controle num título | removidos antes de chegar ao site |
 | Erro inesperado | `500` com mensagem genérica e código de correlação |
 
-Credenciais ficam só em variáveis de ambiente e nunca aparecem nos logs. O site envia uma Content-Security-Policy que só aceita código da própria origem e conexões com a API.
+Credenciais ficam só em variáveis de ambiente e nunca aparecem nos logs. O site envia uma Content-Security-Policy que só carrega scripts da própria origem ou inline e só abre conexões com a própria origem e com a API.
 
 ## Testes
 
@@ -134,7 +134,7 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Mais de 1.000 testes, com respostas reais das lojas gravadas, testes de propriedades e 300 entradas aleatórias contra a API. A suíte `pytest -m live` busca cinco produtos em cinco capitais, sorteia ofertas e refaz o carrinho na loja para conferir o total; na última execução, 300 ofertas conferidas e nenhuma divergência. No frontend, `npm test`, `npm run lint` e `npx knip`. `npm run e2e` roda onze cenários ponta a ponta com Playwright, no desktop e no celular, com o build de produção e uma API falsa gerada pelo próprio backend (`scripts/dados_e2e.py`); a CI roda todos eles.
+Mais de 1.000 testes, com respostas reais das lojas gravadas, testes de propriedades e 300 entradas aleatórias contra a API. A suíte `pytest -m live` busca cinco produtos em cinco capitais, sorteia ofertas e refaz o carrinho na loja para conferir o total; na última execução, 300 ofertas conferidas e nenhuma divergência. No frontend, `npm test`, `npm run lint` e `npx knip`. `npm run e2e` roda onze cenários ponta a ponta com Playwright, no desktop e no celular, com o build de produção e uma API falsa que serve dados gerados pelo próprio backend (`backend/scripts/dados_e2e.py`); a CI roda todos eles.
 
 ## Executando localmente
 
@@ -160,7 +160,7 @@ Site e API são dois projetos na Vercel, e o banco é um PostgreSQL no Neon cone
 | `NEXT_PUBLIC_URL_API` | Site | URL pública da API |
 | `NEXT_PUBLIC_URL_SITE` | Site | URL pública do site, usada no compartilhamento |
 
-Migrações: `alembic upgrade head` com `DATABASE_URL` apontando para o banco de produção.
+Migrações: `alembic upgrade head` dentro de `backend`, com a URL direta do banco em `DATABASE_URL` e sem `DATABASE_URL_UNPOOLED` no ambiente, porque ela tem prioridade. O roteiro com as conferências está em [docs/implantacao.md](docs/implantacao.md).
 
 ## Limitações e próximos passos
 

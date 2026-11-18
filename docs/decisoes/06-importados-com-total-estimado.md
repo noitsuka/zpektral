@@ -22,4 +22,4 @@ Ofertas do eBay vêm em dólar, de vendedores fora do Brasil. O preço que se pa
 
 ## Consequências
 
-A comparação global fica possível, com o custo de uma estimativa que pode errar a taxa dos Correios e mudanças de alíquota ainda não refletidas na configuração. Quem quiser só valores exatos usa o filtro "Só total exato".
+A comparação global fica possível, com o custo de uma estimativa que pode errar a taxa dos Correios e mudanças de alíquota ainda não refletidas na configuração. Quem quiser só valores exatos usa o filtro "Só total confirmado".
