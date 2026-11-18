@@ -86,3 +86,13 @@ async def teste_429_respeita_retry_after(simulador, http, monkeypatch):
     assert resposta.status_code == 200
     assert rota.call_count == 2
     assert esperas and esperas[0] >= 2.0
+
+
+async def teste_cookie_de_uma_resposta_nao_vai_na_proxima(simulador, http):
+    simulador.get("https://loja.com.br/a").mock(
+        httpx.Response(200, json={}, headers={"set-cookie": "regiao=Ceara; Path=/"})
+    )
+    seguinte = simulador.get("https://loja.com.br/b").mock(httpx.Response(200, json={}))
+    await http.requisitar("GET", "https://loja.com.br/a")
+    await http.requisitar("GET", "https://loja.com.br/b")
+    assert "cookie" not in seguinte.calls.last.request.headers

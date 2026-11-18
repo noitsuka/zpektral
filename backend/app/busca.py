@@ -246,7 +246,8 @@ class ServicoBusca:
         finally:
             trabalho.concluir()
         falhas = sum(
-            b.relatorio.status in (StatusFonte.ERRO, StatusFonte.TEMPO_ESGOTADO)
+            b.relatorio.status
+            in (StatusFonte.ERRO, StatusFonte.TEMPO_ESGOTADO, StatusFonte.BLOQUEADA)
             for b in trabalho.definitivo.values()
         )
         if ativas and falhas * 2 >= len(ativas):

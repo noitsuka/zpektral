@@ -295,3 +295,15 @@ async def teste_lote_final_do_mesmo_tamanho_reagrupa(config, monkeypatch):
     assert len(previa) == len(final) == 1
     assert final[0] is not previa[0]
     assert chamadas == [1, 1]
+
+
+async def teste_trabalho_com_metade_das_lojas_bloqueadas_expira_rapido(config):
+    svc = servico(
+        config,
+        FonteFalsa("a", [("tv", 1)]),
+        FonteFalsa("b", erro=ErroExterno("recusou", 403)),
+        FonteFalsa("c", erro=ErroExterno("recusou", 429)),
+    )
+    trabalho, _ = svc.iniciar("tv", None)
+    await trabalho.aguardar()
+    assert _validade(svc, "tv") < 20

@@ -2,6 +2,7 @@ import asyncio
 import ipaddress
 import random
 from collections import defaultdict
+from http.cookiejar import CookieJar, DefaultCookiePolicy
 from typing import Any
 
 import httpx
@@ -70,6 +71,8 @@ def criar_cliente(config: Configuracoes) -> httpx.AsyncClient:
         },
         follow_redirects=True,
         max_redirects=5,
+        # o cliente atende buscas de várias pessoas: cookie de região de uma não vaza para outra
+        cookies=CookieJar(DefaultCookiePolicy(allowed_domains=[])),
         event_hooks={"request": [_exigir_destino_publico]},
     )
 
