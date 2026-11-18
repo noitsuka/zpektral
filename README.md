@@ -134,7 +134,7 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Mais de 1.000 testes, com respostas reais das lojas gravadas, testes de propriedades e 300 entradas aleatórias contra a API. A suíte `pytest -m live` busca cinco produtos em cinco capitais, sorteia ofertas e refaz o carrinho na loja para conferir o total; na última execução, 300 ofertas conferidas e nenhuma divergência. No frontend, `npm test`, `npm run lint` e `npx knip`, e a CI confere tipos e o build.
+Mais de 1.000 testes, com respostas reais das lojas gravadas, testes de propriedades e 300 entradas aleatórias contra a API. A suíte `pytest -m live` busca cinco produtos em cinco capitais, sorteia ofertas e refaz o carrinho na loja para conferir o total; na última execução, 300 ofertas conferidas e nenhuma divergência. No frontend, `npm test`, `npm run lint` e `npx knip`. `npm run e2e` roda onze cenários ponta a ponta com Playwright, no desktop e no celular, com o build de produção e uma API falsa gerada pelo próprio backend (`scripts/dados_e2e.py`); a CI roda todos eles.
 
 ## Executando localmente
 
@@ -148,7 +148,7 @@ Site em `http://localhost:3000` e API em `http://localhost:8000` (documentação
 
 ## Deploy
 
-Site e API são dois projetos na Vercel, e o banco é um PostgreSQL no Neon conectado pela integração da Vercel. A API roda na região de São Paulo ([`backend/vercel.json`](backend/vercel.json)): saindo dos Estados Unidos, a mesma busca perdia 13 lojas.
+Site e API são dois projetos na Vercel, e o banco é um PostgreSQL no Neon conectado pela integração da Vercel. A API roda na região de São Paulo ([`backend/vercel.json`](backend/vercel.json)): saindo dos Estados Unidos, a mesma busca perdia 13 lojas. O passo a passo para publicar uma versão nova, com migração e volta atrás, está em [docs/implantacao.md](docs/implantacao.md).
 
 | Variável | Onde | Descrição |
 | --- | --- | --- |
