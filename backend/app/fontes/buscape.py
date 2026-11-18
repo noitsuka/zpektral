@@ -136,7 +136,13 @@ class FonteBuscape:
             return None
         if oferta.get("stock") == 0:
             return None
-        titulo = oferta.get("name") or _titulo(resultado)
+        # a página junta as lojas que vendem o mesmo produto: o lojista que não repete a
+        # capacidade no título ("... French Door - BRO85MB") ainda vende o produto da página
+        titulo = max(
+            (t for t in (oferta.get("name"), _titulo(resultado)) if t),
+            key=ctx.relevancia_de,
+            default="",
+        )
         centavos = para_centavos(preco)
         return Oferta(
             id=f"{self.id}:{oferta.get('productID') or _id_vitrine(resultado)}:{oferta.get('id')}",

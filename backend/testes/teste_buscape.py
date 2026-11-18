@@ -150,3 +150,41 @@ async def teste_poucos_resultados_fortes_tentam_o_nucleo_da_busca(http, config, 
     )
     assert pedidas[1:] == ["multy 4 prateleiras menta"]
     assert any("Pnr" in o.titulo and o.relevancia >= 95 for o in ofertas)
+
+
+async def teste_oferta_da_pagina_usa_o_nome_do_produto(http, config, monkeypatch):
+    # caso real: na página da BRO85MB do Buscapé, a Fast Shop não repete a capacidade no título
+    produto = "Geladeira Brastemp Frost Free French Door Inverse 559 L BRO85MB"
+    da_colombo = "Geladeira Brastemp Frost Free French Door 559 Litros BRO85MB Branca"
+
+    async def resultados(self, texto):
+        return [
+            {
+                "name": produto,
+                "url": "/geladeira/bro85mb",
+                "objectId": "1",
+                "bestOffer": {"merchantName": "Fast Shop"},
+                "price": 5299.0,
+                "storeCount": 2,
+            }
+        ]
+
+    async def ler_produto(self, caminho):
+        return [
+            {
+                "id": 1,
+                "sellerName": "Fast Shop",
+                "price": 5299.0,
+                "name": "Geladeira Frost Free French Door 3 Portas Branca Brastemp - BRO85MB",
+            },
+            {"id": 2, "sellerName": "Colombo", "price": 5399.0, "name": da_colombo},
+        ]
+
+    monkeypatch.setattr(FonteBuscape, "_resultados", resultados)
+    monkeypatch.setattr(FonteBuscape, "_ler_produto", ler_produto)
+    ofertas = await FonteBuscape(http, config).buscar(contexto("geladeira frost free 559l", None))
+    por_loja = {o.loja.nome: o for o in ofertas}
+    assert por_loja["Fast Shop"].titulo == produto
+    assert por_loja["Fast Shop"].relevancia >= 90
+    # quando o título do lojista casa tão bem quanto, ele fica
+    assert por_loja["Colombo"].titulo == da_colombo
