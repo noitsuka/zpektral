@@ -30,7 +30,7 @@ class Configuracoes(BaseSettings):
     requisicoes_por_host: PositiveInt = 16
 
     produtos_por_loja: PositiveInt = 30
-    cotacoes_por_loja: PositiveInt = 40
+    cotacoes_por_loja: PositiveInt = 20
     relevancia_minima_cotacao: Annotated[int, Field(ge=0, le=100)] = 65
 
     segundos_cache_busca: PositiveInt = 300

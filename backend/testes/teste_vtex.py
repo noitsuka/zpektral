@@ -699,3 +699,30 @@ def teste_cotacao_compacta_mantem_promocao_e_validade(com_promocao):
     aplicar_simulacao(pequeno, compactar(bruto), tem_cep=False, cotada_em=CAPTURA)
     assert completa == pequeno
     assert completa.promocoes or completa.preco_valido_ate
+
+
+def teste_cota_primeiro_as_relevantes_mais_baratas():
+    from app.fontes.base import escolher_para_cotar
+
+    def oferta(id_, relevancia, preco, posicao):
+        return Oferta(
+            id=id_,
+            titulo="x",
+            link="https://x",
+            loja=Loja("s", "S"),
+            preco=preco,
+            relevancia=relevancia,
+            posicao=posicao,
+        )
+
+    ofertas = [
+        oferta("cara_no_topo", 100, 50000, 0),
+        oferta("barata_no_fim", 95, 10000, 29),
+        oferta("media", 100, 20000, 3),
+        oferta("parecida_barata", 75, 5000, 1),
+        oferta("irrelevante", 40, 1000, 2),
+    ]
+    escolhidas = escolher_para_cotar(ofertas, 65, 3, lambda o: o)
+    assert [o.id for o in escolhidas] == ["barata_no_fim", "media", "cara_no_topo"]
+    todas = escolher_para_cotar(ofertas, 65, 10, lambda o: o)
+    assert [o.id for o in todas][-1] == "parecida_barata"
