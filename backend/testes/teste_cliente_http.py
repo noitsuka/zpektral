@@ -39,6 +39,24 @@ async def teste_destino_publico_com_https_passa(simulador, http):
     assert ler_json(resposta) == {"ok": True}
 
 
+@pytest.mark.parametrize(
+    ("codigo", "bloqueio"), [(401, True), (403, True), (429, True), (404, False), (500, False)]
+)
+async def teste_erro_externo_guarda_o_status_http(simulador, http, codigo, bloqueio):
+    simulador.get("https://loja.com.br/api").mock(httpx.Response(codigo))
+    with pytest.raises(ErroExterno) as erro:
+        await http.requisitar("GET", "https://loja.com.br/api", tentativas=0)
+    assert erro.value.status == codigo
+    assert erro.value.bloqueio is bloqueio
+
+
+async def teste_falha_de_rede_nao_tem_status(simulador, http):
+    simulador.get("https://loja.com.br/api").mock(side_effect=httpx.ConnectError("recusada"))
+    with pytest.raises(ErroExterno) as erro:
+        await http.requisitar("GET", "https://loja.com.br/api", tentativas=0)
+    assert erro.value.status is None and erro.value.bloqueio is False
+
+
 def teste_corpo_que_nao_e_json_vira_erro_externo():
     with pytest.raises(ErroExterno):
         ler_json(httpx.Response(200, content=b"<html></html>"))

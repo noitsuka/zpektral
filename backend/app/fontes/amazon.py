@@ -95,7 +95,7 @@ def _ler_bloco(bloco: str) -> Resultado | None:
 def ler_resultados(pagina: bytes) -> list[Resultado]:
     texto = pagina.decode("utf-8", errors="replace")
     if any(marca in texto for marca in _VERIFICACAO):
-        raise ErroExterno("amazon: página de verificação de robô; não é contornada")
+        raise ErroExterno("amazon: página de verificação de robô; não é contornada", bloqueio=True)
     inicios = [texto.rfind("<div", 0, m.start()) for m in _BLOCO.finditer(texto)]
     blocos = [texto[a:b] for a, b in zip(inicios, [*inicios[1:], len(texto)], strict=True)]
     por_asin: dict[str, Resultado] = {}

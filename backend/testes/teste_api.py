@@ -4,10 +4,13 @@ import httpx
 import orjson
 import pytest
 
-from app.busca import ServicoBusca
+from app.api.eventos import eventos_da_busca
+from app.busca import Fase, Lote, ServicoBusca, TrabalhoBusca
 from app.cep import ServicoCep
 from app.limites import Guarda
 from app.main import app
+from app.modelos import RelatorioFonte, StatusFonte
+from app.ordenacao import Filtros
 from testes.conftest import resposta_json
 from testes.falsos import FonteFalsa
 
@@ -135,6 +138,16 @@ async def teste_rota_de_cep(cliente_api):
 async def teste_rota_de_fontes(cliente_api):
     corpo = (await cliente_api.get("/lojas")).json()
     assert {s["id"]: s["ativa"] for s in corpo}["semchave"] is False
+
+
+async def teste_transmissao_avisa_a_fonte_bloqueada():
+    trabalho = TrabalhoBusca("tv", None)
+    relatorio = RelatorioFonte("barrada", "Barrada", StatusFonte.BLOQUEADA, mensagem="recusou")
+    trabalho.adicionar(Lote(relatorio, [], Fase.FINAL))
+    trabalho.concluir()
+    blocos = [b async for b in eventos_da_busca(trabalho, None, [], Filtros())]
+    falha = next(b for b in blocos if b.startswith(b"event: falha_fonte"))
+    assert orjson.loads(falha.split(b"\ndata: ", 1)[1])["fonte"]["status"] == "bloqueada"
 
 
 async def teste_transmissao_envia_cada_fonte_e_depois_o_fim(cliente_api):

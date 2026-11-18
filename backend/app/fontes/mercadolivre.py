@@ -144,7 +144,7 @@ class FonteMercadoLivre:
             )
         if resposta.status_code == 403:
             raise ErroExterno(
-                "mercado livre: busca recusada (HTTP 403); confira se o app tem acesso à busca"
+                "mercado livre: busca recusada (HTTP 403); confira se o app tem acesso à busca", 403
             )
         dados = ler_json(resposta)
         if not isinstance(dados, dict):

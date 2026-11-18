@@ -15,6 +15,7 @@ from app.agrupamento import (
     rebaixar_muito_abaixo,
 )
 from app.cache import CacheComValidade
+from app.cliente_http import ErroExterno
 from app.configuracao import Configuracoes
 from app.fontes.base import ContextoBusca, Fonte
 from app.modelos import Endereco, Frete, Oferta, RelatorioFonte, StatusFonte
@@ -280,7 +281,10 @@ class ServicoBusca:
             status, mensagem = StatusFonte.TEMPO_ESGOTADO, "a loja demorou demais para responder"
         except Exception as excecao:
             log.warning("fonte %s falhou: %s", fonte.id, excecao)
-            status, mensagem = StatusFonte.ERRO, "a loja não respondeu como esperado"
+            if isinstance(excecao, ErroExterno) and excecao.bloqueio:
+                status, mensagem = StatusFonte.BLOQUEADA, "a loja recusou o acesso automatizado"
+            else:
+                status, mensagem = StatusFonte.ERRO, "a loja não respondeu como esperado"
         ofertas = sanear(ofertas)
         decorrido = round((time.monotonic() - inicio) * 1000)
         relatorio = RelatorioFonte(fonte.id, fonte.nome, status, decorrido, len(ofertas), mensagem)

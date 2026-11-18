@@ -37,6 +37,28 @@ def teste_fontes_desativadas_aparecem_como_desativadas():
     assert painel.retrato()["loja"].estado is EstadoSaude.DESATIVADA
 
 
+def teste_recusa_de_acesso_marca_bloqueada_ate_voltar():
+    painel = PainelSaude()
+    painel.registrar(relatorio(StatusFonte.BLOQUEADA))
+    h = painel.retrato()["loja"]
+    assert h.estado is EstadoSaude.BLOQUEADA
+    assert h.falhas_seguidas == 1 and h.taxa_sucesso == 0
+    painel.registrar(relatorio(StatusFonte.OK))
+    assert painel.retrato()["loja"].estado is EstadoSaude.SAUDAVEL
+
+
+async def teste_webhook_avisa_o_bloqueio_e_a_volta(simulador, http):
+    gancho = simulador.post("https://hooks.example/zpektral").mock(httpx.Response(204))
+    painel = PainelSaude(http, "https://hooks.example/zpektral")
+    for status in [StatusFonte.BLOQUEADA, StatusFonte.BLOQUEADA, StatusFonte.OK]:
+        painel.registrar(relatorio(status))
+    for tarefa in list(painel._pendentes):
+        await tarefa
+    corpos = [orjson.loads(c.request.content)["content"] for c in gancho.calls]
+    assert len(corpos) == 2
+    assert "bloqueou" in corpos[0] and "voltou" in corpos[1]
+
+
 def teste_retrato_serializa_sem_estado_interno():
     painel = PainelSaude()
     painel.registrar(relatorio(StatusFonte.OK))

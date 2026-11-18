@@ -17,8 +17,12 @@ FALHAS_PARA_DEGRADAR = 3
 class EstadoSaude(StrEnum):
     SAUDAVEL = "saudavel"
     DEGRADADA = "degradada"
+    BLOQUEADA = "bloqueada"
     DESATIVADA = "desativada"
     NAO_INFORMADO = "sem_dados"
+
+
+_ESTADOS_DE_ALERTA = {EstadoSaude.DEGRADADA, EstadoSaude.BLOQUEADA}
 
 
 @dataclass(slots=True)
@@ -60,9 +64,11 @@ class PainelSaude:
         else:
             h.falhas_seguidas += 1
             h.ultimo_erro = relatorio.mensagem
-            if h.falhas_seguidas >= FALHAS_PARA_DEGRADAR:
+            if relatorio.status is StatusFonte.BLOQUEADA:
+                h.estado = EstadoSaude.BLOQUEADA
+            elif h.falhas_seguidas >= FALHAS_PARA_DEGRADAR:
                 h.estado = EstadoSaude.DEGRADADA
-        if antes is not h.estado and EstadoSaude.DEGRADADA in (antes, h.estado):
+        if antes is not h.estado and {antes, h.estado} & _ESTADOS_DE_ALERTA:
             self._avisar(h, recuperou=h.estado is EstadoSaude.SAUDAVEL)
 
     def retrato(self) -> dict[str, SaudeFonte]:
@@ -71,6 +77,8 @@ class PainelSaude:
     def _avisar(self, h: SaudeFonte, *, recuperou: bool) -> None:
         if recuperou:
             texto = f"zpektral: {h.nome} voltou a responder."
+        elif h.estado is EstadoSaude.BLOQUEADA:
+            texto = f"zpektral: {h.nome} bloqueou o acesso ({h.ultimo_erro})."
         else:
             texto = (
                 f"zpektral: {h.nome} falhou {h.falhas_seguidas} vezes seguidas ({h.ultimo_erro})."

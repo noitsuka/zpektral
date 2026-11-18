@@ -53,8 +53,9 @@ def teste_frete_gratis_so_no_primeiro_pedido_nao_conta_como_gratis():
 
 
 def teste_pagina_de_verificacao_e_erro_e_nao_e_contornada():
-    with pytest.raises(ErroExterno, match="verificação"):
+    with pytest.raises(ErroExterno, match="verificação") as erro:
         ler_resultados(VERIFICACAO)
+    assert erro.value.bloqueio
 
 
 async def teste_monta_ofertas_sem_inventar_frete(amazon, http, config):

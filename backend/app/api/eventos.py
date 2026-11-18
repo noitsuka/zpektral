@@ -41,7 +41,7 @@ async def eventos_da_busca(
     )
     async for lote in trabalho.acompanhar():
         estado = lote.relatorio.status
-        if estado in (StatusFonte.ERRO, StatusFonte.TEMPO_ESGOTADO):
+        if estado in (StatusFonte.ERRO, StatusFonte.TEMPO_ESGOTADO, StatusFonte.BLOQUEADA):
             yield evento("falha_fonte", {"fonte": lote.relatorio})
         elif estado is StatusFonte.OK:
             yield _evento_lote(lote, f)

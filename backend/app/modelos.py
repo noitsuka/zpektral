@@ -260,6 +260,7 @@ class StatusFonte(StrEnum):
     OK = "ok"
     ERRO = "erro"
     TEMPO_ESGOTADO = "tempo_esgotado"
+    BLOQUEADA = "bloqueada"
     DESATIVADA = "desativada"
 
 

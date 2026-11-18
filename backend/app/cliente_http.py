@@ -10,6 +10,7 @@ import orjson
 from app.configuracao import Configuracoes
 
 STATUS_REPETIVEIS = {429, 500, 502, 503, 504}
+STATUS_DE_BLOQUEIO = {401, 403, 429}
 ESPERA_MAXIMA_RETRY_AFTER = 5.0
 
 
@@ -26,7 +27,10 @@ _CABECALHOS_CORPO = {"content-encoding", "content-length", "transfer-encoding"}
 
 
 class ErroExterno(Exception):
-    pass
+    def __init__(self, mensagem: str, status: int | None = None, *, bloqueio: bool = False):
+        super().__init__(mensagem)
+        self.status = status
+        self.bloqueio = bloqueio or status in STATUS_DE_BLOQUEIO
 
 
 class DestinoProibido(httpx.RequestError):
@@ -122,7 +126,7 @@ class ClienteHttp:
                 if resposta.status_code in aceitos:
                     return resposta
                 if resposta.status_code not in STATUS_REPETIVEIS or tentativa >= tentativas:
-                    raise ErroExterno(f"{host}: HTTP {resposta.status_code}")
+                    raise ErroExterno(f"{host}: HTTP {resposta.status_code}", resposta.status_code)
                 espera_pedida = segundos_de_espera(resposta.headers.get("retry-after"))
             tentativa += 1
             await asyncio.sleep(max(espera_pedida, 0.1 * tentativa + random.random() * 0.15))

@@ -236,8 +236,9 @@ async def teste_busca_recusada_com_403_explica_o_motivo(simulador, http, config,
     simulador.get(BUSCA_ML).mock(
         resposta_json({"message": "forbidden", "error": "forbidden", "status": 403}, status=403)
     )
-    with pytest.raises(ErroExterno, match="403"):
+    with pytest.raises(ErroExterno, match="403") as erro:
         await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060"))
+    assert erro.value.bloqueio
 
 
 async def teste_frete_gratis_anunciado_sem_cep(simulador, http, config, tmp_path):

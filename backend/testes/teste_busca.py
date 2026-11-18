@@ -3,6 +3,7 @@ import asyncio
 from app.busca import ServicoBusca, chave_cache
 from app.cliente_http import ErroExterno
 from app.modelos import Endereco, StatusFonte
+from app.saude import EstadoSaude
 from testes.falsos import FonteFalsa
 
 BH = Endereco("30130010", None, None, "Belo Horizonte", "MG")
@@ -40,6 +41,25 @@ async def teste_executa_toda_fonte_e_relata_cada_uma(config):
     assert [o.id for o in trabalho.ofertas] == ["ok:0"]
     mensagens = {r.id: r.mensagem for r in trabalho.relatorios}
     assert "price" not in (mensagens["crash"] or "")
+
+
+async def teste_recusa_de_acesso_vira_fonte_bloqueada(config):
+    svc = servico(
+        config,
+        FonteFalsa("proibida", erro=ErroExterno("loja: HTTP 403", status=403)),
+        FonteFalsa("limitada", erro=ErroExterno("loja: HTTP 429", status=429)),
+        FonteFalsa("antirrobo", erro=ErroExterno("verificação de robô", bloqueio=True)),
+        FonteFalsa("fora", erro=ErroExterno("loja: HTTP 503", status=503)),
+    )
+    trabalho, _ = svc.iniciar("tv", BH)
+    await asyncio.wait_for(trabalho.aguardar(), 1)
+    assert status(trabalho) == {
+        "proibida": StatusFonte.BLOQUEADA,
+        "limitada": StatusFonte.BLOQUEADA,
+        "antirrobo": StatusFonte.BLOQUEADA,
+        "fora": StatusFonte.ERRO,
+    }
+    assert svc.saude.retrato()["proibida"].estado is EstadoSaude.BLOQUEADA
 
 
 async def teste_fontes_rodam_em_paralelo(config):
