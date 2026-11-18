@@ -1,0 +1,771 @@
+{
+  "descricao": "Consultas para medir a busca com scripts/avaliar_busca.py. Os critérios foram escritos a partir do sentido de cada consulta, antes de ver resultados, e são julgamentos por regra aplicados ao título e à marca da oferta: não são rótulos humanos. Uma oferta pode ser o produto certo e ficar de fora porque o título omite um atributo, ou passar por uma peça que a regra não previu.",
+  "regras": {
+    "texto": "título e marca em minúsculas, sem acentos, com letras e dígitos separados (110V vira 110 v) e tudo que não é letra ou dígito virando espaço",
+    "termo": "casa palavras inteiras em sequência; * no fim aceita qualquer final na última palavra; ^ no início exige o termo no começo do título; re: usa expressão regular",
+    "exige": "cada grupo precisa de ao menos um dos termos",
+    "atributos": "atributo crítico pedido na consulta: precisa de um termo de aceita; um termo de rivais sem nenhum de aceita, ou qualquer termo de exclui, é variante errada",
+    "proibe": "qualquer termo torna a oferta irrelevante (peça, acessório, outro produto)",
+    "ean": "oferta com este EAN é relevante mesmo que o título não diga",
+    "relevante": "todos os grupos de exige, todos os atributos aceitos, nenhum exclui e nenhum proibe",
+    "conjunto": "desenvolvimento serve para ajustar a busca; teste só é olhado nas medições finais"
+  },
+  "grupos": {
+    "$cores": [
+      "branco", "branca", "preto", "preta", "cinza", "prata", "dourado", "dourada", "rosa", "azul",
+      "verde", "vermelho", "vermelha", "amarelo", "amarela", "laranja", "roxo", "roxa", "lilas",
+      "bege", "marrom", "grafite", "inox", "nude", "vinho", "creme", "cobre", "bronze", "turquesa",
+      "coral", "chumbo", "black", "white", "menta", "amadeirado", "amadeirada", "carvalho",
+      "nogueira", "freijo", "cinamomo", "imbuia", "off white", "marinho"
+    ]
+  },
+  "consultas": [
+    {
+      "id": "geladeira-inox-110v",
+      "consulta": "geladeira inox 110v",
+      "categoria": "eletrodomesticos",
+      "tipos": ["especifica", "cor", "voltagem"],
+      "conjunto": "desenvolvimento",
+      "exige": [["geladeira", "refrigerador"]],
+      "atributos": [
+        {"nome": "cor", "aceita": ["inox"], "rivais": ["$cores"]},
+        {"nome": "voltagem", "aceita": ["110 v", "127 v", "110 volts", "127 volts", "bivolt"], "rivais": ["220 v", "220 volts"]}
+      ],
+      "proibe": ["frigobar", "cervejeira", "borracha", "gaxeta", "puxador", "termostato", "motoventilador", "resistencia", "adesivo", "envelopamento", "para geladeira", "para refrigerador", "de geladeira", "^prateleira", "^gaveta"]
+    },
+    {
+      "id": "air-fryer",
+      "consulta": "air fryer",
+      "categoria": "eletrodomesticos",
+      "tipos": ["generica", "curta"],
+      "conjunto": "desenvolvimento",
+      "exige": [["air fry*", "airfry*", "sem oleo"]],
+      "proibe": ["^cesto", "^tapete", "^assadeira", "^forma", "^formas", "^papel", "^capa", "^grelha", "^separador", "^limpa", "^kit", "^jogo", "^acessorio*", "^conjunto", "^botao", "^resistencia", "^pegador", "^protetor", "brinquedo", "toys", "para air fry*", "para airfry*", "p air fry*"]
+    },
+    {
+      "id": "maquina-lavar-12kg",
+      "consulta": "maquina de lavar 12kg",
+      "categoria": "eletrodomesticos",
+      "tipos": ["sinonimo", "capacidade"],
+      "conjunto": "teste",
+      "exige": [["lavadora", "maquina de lavar", "lava roupa*", "lavar roupa*"]],
+      "atributos": [
+        {"nome": "capacidade", "aceita": ["12 kg", "12 quilos"], "rivais": ["7 kg", "8 kg", "9 kg", "10 kg", "11 kg", "13 kg", "14 kg", "15 kg", "16 kg", "17 kg", "18 kg"]}
+      ],
+      "proibe": ["lava e seca", "lavadora e secadora", "lava seca", "^capa", "^mangueira", "^tampa", "^pe", "^pes", "^filtro", "^bomba", "^placa", "^motor", "para maquina", "para lavadora", "louca", "loucas"]
+    },
+    {
+      "id": "geladeira-frost-free-erro",
+      "consulta": "geladiera frost free",
+      "categoria": "eletrodomesticos",
+      "tipos": ["erro de digitacao", "especifica"],
+      "conjunto": "desenvolvimento",
+      "exige": [["geladeira", "refrigerador"]],
+      "atributos": [
+        {"nome": "degelo", "aceita": ["frost free"], "rivais": ["cycle defrost", "degelo"]}
+      ],
+      "proibe": ["frigobar", "cervejeira", "borracha", "gaxeta", "puxador", "termostato", "motoventilador", "resistencia", "adesivo", "envelopamento", "para geladeira", "para refrigerador", "de geladeira", "^prateleira", "^gaveta"]
+    },
+    {
+      "id": "lava-loucas-8-servicos",
+      "consulta": "lava loucas 8 servicos",
+      "categoria": "eletrodomesticos",
+      "tipos": ["sinonimo", "capacidade", "sem acento"],
+      "conjunto": "teste",
+      "exige": [["lava loucas", "lava louca", "lavaloucas", "lavalouca", "lavadora de loucas", "maquina de lavar loucas"]],
+      "atributos": [
+        {"nome": "servicos", "aceita": ["8 servicos"], "rivais": ["6 servicos", "10 servicos", "12 servicos", "14 servicos", "15 servicos"]}
+      ],
+      "proibe": ["^cesto", "^detergente", "^secante", "^sal", "^mangueira", "^bomba", "^pastilha*", "^suporte", "^capa", "detergente"]
+    },
+    {
+      "id": "smart-tv-55",
+      "consulta": "smart tv 55",
+      "categoria": "eletronicos",
+      "tipos": ["especifica", "tamanho", "curta"],
+      "conjunto": "desenvolvimento",
+      "exige": [["tv", "televisor", "televisao"]],
+      "atributos": [
+        {"nome": "tamanho", "aceita": ["55"], "rivais": ["24", "32", "40", "42", "43", "50", "58", "65", "70", "75", "77", "85", "86", "98"]}
+      ],
+      "proibe": ["^suporte", "^controle", "^capa", "^rack", "^painel", "^cabo", "^antena", "^conversor", "^tela", "^placa", "^barra", "^kit", "^fonte", "^estante", "^mesa", "para tv", "p tv"]
+    },
+    {
+      "id": "tv-50-pol-4k",
+      "consulta": "tv 50 pol 4k",
+      "categoria": "eletronicos",
+      "tipos": ["abreviacao", "tamanho", "especifica"],
+      "conjunto": "teste",
+      "exige": [["tv", "televisor", "televisao"]],
+      "atributos": [
+        {"nome": "tamanho", "aceita": ["50"], "rivais": ["24", "32", "40", "42", "43", "55", "58", "65", "70", "75", "77", "85", "86", "98"]},
+        {"nome": "resolucao", "aceita": ["4 k", "uhd", "ultra hd", "2160 p"], "rivais": ["full hd", "fhd", "hd ready", "1080 p", "8 k"]}
+      ],
+      "proibe": ["^suporte", "^controle", "^capa", "^rack", "^painel", "^cabo", "^antena", "^conversor", "^tela", "^placa", "^barra", "^kit", "^fonte", "^estante", "^mesa", "para tv", "p tv"]
+    },
+    {
+      "id": "fone-bluetooth-jbl",
+      "consulta": "fone bluetooth jbl",
+      "categoria": "eletronicos",
+      "tipos": ["marca", "especifica"],
+      "conjunto": "desenvolvimento",
+      "exige": [["fone", "headphone", "headset", "earbud*", "ouvido", "in ear", "tws"], ["jbl"]],
+      "atributos": [
+        {"nome": "conexao", "aceita": ["bluetooth", "sem fio", "wireless", "tws", "bt"], "rivais": ["com fio"]}
+      ],
+      "proibe": ["^capa", "^case", "^almofada", "^espuma", "^cabo", "^carregador", "^suporte", "^estojo", "^ponteira*", "^borracha", "para fone", "caixa de som", "^caixa"]
+    },
+    {
+      "id": "caixa-de-som-bluetooth",
+      "consulta": "caixa de som bluetooth",
+      "categoria": "eletronicos",
+      "tipos": ["generica"],
+      "conjunto": "desenvolvimento",
+      "exige": [["caixa de som", "caixa som", "caixinha de som", "speaker", "caixa acustica", "caixa amplificada", "caixa portatil"], ["bluetooth", "sem fio", "wireless", "bt"]],
+      "proibe": ["^capa", "^case", "^bolsa", "^suporte", "^cabo", "^estojo", "^alca", "para caixa"]
+    },
+    {
+      "id": "soundbar-samsung",
+      "consulta": "soundbar samsung",
+      "categoria": "eletronicos",
+      "tipos": ["marca", "curta"],
+      "conjunto": "teste",
+      "exige": [["soundbar", "sound bar"], ["samsung"]],
+      "proibe": ["^suporte", "^controle", "^cabo", "^capa", "para soundbar"]
+    },
+    {
+      "id": "notebook-i5-16gb",
+      "consulta": "notebook i5 16gb",
+      "categoria": "informatica",
+      "tipos": ["especifica", "capacidade"],
+      "conjunto": "desenvolvimento",
+      "exige": [["notebook", "laptop", "ultrabook"]],
+      "atributos": [
+        {"nome": "processador", "aceita": ["i 5", "core 5", "core ultra 5"], "rivais": ["i 3", "i 7", "i 9", "celeron", "pentium", "ryzen", "core 3", "core 7", "core ultra 7", "core ultra 9", "athlon", "snapdragon"]},
+        {"nome": "memoria", "aceita": ["16 gb", "16 g"], "rivais": ["4 gb", "8 gb", "12 gb", "20 gb", "24 gb", "32 gb", "40 gb", "64 gb"]}
+      ],
+      "proibe": ["^capa", "^mochila", "^bolsa", "^case", "^suporte", "^carregador", "^fonte", "^teclado", "^mouse", "^pelicula", "^bateria", "^tela", "^memoria", "^ssd", "^cooler", "^base", "^skin", "^adesivo", "^maleta", "^hub", "^dock*", "para notebook"]
+    },
+    {
+      "id": "monitor-gamer-27-144hz",
+      "consulta": "monitor gamer 27 144hz",
+      "categoria": "informatica",
+      "tipos": ["especifica", "tamanho"],
+      "conjunto": "desenvolvimento",
+      "exige": [["monitor"]],
+      "atributos": [
+        {"nome": "tamanho", "aceita": ["27"], "rivais": ["19", "21 5", "23 8", "24", "24 5", "25", "31 5", "32", "34", "49"]},
+        {"nome": "frequencia", "aceita": ["144 hz"], "rivais": ["60 hz", "75 hz", "100 hz", "120 hz", "165 hz", "170 hz", "180 hz", "200 hz", "240 hz", "280 hz", "360 hz"]}
+      ],
+      "proibe": ["^suporte", "^braco", "^cabo", "^capa", "^pelicula", "^base", "para monitor"]
+    },
+    {
+      "id": "mouse-sem-fio-logitech",
+      "consulta": "mouse sem fio logitech",
+      "categoria": "informatica",
+      "tipos": ["marca", "especifica"],
+      "conjunto": "teste",
+      "exige": [["mouse"], ["logitech"]],
+      "atributos": [
+        {"nome": "conexao", "aceita": ["sem fio", "wireless", "bluetooth", "2 4 ghz", "lightspeed"], "rivais": ["com fio"]}
+      ],
+      "proibe": ["mouse pad", "mousepad", "^receptor", "^pes", "^capa", "^teclado", "^kit", "combo"]
+    },
+    {
+      "id": "ssd-1tb-nvme",
+      "consulta": "ssd 1tb nvme",
+      "categoria": "informatica",
+      "tipos": ["capacidade", "abreviacao", "curta"],
+      "conjunto": "desenvolvimento",
+      "exige": [["ssd"]],
+      "atributos": [
+        {"nome": "capacidade", "aceita": ["1 tb", "1000 gb", "1024 gb", "1 tera*"], "rivais": ["120 gb", "128 gb", "240 gb", "256 gb", "480 gb", "500 gb", "512 gb", "960 gb", "2 tb", "4 tb"]},
+        {"nome": "interface", "aceita": ["nvme", "pcie", "pci e", "pci express"], "rivais": ["sata"]}
+      ],
+      "proibe": ["^case", "^gaveta", "^adaptador", "^dissipador", "^cabo", "^suporte", "^enclosure", "para ssd"]
+    },
+    {
+      "id": "impressora-epson-ecotank",
+      "consulta": "impressora epson ecotank",
+      "categoria": "informatica",
+      "tipos": ["marca e modelo"],
+      "conjunto": "teste",
+      "exige": [["impressora", "multifuncional"], ["epson"], ["ecotank", "eco tank"]],
+      "proibe": ["^tinta", "^refil", "^garrafa", "^cartucho", "^kit", "^papel", "^cabo", "^cabeca", "^bulk", "para impressora", "para epson"]
+    },
+    {
+      "id": "iphone-15-128gb",
+      "consulta": "iphone 15 128gb",
+      "categoria": "celulares",
+      "tipos": ["modelo exato", "capacidade"],
+      "conjunto": "desenvolvimento",
+      "exige": [["iphone"]],
+      "atributos": [
+        {"nome": "modelo", "aceita": ["iphone 15"], "rivais": ["iphone 11", "iphone 12", "iphone 13", "iphone 14", "iphone 16", "iphone 17", "iphone se"], "exclui": ["pro", "plus", "pro max"]},
+        {"nome": "armazenamento", "aceita": ["128 gb"], "rivais": ["64 gb", "256 gb", "512 gb", "1 tb"]}
+      ],
+      "proibe": ["^capa", "^capinha", "^pelicula", "^case", "^cabo", "^carregador", "^fonte", "^suporte", "^lente", "^protetor", "^kit", "^adaptador", "^bateria", "^tela", "para iphone", "p iphone", "compativel"]
+    },
+    {
+      "id": "galaxy-s24",
+      "consulta": "galaxy s24",
+      "categoria": "celulares",
+      "tipos": ["modelo exato", "curta"],
+      "conjunto": "teste",
+      "exige": [["galaxy"]],
+      "atributos": [
+        {"nome": "modelo", "aceita": ["s 24"], "rivais": ["s 21", "s 22", "s 23", "s 25", "s 26", "a 05", "a 06", "a 15", "a 16", "a 25", "a 26", "a 35", "a 36", "a 55", "a 56", "m 15", "m 35", "m 55"], "exclui": ["ultra", "fe", "plus"]}
+      ],
+      "proibe": ["^capa", "^capinha", "^pelicula", "^case", "^cabo", "^carregador", "^fonte", "^suporte", "^lente", "^protetor", "^kit", "^adaptador", "^bateria", "^tela", "para galaxy", "para samsung", "compativel"]
+    },
+    {
+      "id": "smartphone-motorola-g85",
+      "consulta": "smartphone motorola g85",
+      "categoria": "celulares",
+      "tipos": ["marca e modelo"],
+      "conjunto": "desenvolvimento",
+      "exige": [["motorola", "moto"]],
+      "atributos": [
+        {"nome": "modelo", "aceita": ["g 85"], "rivais": ["g 04", "g 05", "g 06", "g 14", "g 15", "g 24", "g 34", "g 35", "g 54", "g 55", "g 56", "g 75", "g 84", "g 86", "edge", "e 13", "e 14", "e 15", "razr"]}
+      ],
+      "proibe": ["^capa", "^capinha", "^pelicula", "^case", "^cabo", "^carregador", "^fonte", "^suporte", "^lente", "^protetor", "^kit", "^adaptador", "^bateria", "^tela", "para motorola", "para moto", "compativel"]
+    },
+    {
+      "id": "capinha-iphone-13",
+      "consulta": "capinha iphone 13",
+      "categoria": "celulares",
+      "tipos": ["acessorio", "modelo exato"],
+      "conjunto": "desenvolvimento",
+      "exige": [["capa", "capinha", "case", "capas", "capinhas"], ["iphone"]],
+      "atributos": [
+        {"nome": "modelo", "aceita": ["13"], "rivais": ["11", "12", "14", "15", "16", "se", "xr", "xs"], "exclui": ["pro", "mini", "max"]}
+      ],
+      "proibe": ["^pelicula", "^lente", "^cabo", "^carregador", "^suporte"]
+    },
+    {
+      "id": "carregador-usb-c-20w",
+      "consulta": "carregador usb c 20w",
+      "categoria": "celulares",
+      "tipos": ["especifica", "abreviacao"],
+      "conjunto": "teste",
+      "exige": [["carregador", "fonte"]],
+      "atributos": [
+        {"nome": "conector", "aceita": ["usb c", "tipo c", "type c", "usbc"], "rivais": ["micro usb"]},
+        {"nome": "potencia", "aceita": ["20 w"], "rivais": ["5 w", "10 w", "12 w", "15 w", "18 w", "25 w", "30 w", "33 w", "35 w", "45 w", "65 w", "67 w", "100 w", "120 w"]}
+      ],
+      "proibe": ["^cabo", "^capa", "^suporte", "^adaptador", "^pelicula", "power bank", "bateria externa"]
+    },
+    {
+      "id": "multy-completa",
+      "consulta": "estante para livros multy 4 prateleiras menta",
+      "categoria": "moveis",
+      "tipos": ["longa", "cor", "quantidade", "finalidade"],
+      "conjunto": "desenvolvimento",
+      "exige": [["estante", "livreiro"], ["multy"]],
+      "atributos": [
+        {"nome": "cor", "aceita": ["menta"], "rivais": ["$cores"]},
+        {"nome": "prateleiras", "aceita": ["4 prateleiras"], "rivais": ["2 prateleiras", "3 prateleiras", "5 prateleiras", "6 prateleiras", "7 prateleiras", "8 prateleiras"]}
+      ],
+      "proibe": ["^prateleira", "^kit prateleira", "^suporte", "^cantoneira", "^mao francesa"]
+    },
+    {
+      "id": "multy-menta",
+      "consulta": "estante multy menta",
+      "categoria": "moveis",
+      "tipos": ["cor", "curta"],
+      "conjunto": "desenvolvimento",
+      "exige": [["estante", "livreiro"], ["multy"]],
+      "atributos": [
+        {"nome": "cor", "aceita": ["menta"], "rivais": ["$cores"]}
+      ],
+      "proibe": ["^prateleira", "^kit prateleira", "^suporte", "^cantoneira", "^mao francesa"]
+    },
+    {
+      "id": "multy-pnr",
+      "consulta": "estante pnr menta 4",
+      "categoria": "moveis",
+      "tipos": ["marca", "cor", "quantidade"],
+      "conjunto": "desenvolvimento",
+      "exige": [["estante", "livreiro"]],
+      "atributos": [
+        {"nome": "marca", "aceita": ["pnr"], "rivais": ["artely", "multimoveis", "madesa", "bechara", "politorno", "tecno mobili", "mavaular", "artany", "be mobiliario", "carraro", "appunto", "lyam", "mobler", "kappesberg", "demobile", "madetec"]},
+        {"nome": "cor", "aceita": ["menta"], "rivais": ["$cores"]},
+        {"nome": "prateleiras", "aceita": ["4 prateleiras"], "rivais": ["2 prateleiras", "3 prateleiras", "5 prateleiras", "6 prateleiras", "7 prateleiras", "8 prateleiras"]}
+      ],
+      "proibe": ["^prateleira", "^kit prateleira", "^suporte", "^cantoneira", "^mao francesa"]
+    },
+    {
+      "id": "multy-livreiro-verde",
+      "consulta": "livreiro multy verde",
+      "categoria": "moveis",
+      "tipos": ["sinonimo", "cor"],
+      "conjunto": "desenvolvimento",
+      "exige": [["estante", "livreiro"], ["multy"]],
+      "atributos": [
+        {"nome": "cor", "aceita": ["verde", "menta"], "rivais": ["$cores"]}
+      ],
+      "proibe": ["^prateleira", "^kit prateleira", "^suporte", "^cantoneira", "^mao francesa"]
+    },
+    {
+      "id": "multy-livros",
+      "consulta": "estante livros multy",
+      "categoria": "moveis",
+      "tipos": ["finalidade", "curta"],
+      "conjunto": "desenvolvimento",
+      "exige": [["estante", "livreiro"], ["multy"]],
+      "proibe": ["^prateleira", "^kit prateleira", "^suporte", "^cantoneira", "^mao francesa"]
+    },
+    {
+      "id": "multy-ean-artely",
+      "consulta": "7899307521331",
+      "categoria": "moveis",
+      "tipos": ["ean"],
+      "conjunto": "desenvolvimento",
+      "ean": "7899307521331",
+      "exige": [["estante", "livreiro"], ["multy"]],
+      "atributos": [
+        {"nome": "marca", "aceita": ["artely"], "rivais": ["pnr"]},
+        {"nome": "cor", "aceita": ["menta"], "rivais": ["$cores"]},
+        {"nome": "prateleiras", "aceita": ["4 prateleiras"], "rivais": ["2 prateleiras", "3 prateleiras", "5 prateleiras", "6 prateleiras"]}
+      ],
+      "proibe": ["^prateleira", "^kit prateleira", "^suporte"]
+    },
+    {
+      "id": "multy-ean-pnr",
+      "consulta": "estante 7908631607168",
+      "categoria": "moveis",
+      "tipos": ["ean"],
+      "conjunto": "desenvolvimento",
+      "ean": "7908631607168",
+      "exige": [["estante", "livreiro"], ["multy"]],
+      "atributos": [
+        {"nome": "marca", "aceita": ["pnr"], "rivais": ["artely"]},
+        {"nome": "cor", "aceita": ["menta"], "rivais": ["$cores"]},
+        {"nome": "prateleiras", "aceita": ["4 prateleiras"], "rivais": ["2 prateleiras", "3 prateleiras", "5 prateleiras", "6 prateleiras"]}
+      ],
+      "proibe": ["^prateleira", "^kit prateleira", "^suporte"]
+    },
+    {
+      "id": "guarda-roupa-casal-6-portas",
+      "consulta": "guarda roupa casal 6 portas",
+      "categoria": "moveis",
+      "tipos": ["especifica", "quantidade", "tamanho"],
+      "conjunto": "teste",
+      "exige": [["guarda roupa", "guarda roupas", "roupeiro"]],
+      "atributos": [
+        {"nome": "tamanho", "aceita": ["casal"], "rivais": ["solteiro", "infantil", "bebe"]},
+        {"nome": "portas", "aceita": ["6 portas"], "rivais": ["2 portas", "3 portas", "4 portas", "5 portas", "7 portas", "8 portas", "9 portas", "10 portas", "12 portas"]}
+      ],
+      "proibe": ["^puxador", "^dobradica", "^cabideiro", "^corredica", "^kit", "^espelho", "^porta", "^tubo", "^cabide", "^organizador", "^sapateira"]
+    },
+    {
+      "id": "comoda-4-gavetas-branca",
+      "consulta": "comoda 4 gavetas branca",
+      "categoria": "moveis",
+      "tipos": ["cor", "quantidade", "sem acento"],
+      "conjunto": "desenvolvimento",
+      "exige": [["comoda"]],
+      "atributos": [
+        {"nome": "gavetas", "aceita": ["4 gavetas"], "rivais": ["2 gavetas", "3 gavetas", "5 gavetas", "6 gavetas", "7 gavetas", "8 gavetas"]},
+        {"nome": "cor", "aceita": ["branco", "branca", "white"], "rivais": ["$cores"]}
+      ],
+      "proibe": ["^puxador", "^corredica", "^gaveta", "^trilho", "^organizador", "^adesivo", "^papel"]
+    },
+    {
+      "id": "jogo-panelas-antiaderente",
+      "consulta": "jogo de panelas antiaderente",
+      "categoria": "casa e cozinha",
+      "tipos": ["generica"],
+      "conjunto": "desenvolvimento",
+      "exige": [["panela", "panelas"], ["jogo", "conjunto", "kit", "jg", "set", "jogos"]],
+      "atributos": [
+        {"nome": "revestimento", "aceita": ["antiaderente", "anti aderente", "antiaderentes"], "rivais": ["inox", "ferro fundido", "ferro", "pedra sabao", "barro", "vidro"]}
+      ],
+      "proibe": ["^tampa", "^suporte", "^organizador", "^descanso", "^luva", "^pegador", "^porta tampa", "^cabo", "^utensilio*", "^espatula", "^colher"]
+    },
+    {
+      "id": "panela-pressao-4-5-litros",
+      "consulta": "panela de pressao 4,5 litros",
+      "categoria": "casa e cozinha",
+      "tipos": ["capacidade", "sem acento"],
+      "conjunto": "teste",
+      "exige": [["panela de pressao", "panela pressao"]],
+      "atributos": [
+        {"nome": "capacidade", "aceita": ["4 5 l", "4 5 litros", "4 5 lt", "4 5 litro"], "rivais": ["2 5 l", "3 l", "3 litros", "4 l", "4 litros", "5 l", "5 litros", "6 l", "6 litros", "7 l", "7 litros", "10 l", "12 l", "20 l", "2 5 litros", "3 5 l", "4 2 l"]}
+      ],
+      "proibe": ["^valvula", "^borracha", "^anel", "^vedacao", "^pino", "^cabo", "^tampa", "^alca", "^kit", "^manopla", "^pegador", "para panela"]
+    },
+    {
+      "id": "garrafa-termica-1-litro",
+      "consulta": "garrafa termica 1 litro",
+      "categoria": "casa e cozinha",
+      "tipos": ["capacidade", "sem acento"],
+      "conjunto": "desenvolvimento",
+      "exige": [["garrafa termica", "garrafa termico"]],
+      "atributos": [
+        {"nome": "capacidade", "aceita": ["1 l", "1 litro", "1000 ml", "1 lt"], "rivais": ["250 ml", "350 ml", "400 ml", "473 ml", "500 ml", "591 ml", "750 ml", "800 ml", "946 ml", "1 2 l", "1 2 litros", "1 5 l", "1 8 l", "1 8 litros", "1 9 l", "2 l", "2 litros", "3 l"]}
+      ],
+      "proibe": ["^tampa", "^refil", "^ampola", "^rolha", "^bico", "^alca", "^capa"]
+    },
+    {
+      "id": "cafeteira-nespresso-erro",
+      "consulta": "cafetera nespresso",
+      "categoria": "casa e cozinha",
+      "tipos": ["erro de digitacao", "marca"],
+      "conjunto": "desenvolvimento",
+      "exige": [["cafeteira", "maquina"], ["nespresso"]],
+      "proibe": ["^capsula*", "^porta capsula*", "^suporte", "^descalcificante", "^kit descalc*", "^reservatorio", "^bandeja", "^filtro", "^limpador"]
+    },
+    {
+      "id": "aspirador-robo",
+      "consulta": "aspirador robo",
+      "categoria": "casa e cozinha",
+      "tipos": ["sinonimo", "generica", "sem acento"],
+      "conjunto": "teste",
+      "exige": [["robo", "robot", "robotico"], ["aspirador", "aspira"]],
+      "proibe": ["^escova*", "^filtro*", "^refil", "^kit", "^mop", "^pano", "^bateria", "^roda", "^base", "^saco", "^peca*", "^reposicao", "para robo", "para aspirador", "p robo"]
+    },
+    {
+      "id": "furadeira-impacto-220v",
+      "consulta": "furadeira de impacto 220v",
+      "categoria": "ferramentas e construcao",
+      "tipos": ["especifica", "voltagem"],
+      "conjunto": "desenvolvimento",
+      "exige": [["furadeira"], ["impacto"]],
+      "atributos": [
+        {"nome": "voltagem", "aceita": ["220 v", "220 volts", "bivolt"], "rivais": ["110 v", "127 v", "110 volts", "127 volts"]}
+      ],
+      "proibe": ["^broca*", "^mandril", "^carvao", "^escova*", "^jogo de broca*", "^kit de broca*", "^suporte", "^chave", "^bateria", "^carregador", "^cabo", "^coroa", "^serra copo", "para furadeira"]
+    },
+    {
+      "id": "parafusadeira-bosch-12v",
+      "consulta": "parafusadeira bosch 12v",
+      "categoria": "ferramentas e construcao",
+      "tipos": ["marca", "voltagem"],
+      "conjunto": "teste",
+      "exige": [["parafusadeira"], ["bosch"]],
+      "atributos": [
+        {"nome": "tensao", "aceita": ["12 v", "12 volts"], "rivais": ["3 6 v", "4 v", "7 2 v", "10 8 v", "14 4 v", "18 v", "20 v", "36 v"]}
+      ],
+      "proibe": ["^bateria", "^carregador", "^bits", "^bit", "^jogo", "^kit de bits", "^kit de pontas", "^ponta*", "^maleta", "^suporte", "^mandril", "para parafusadeira"]
+    },
+    {
+      "id": "tinta-acrilica-branca-18l",
+      "consulta": "tinta acrilica branca 18 litros",
+      "categoria": "ferramentas e construcao",
+      "tipos": ["longa", "cor", "capacidade"],
+      "conjunto": "desenvolvimento",
+      "exige": [["tinta"], ["acrilica", "acrilico"]],
+      "atributos": [
+        {"nome": "cor", "aceita": ["branco", "branca", "white", "neve"], "rivais": ["$cores"]},
+        {"nome": "volume", "aceita": ["18 l", "18 litros", "18 lt", "lata 18"], "rivais": ["800 ml", "900 ml", "3 2 l", "3 6 l", "3 6 litros", "3 2 litros", "15 l", "15 litros", "16 l", "16 litros", "5 l", "1 l", "galao"]}
+      ],
+      "proibe": ["^rolo", "^pincel", "^bandeja", "^trincha", "^fita", "^lixa", "^massa", "^selador", "^kit", "^thinner", "^aguarras"]
+    },
+    {
+      "id": "chuveiro-eletrico-lorenzetti",
+      "consulta": "chuveiro eletrico lorenzetti",
+      "categoria": "ferramentas e construcao",
+      "tipos": ["marca", "sem acento"],
+      "conjunto": "desenvolvimento",
+      "exige": [["chuveiro", "ducha"], ["lorenzetti"], ["eletric*", "eletronic*", "re: \\d{4} w "]],
+      "proibe": ["^resistencia", "resistencia para", "^cano", "^mangueira", "^registro", "^chave", "^espalhador", "^crivo", "^suporte", "^kit", "para chuveiro"]
+    },
+    {
+      "id": "lampada-led-9w",
+      "consulta": "lampada led 9w",
+      "categoria": "ferramentas e construcao",
+      "tipos": ["especifica", "potencia", "sem acento"],
+      "conjunto": "teste",
+      "exige": [["lampada"], ["led"]],
+      "atributos": [
+        {"nome": "potencia", "aceita": ["9 w", "9 watts"], "rivais": ["4 w", "4 5 w", "4 8 w", "5 w", "6 w", "7 w", "8 w", "10 w", "12 w", "15 w", "18 w", "20 w", "30 w", "40 w", "50 w"]}
+      ],
+      "proibe": ["^luminaria", "^plafon", "^spot", "^painel", "^refletor", "^soquete", "^bocal", "^fita", "^arandela", "^pendente", "^abajur"]
+    },
+    {
+      "id": "protetor-solar-fps-50",
+      "consulta": "protetor solar fps 50",
+      "categoria": "beleza e farmacia",
+      "tipos": ["especifica"],
+      "conjunto": "desenvolvimento",
+      "exige": [["solar", "fotoprotetor", "protetor", "filtro solar", "sunscreen"]],
+      "atributos": [
+        {"nome": "fps", "aceita": ["fps 50", "50 fps", "spf 50"], "rivais": ["fps 15", "fps 20", "fps 30", "fps 40", "fps 45", "fps 55", "fps 60", "fps 70", "fps 80", "fps 90", "fps 99", "fps 100", "30 fps", "60 fps", "70 fps", "spf 30", "spf 60"]}
+      ],
+      "proibe": ["pos sol", "^bronzeador", "protetor labial", "^protetor de", "^protetor para", "^protetor auricular"]
+    },
+    {
+      "id": "shampoo-anticaspa",
+      "consulta": "shampoo anticaspa",
+      "categoria": "beleza e farmacia",
+      "tipos": ["generica", "curta"],
+      "conjunto": "teste",
+      "exige": [["shampoo", "xampu"], ["anticaspa", "anti caspa", "caspa"]],
+      "proibe": ["^condicionador", "^creme", "^tonico", "^locao"]
+    },
+    {
+      "id": "perfume-masculino-100ml",
+      "consulta": "perfume masculino 100ml",
+      "categoria": "beleza e farmacia",
+      "tipos": ["capacidade", "genero"],
+      "conjunto": "desenvolvimento",
+      "exige": [["perfume", "eau de toilette", "eau de parfum", "edt", "edp", "colonia", "parfum", "fragrancia"]],
+      "atributos": [
+        {"nome": "genero", "aceita": ["masculino", "masculina", "homme", "men", "for men", "for him", "pour homme", "man"], "rivais": ["feminino", "feminina", "femme", "woman", "women", "for her", "pour femme", "infantil", "kids"]},
+        {"nome": "volume", "aceita": ["100 ml"], "rivais": ["5 ml", "7 ml", "10 ml", "15 ml", "25 ml", "30 ml", "40 ml", "50 ml", "60 ml", "75 ml", "80 ml", "90 ml", "110 ml", "120 ml", "125 ml", "150 ml", "200 ml"]}
+      ],
+      "proibe": ["miniatura", "amostra", "decant", "^sabonete", "^desodorante", "^creme", "^hidratante", "^locao", "^estojo", "^porta perfume", "body splash", "body spray"]
+    },
+    {
+      "id": "dipirona-1g",
+      "consulta": "dipirona 1g",
+      "categoria": "beleza e farmacia",
+      "tipos": ["curta", "dose"],
+      "conjunto": "teste",
+      "exige": [["dipirona", "novalgina"]],
+      "atributos": [
+        {"nome": "dose", "aceita": ["1 g", "1000 mg", "1 grama"], "rivais": ["500 mg", "300 mg", "50 mg"]}
+      ],
+      "proibe": []
+    },
+    {
+      "id": "escova-eletrica-oral-b",
+      "consulta": "escova dental eletrica oral b",
+      "categoria": "beleza e farmacia",
+      "tipos": ["longa", "marca", "sem acento"],
+      "conjunto": "desenvolvimento",
+      "exige": [["escova"], ["oral b"]],
+      "atributos": [
+        {"nome": "tipo", "aceita": ["eletric*", "eletronic*", "recarregavel", "a pilha", "a bateria"], "rivais": ["manual"]}
+      ],
+      "proibe": ["^refil", "^refis", "^cabeca*", "^ponta*", "^kit refil", "^creme", "^fio dental", "^estojo", "^suporte", "^carregador"]
+    },
+    {
+      "id": "tenis-corrida-masculino-42-erro",
+      "consulta": "tenis de corida masculino 42",
+      "categoria": "moda e calcados",
+      "tipos": ["erro de digitacao", "tamanho", "genero"],
+      "conjunto": "desenvolvimento",
+      "exige": [["tenis"], ["corrida", "running", "run"]],
+      "atributos": [
+        {"nome": "genero", "aceita": ["masculino", "masc", "men", "homem", "unissex", "unisex"], "rivais": ["feminino", "feminina", "fem", "women", "mulher", "infantil", "juvenil", "kids"]},
+        {"nome": "tamanho", "aceita": ["42"], "rivais": []}
+      ],
+      "proibe": ["^meia*", "^palmilha*", "^cadarco*", "^chinelo", "^sandalia", "^bolsa", "^limpa*", "^kit limp*", "^bone"]
+    },
+    {
+      "id": "camisa-polo-masculina-azul",
+      "consulta": "camisa polo masculina azul",
+      "categoria": "moda e calcados",
+      "tipos": ["cor", "genero"],
+      "conjunto": "teste",
+      "exige": [["polo"]],
+      "atributos": [
+        {"nome": "genero", "aceita": ["masculin*", "masc", "men", "homem", "unissex"], "rivais": ["feminin*", "women", "mulher", "infantil", "juvenil", "kids", "menino", "menina", "bebe"]},
+        {"nome": "cor", "aceita": ["azul", "marinho", "navy", "blue"], "rivais": ["$cores"]}
+      ],
+      "proibe": ["^vestido", "^bermuda", "^calca", "^saia", "^short*", "^meia*", "^cueca*"]
+    },
+    {
+      "id": "chinelo-havaianas-39-40",
+      "consulta": "chinelo havaianas 39/40",
+      "categoria": "moda e calcados",
+      "tipos": ["marca", "tamanho"],
+      "conjunto": "desenvolvimento",
+      "exige": [["havaianas"]],
+      "atributos": [
+        {"nome": "tamanho", "aceita": ["39 40"], "rivais": ["23 24", "25 26", "27 28", "29 30", "31 32", "33 34", "35 36", "37 38", "41 42", "43 44", "45 46", "47 48"]}
+      ],
+      "proibe": ["^meia*", "^bolsa", "^toalha", "^bone", "^chaveiro", "^pingente", "^tenis", "^bota", "^mochila", "^necessaire", "^camiseta", "^vestido", "^short*", "^biquini", "^sapatilha", "^sneaker*", "^tamanco", "^pochete"]
+    },
+    {
+      "id": "mochila-escolar",
+      "consulta": "mochila escolar",
+      "categoria": "moda e calcados",
+      "tipos": ["generica", "curta"],
+      "conjunto": "desenvolvimento",
+      "exige": [["mochila"], ["escolar", "escola", "school"]],
+      "proibe": ["^chaveiro", "^capa", "^lancheira", "^estojo", "^garrafa", "^pingente", "^organizador", "^porta", "para mochila"]
+    },
+    {
+      "id": "relogio-smartwatch",
+      "consulta": "relogio smartwatch",
+      "categoria": "moda e calcados",
+      "tipos": ["generica", "sem acento"],
+      "conjunto": "teste",
+      "exige": [["smartwatch", "smart watch", "relogio inteligente", "watch"]],
+      "proibe": ["^pulseira*", "^pelicula", "^capa", "^case", "^carregador", "^cabo", "^suporte", "^protetor", "^bumper", "para smartwatch", "para relogio", "para apple watch", "para galaxy watch", "compativel"]
+    },
+    {
+      "id": "lego-star-wars",
+      "consulta": "lego star wars",
+      "categoria": "brinquedos",
+      "tipos": ["marca", "curta"],
+      "conjunto": "desenvolvimento",
+      "exige": [["lego"], ["star wars"]],
+      "proibe": ["compativel", "similar", "tipo lego", "^mochila", "^livro", "^relogio", "^chaveiro", "^lancheira", "^estojo", "^luminaria", "^caneca", "^garrafa", "^camiseta", "^pijama"]
+    },
+    {
+      "id": "boneca-barbie",
+      "consulta": "boneca barbie",
+      "categoria": "brinquedos",
+      "tipos": ["marca", "curta"],
+      "conjunto": "teste",
+      "exige": [["barbie"], ["boneca"]],
+      "proibe": ["^roupa*", "^acessorio*", "^sapato*", "^vestido", "para boneca", "para barbie", "^mochila", "^livro", "^fantasia", "^estojo", "^lancheira", "^bicicleta", "^patinete"]
+    },
+    {
+      "id": "carrinho-hot-wheels",
+      "consulta": "carrinho hot wheels",
+      "categoria": "brinquedos",
+      "tipos": ["marca"],
+      "conjunto": "desenvolvimento",
+      "exige": [["hot wheels", "hotwheels"], ["carrinho", "carrinhos", "carro", "carros", "veiculo", "veiculos", "caminhao", "monster truck"]],
+      "proibe": ["pista", "lancador", "garagem", "^estacionamento", "^mochila", "^estojo", "^lancheira", "^camiseta", "^livro", "^maleta", "^tapete"]
+    },
+    {
+      "id": "quebra-cabeca-1000-pecas",
+      "consulta": "quebra cabeca 1000 pecas",
+      "categoria": "brinquedos",
+      "tipos": ["quantidade", "sem acento"],
+      "conjunto": "teste",
+      "exige": [["quebra cabeca", "quebracabeca", "puzzle"]],
+      "atributos": [
+        {"nome": "pecas", "aceita": ["1000 pecas", "1000 pcs", "1000 p", "1 000 pecas", "1000 pc"], "rivais": ["24 pecas", "30 pecas", "48 pecas", "60 pecas", "100 pecas", "120 pecas", "150 pecas", "200 pecas", "250 pecas", "300 pecas", "500 pecas", "1500 pecas", "2000 pecas", "3000 pecas", "4000 pecas", "5000 pecas", "500 pcs", "1500 pcs", "2000 pcs", "3000 pcs"]}
+      ],
+      "proibe": ["^cola", "^moldura", "^tapete", "^organizador", "^porta quebra", "^suporte"]
+    },
+    {
+      "id": "bicicleta-infantil-aro-16",
+      "consulta": "bicicleta infantil aro 16",
+      "categoria": "brinquedos",
+      "tipos": ["tamanho", "especifica"],
+      "conjunto": "desenvolvimento",
+      "exige": [["bicicleta", "bike", "bicicletinha"]],
+      "atributos": [
+        {"nome": "aro", "aceita": ["aro 16"], "rivais": ["aro 12", "aro 14", "aro 20", "aro 24", "aro 26", "aro 27 5", "aro 29", "aro 700"]}
+      ],
+      "proibe": ["^pneu", "^camara", "^capacete", "^cadeirinha", "^selim", "^suporte", "^pedal", "^buzina", "^campainha", "^farol", "^rodinha*", "^roda*", "^kit", "^cesta", "^garupa", "^luva", "^joelheira", "^bomba", "^cadeado", "^aro", "^raio"]
+    },
+    {
+      "id": "racao-golden-gatos-castrados-10kg",
+      "consulta": "racao golden gatos castrados 10kg",
+      "categoria": "pet",
+      "tipos": ["longa", "marca", "capacidade"],
+      "conjunto": "desenvolvimento",
+      "exige": [["racao", "alimento"], ["golden"], ["gato", "gatos", "felino*", "cat"], ["castrado", "castrados", "castradas", "castrada"]],
+      "atributos": [
+        {"nome": "peso", "aceita": ["10 kg", "10 1 kg"], "rivais": ["400 g", "500 g", "800 g", "1 kg", "1 01 kg", "2 kg", "3 kg", "4 kg", "15 kg", "20 kg", "25 kg"]}
+      ],
+      "proibe": ["sache", "umida", "^petisco", "^lata"]
+    },
+    {
+      "id": "areia-sanitaria-gatos",
+      "consulta": "areia sanitaria para gatos",
+      "categoria": "pet",
+      "tipos": ["finalidade", "generica"],
+      "conjunto": "teste",
+      "exige": [["areia"], ["sanitaria", "higienica", "gato", "gatos", "felino", "pipicat", "cat"]],
+      "proibe": ["^caixa", "caixa de areia", "^banheiro", "^pa", "^peneira", "^tapete", "^coletor", "^saco*", "^bandeja", "^neutralizador", "^desodorizador"]
+    },
+    {
+      "id": "coleira-antipulgas-cachorro",
+      "consulta": "coleira antipulgas cachorro",
+      "categoria": "pet",
+      "tipos": ["especifica"],
+      "conjunto": "desenvolvimento",
+      "exige": [["coleira"], ["antipulga*", "anti pulga*", "pulga*", "antiparasit*", "carrapato*"]],
+      "atributos": [
+        {"nome": "especie", "aceita": ["cachorro", "cachorros", "cao", "caes", "dog", "dogs", "canino", "caninos", "cachorra"], "rivais": ["gato", "gatos", "felino", "cat"]}
+      ],
+      "proibe": ["^guia", "^peitoral", "^pingente", "^tag", "^plaquinha"]
+    },
+    {
+      "id": "cama-pet-grande",
+      "consulta": "cama pet grande",
+      "categoria": "pet",
+      "tipos": ["tamanho", "curta"],
+      "conjunto": "teste",
+      "exige": [["cama", "caminha"], ["pet", "cachorro", "cao", "caes", "gato", "gatos", "dog", "cat"]],
+      "atributos": [
+        {"nome": "tamanho", "aceita": ["grande", "gg", "g", "extra grande", "xg"], "rivais": ["pequena", "pequeno", "media", "medio", "mini", "pp"]}
+      ],
+      "proibe": ["^capa", "^cobertor", "^manta", "^tapete", "^brinquedo"]
+    },
+    {
+      "id": "petisco-caes",
+      "consulta": "petisco para caes",
+      "categoria": "pet",
+      "tipos": ["generica", "finalidade", "sem acento"],
+      "conjunto": "desenvolvimento",
+      "exige": [["petisco", "petiscos", "bifinho", "bifinhos", "snack", "snacks", "osso", "ossinho", "ossos", "ossinhos", "biscoito", "biscoitos", "palito", "palitos"]],
+      "atributos": [
+        {"nome": "especie", "aceita": ["cachorro", "cachorros", "cao", "caes", "dog", "dogs", "canino", "caninos"], "rivais": ["gato", "gatos", "felino", "felinos", "cat", "cats"]}
+      ],
+      "proibe": ["^pote", "^comedouro", "^porta petisco", "^brinquedo", "^bolsa"]
+    },
+    {
+      "id": "cafe-pilao-500g",
+      "consulta": "cafe pilao 500g",
+      "categoria": "mercado",
+      "tipos": ["marca", "capacidade", "sem acento"],
+      "conjunto": "desenvolvimento",
+      "exige": [["cafe"], ["pilao"]],
+      "atributos": [
+        {"nome": "peso", "aceita": ["500 g", "500 gr", "500 gramas", "500 grs"], "rivais": ["250 g", "250 gr", "1 kg", "400 g"]}
+      ],
+      "proibe": ["capsula", "capsulas", "^cafeteira", "^filtro", "^xicara", "^caneca", "^moedor"]
+    },
+    {
+      "id": "azeite-extra-virgem-500ml",
+      "consulta": "azeite extra virgem 500ml",
+      "categoria": "mercado",
+      "tipos": ["capacidade", "especifica"],
+      "conjunto": "teste",
+      "exige": [["azeite"], ["extra virgem", "extravirgem"]],
+      "atributos": [
+        {"nome": "volume", "aceita": ["500 ml"], "rivais": ["200 ml", "250 ml", "400 ml", "750 ml", "1 l", "1 litro", "2 l", "2 litros", "3 l", "3 litros", "5 l", "5 litros"]}
+      ],
+      "proibe": ["^galheteiro", "^porta azeite"]
+    },
+    {
+      "id": "papel-higienico-folha-dupla-12",
+      "consulta": "papel higienico folha dupla 12 rolos",
+      "categoria": "mercado",
+      "tipos": ["longa", "quantidade", "sem acento"],
+      "conjunto": "desenvolvimento",
+      "exige": [["papel higienico"]],
+      "atributos": [
+        {"nome": "folha", "aceita": ["folha dupla", "folhas duplas", "fd", "f dupla", "dupla"], "rivais": ["folha simples", "folhas simples", "folha tripla", "folhas triplas", "tripla"]},
+        {"nome": "rolos", "aceita": ["12 rolos", "12 unidades", "12 un", "12 und", "leve 12", "pacote com 12", "com 12"], "rivais": ["4 rolos", "6 rolos", "8 rolos", "16 rolos", "18 rolos", "20 rolos", "24 rolos", "30 rolos", "32 rolos", "48 rolos", "64 rolos"]}
+      ],
+      "proibe": ["^suporte", "^porta papel", "^papeleira", "umedecido", "^lenco"]
+    },
+    {
+      "id": "cerveja-heineken-lata-350ml",
+      "consulta": "cerveja heineken lata 350ml",
+      "categoria": "mercado",
+      "tipos": ["marca", "capacidade", "embalagem"],
+      "conjunto": "teste",
+      "exige": [["cerveja"], ["heineken"]],
+      "atributos": [
+        {"nome": "embalagem", "aceita": ["lata", "latas", "latinha"], "rivais": ["long neck", "garrafa", "barril", "chopp"]},
+        {"nome": "volume", "aceita": ["350 ml"], "rivais": ["250 ml", "269 ml", "330 ml", "355 ml", "473 ml", "600 ml", "5 l"]}
+      ],
+      "proibe": ["sem alcool", "zero alcool", "0 0", "^copo", "^balde", "^abridor"]
+    },
+    {
+      "id": "sabao-po-omo-4kg",
+      "consulta": "sabao em po omo 4kg",
+      "categoria": "mercado",
+      "tipos": ["marca", "capacidade", "sem acento"],
+      "conjunto": "desenvolvimento",
+      "exige": [["omo"], ["po"]],
+      "atributos": [
+        {"nome": "peso", "aceita": ["4 kg"], "rivais": ["400 g", "500 g", "800 g", "1 kg", "1 6 kg", "2 kg", "2 2 kg", "3 kg", "5 kg"]}
+      ],
+      "proibe": ["liquido", "^amaciante", "^tira manchas", "^capsula*"]
+    }
+  ]
+}
