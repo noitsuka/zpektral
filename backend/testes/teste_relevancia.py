@@ -393,3 +393,40 @@ def teste_milhar_com_ponto_vira_um_numero_so():
     from app.relevancia import termos_do_texto
 
     assert "12000" in termos_do_texto("Ar Condicionado Split 12.000 BTUs Inverter")
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        ("ps5", "Pay Day 3 - Ps5"),
+        ("ps5", "Resident Evil Village – Gold Edition - Playstation 5"),
+        ("ps5", "Jogo PS5 - Horizon Forbidden West - Sony"),
+        ("ps5", "Bluey The Videogame PS5 Midia Fisica"),
+        ("ps5", "Mouse Pad Gamer Pc E Sonysta Ps5"),
+        ("ps5", "Sony Control Inalámbrico PS5 DualSense Midnight Black"),
+        ("impressora hp", "Cartucho HP 664 Preto Original"),
+        ("impressora hp", "Toner HP 105A Preto"),
+        ("notebook dell", "Bateria Notebook Dell Inspiron 15 3000"),
+        ("notebook dell", "Tela 15.6 Notebook Dell Inspiron LED"),
+        ("furadeira bosch", "Broca Bosch para Concreto SDS Plus Furadeira"),
+    ],
+)
+def teste_outro_tipo_de_produto_nao_compete_com_o_buscado(consulta, titulo):
+    assert s(consulta, titulo) <= 30
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        ("ps5", "Console Sony PlayStation 5 Slim Digital 1TB"),
+        ("galaxy s24", "Smartphone Samsung - Galaxy S24 256GB"),
+        ("impressora hp", "Impressora Multifuncional HP DeskJet 2774 Wi-Fi"),
+        ("notebook dell", "Notebook Dell Inspiron 15 i5 16GB"),
+        ("furadeira bosch", "Furadeira de Impacto Bosch GSB 550 RE"),
+        ("jogo de panelas", "Jogo de Panelas Tramontina 5 Peças"),
+        ("jogo ps5", "Jogo EA Sports FC 25 PS5 Mídia Física"),
+        ("cartucho hp 664", "Cartucho HP 664 Preto Original"),
+    ],
+)
+def teste_o_tipo_buscado_continua_no_topo(consulta, titulo):
+    assert s(consulta, titulo) >= 90

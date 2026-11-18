@@ -29,14 +29,18 @@ PALAVRAS_ACESSORIO = frozenset(
     acessorio cesto cuba botao copo jarra lamina helice mangueira valvula bico vedacao
     engrenagem correia parafuso rodizio limpa limpador fusivel lampada grelha
     amortecedor tapete assadeira pe pes bandeja forma papel
+    jogo game midia pad control cartucho toner bateria tela broca bit ponteira lixa
     """.split()
 )
 
 # depois do nome do produto, descrevem o próprio produto ("Air Fryer Cesto Quadrado")
 PARTES_DESCRITIVAS = frozenset(
     "cesto copo jarra base controle painel grelha tampa lampada gaveta prateleira "
-    "bandeja forma pe resistencia".split()
+    "bandeja forma pe resistencia jogo game pad control cartucho toner bateria tela "
+    "broca bit ponteira lixa".split()
 )
+# título dividido por " - ": "Pay Day 3 - PS5" é um jogo para o PS5, não o PS5
+_SEPARADOR = re.compile(r"\s[-\u2013|]\s")
 PALAVRAS_PARA = frozenset({"para", "pra", "p", "compativel", "compat"})
 PARTE_DE = frozenset({"de", "da", "do", "das", "dos"})
 COLETIVOS = frozenset({"jogo", "kit", "conjunto", "par", "combo", "caixa", "pacote", "linha"})
@@ -524,6 +528,8 @@ def eh_secundario(
     if any(
         t in PALAVRAS_ACESSORIO
         and not (i > primeiro_acerto and (t in PARTES_DESCRITIVAS or t in _contados(titulo)))
+        # "jogo de panelas" é um conjunto do próprio produto
+        and not (t in COLETIVOS and palavras_titulo[i + 1 : i + 2] in (("de",), ("com",)))
         for i, t in enumerate(palavras_titulo[:3])
     ):
         return True
@@ -537,7 +543,30 @@ def eh_secundario(
         and palavras_titulo[0] not in COLETIVOS
     ):
         return True
+    if "midia" in palavras_titulo or _so_no_sufixo(titulo, consulta):
+        return True
     return any(t in PALAVRAS_BRINQUEDO for t in palavras_titulo)
+
+
+@lru_cache(maxsize=1)
+def _produtos() -> frozenset[str]:
+    return frozenset(termos_do_texto(PALAVRAS_DE_PRODUTO))
+
+
+def _so_no_sufixo(titulo: str, consulta: Consulta) -> bool:
+    # o termo buscado só aparece depois do último separador e o começo não nomeia um
+    # produto: o título é de outra coisa feita para o que foi buscado
+    partes = _SEPARADOR.split(titulo)
+    if len(partes) < 2:
+        return False
+    cabeca = set(termos_do_texto(" ".join(partes[:-1]))) - PALAVRAS_VAZIAS
+    termos = set(consulta.termos)
+    return (
+        len(cabeca) >= 2
+        and not termos & cabeca
+        and bool(termos & set(termos_do_texto(partes[-1])))
+        and not _produtos() & cabeca
+    )
 
 
 def pontuar_com_vendedor(consulta: Consulta, titulo: str, vendedor: str | None) -> int:
