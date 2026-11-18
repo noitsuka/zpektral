@@ -373,3 +373,23 @@ def teste_revisao_outro_produto_nao_passa(consulta, titulo):
 
 def teste_cinza_aceita_grafite_como_tom():
     assert s("notebook cinza", "Notebook Lenovo Grafite") > 40
+
+
+def teste_decimal_no_titulo_conta_pela_parte_inteira():
+    assert (
+        s("racao golden gatos castrados 10kg", "Ração Golden Gatos Castrados Frango 10,1kg") >= 90
+    )
+    assert s("lavadora 12kg", "Lavadora Electrolux 12,5kg Branca") >= 90
+    assert s("lavadora 12kg", "Lavadora Electrolux 13,5kg Branca") <= 40
+
+
+def teste_numeros_separados_na_busca_nao_viram_decimal():
+    assert s("monitor gamer 27 144hz", 'Monitor Gamer AOC AGON G50 27" 144Hz 0,5ms IPS') >= 90
+    assert s("iphone 15 128gb", "Iphone 15 Apple, 128GB, Quadriband, 6,1 Polegadas, Preto") >= 90
+    assert s("sabao po omo 4kg", "Sabão em Pó Omo Lavagem Perfeita 1,4kg") <= 40
+
+
+def teste_milhar_com_ponto_vira_um_numero_so():
+    from app.relevancia import termos_do_texto
+
+    assert "12000" in termos_do_texto("Ar Condicionado Split 12.000 BTUs Inverter")

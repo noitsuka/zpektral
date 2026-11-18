@@ -13,6 +13,9 @@ _CONTAGEM = re.compile(r"\b(?:[2-9]|[1-9]\d) ([a-z]+s)\b")
 _LETRA_DIGITO = re.compile(r"(?<=[a-z])(?=\d)|(?<=\d)(?=[a-z])")
 _MARCA_POLEGADA = re.compile(r"(\d)\s*(?:\"|\u201d|'')")
 _ORDINAL = re.compile(r"(\d)\s*[\u00aa\u00ba\u00b0]")
+# "12.000 BTUs" \u00e9 milhar; "10,1kg" e "6,1 pol" s\u00e3o decimais e valem pela parte inteira
+_MILHAR = re.compile(r"(\d)\.(\d{3})(?!\d)")
+_DECIMAL = re.compile(r"(\d)[.,]\d{1,2}(?!\d)")
 
 PALAVRAS_VAZIAS = frozenset(
     "a o as os de da do das dos e em no na nos nas com sem para por pra p um uma the".split()
@@ -126,6 +129,7 @@ def _separar_codigo(termo: str) -> list[str]:
 def _termos_brutos(texto: str) -> list[str]:
     saida = []
     texto = _ORDINAL.sub(r"\1 ", _MARCA_POLEGADA.sub(r"\1 pol ", texto))
+    texto = _DECIMAL.sub(r"\1", _MILHAR.sub(r"\1\2", texto))
     for bruto in normalizar(texto).split():
         for peca in _separar_codigo(bruto):
             palavra = EQUIVALENTES.get(peca) or _singular(peca)
