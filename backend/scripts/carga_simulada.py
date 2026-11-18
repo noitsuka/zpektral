@@ -85,6 +85,61 @@ async def medir(lojas: int, simultaneas: int, rodadas: int) -> None:
     )
 
 
+async def medir_chegadas(
+    lojas: int, taxa: float, segundos: float, limite: int, repetidas: float
+) -> None:
+    """Buscas chegando a `taxa` por segundo, com a mesma admissão da API."""
+    config = Configuracoes(_env_file=None)
+    sorteio = random.Random(11)
+    servico = ServicoBusca([LojaSimulada(i, sorteio) for i in range(lojas)], config)
+    tracemalloc.start()
+    contagem = {"novas": 0, "do_cache": 0, "recusadas": 0}
+    tempos: list[float] = []
+    simultaneas: list[int] = []
+    tarefas = []
+    cpu, inicio = time.process_time(), time.perf_counter()
+
+    async def uma(consulta: str) -> None:
+        comeco = time.perf_counter()
+        trabalho, _ = servico.iniciar(consulta, None)
+        await trabalho.aguardar()
+        tempos.append(time.perf_counter() - comeco)
+
+    n = 0
+    while time.perf_counter() - inicio < segundos:
+        n += 1
+        # parte das buscas repete as mais procuradas: é onde deduplicação e cache ajudam
+        if sorteio.random() < repetidas:
+            consulta = f"geladeira popular {sorteio.randint(1, 5)}"
+        else:
+            consulta = f"geladeira {n}"
+        if servico.em_cache(consulta, None):
+            contagem["do_cache"] += 1
+            tarefas.append(asyncio.create_task(uma(consulta)))
+        elif servico.em_andamento >= limite:
+            contagem["recusadas"] += 1
+        else:
+            contagem["novas"] += 1
+            tarefas.append(asyncio.create_task(uma(consulta)))
+        simultaneas.append(servico.em_andamento)
+        await asyncio.sleep(sorteio.expovariate(taxa))
+    await asyncio.gather(*tarefas)
+    _, pico = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    decorrido = time.perf_counter() - inicio
+    total = sum(contagem.values())
+    ordenados = sorted(tempos)
+    print(
+        f"taxa {taxa}/s, limite {limite}, {repetidas:.0%} repetidas: {total} chegadas, "
+        f"{contagem['novas']} novas, {contagem['do_cache']} do cache, "
+        f"{contagem['recusadas']} recusadas ({contagem['recusadas'] / total:.0%}); "
+        f"atendidas p50 {statistics.median(tempos):.1f} s, "
+        f"p95 {ordenados[int(0.95 * (len(ordenados) - 1))]:.1f} s; "
+        f"simultâneas máx {max(simultaneas)}; CPU {(time.process_time() - cpu) / decorrido:.0%}; "
+        f"pico {pico / 1e6:.0f} MB"
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Mede CPU, memória e latência da busca com lojas falsas, sem tocar as reais."
@@ -92,8 +147,17 @@ def main() -> None:
     parser.add_argument("--lojas", type=int, default=98)
     parser.add_argument("--simultaneas", type=int, default=8)
     parser.add_argument("--rodadas", type=int, default=3)
+    parser.add_argument("--taxa", type=float, help="buscas por segundo (modo chegadas)")
+    parser.add_argument("--segundos", type=float, default=60)
+    parser.add_argument("--limite", type=int, default=8, help="buscas novas ao mesmo tempo")
+    parser.add_argument("--repetidas", type=float, default=0.3, help="fração de buscas repetidas")
     args = parser.parse_args()
-    asyncio.run(medir(args.lojas, args.simultaneas, args.rodadas))
+    if args.taxa:
+        asyncio.run(
+            medir_chegadas(args.lojas, args.taxa, args.segundos, args.limite, args.repetidas)
+        )
+    else:
+        asyncio.run(medir(args.lojas, args.simultaneas, args.rodadas))
 
 
 if __name__ == "__main__":
