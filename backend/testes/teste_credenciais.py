@@ -84,11 +84,12 @@ async def teste_sem_mudanca_nao_regrava(sessoes):
         assert await sessao.scalar(select(CredencialOAuth.dados)) == antes
 
 
-async def teste_chave_trocada_le_como_vazio(sessoes):
+async def teste_chave_trocada_le_como_vazio(sessoes, caplog):
     async with GuardaCredenciais(sessoes, Cifra(nova_chave())).travar("ml") as travada:
         travada.novo = {"refresh_token": "TG-1"}
     outra = GuardaCredenciais(sessoes, Cifra(nova_chave()))
     assert await outra.ler("ml") is None
+    assert "não abre com a CHAVE_CREDENCIAIS" in caplog.text
     async with outra.travar("ml") as travada:
         assert travada.atual is None
         travada.novo = {"refresh_token": "TG-9"}

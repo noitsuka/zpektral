@@ -65,11 +65,11 @@ class CofreTokens:
         self._config = config
         self._guarda = guarda
         self._relogio = relogio
-        self._trava = asyncio.Lock()
+        self._tarefa: asyncio.Future[None] | None = None
         self._acesso: str | None = None
         self._expira = 0.0
         self._rejeitado: str | None = None
-        self._recusado: str | None = None
+        self._recusados: set[str] = set()
         semente = config.ml_token_renovacao.get_secret_value()
         self._renovacao = semente
         self._semente = _resumo(semente) if semente else None
@@ -77,7 +77,13 @@ class CofreTokens:
     @property
     def configurado(self) -> bool:
         s = self._config
-        return bool(s.ml_id_cliente and s.ml_segredo_cliente.get_secret_value() and self._semente)
+        # com várias instâncias e sem o cofre, a primeira renovação queimaria a semente das outras
+        return bool(
+            s.ml_id_cliente
+            and s.ml_segredo_cliente.get_secret_value()
+            and self._semente
+            and (self._guarda is not None or not s.url_banco)
+        )
 
     def invalidar(self, rejeitado: str) -> None:
         self._rejeitado = rejeitado
@@ -87,23 +93,36 @@ class CofreTokens:
     async def obter_token(self) -> str:
         if self._acesso and self._relogio() < self._expira:
             return self._acesso
-        async with self._trava:
-            if self._acesso and self._relogio() < self._expira:
-                return self._acesso
-            if self._guarda is None:
-                self._adotar(await self._renovar(self._renovacao))
-                return self._acesso
-            async with self._guarda.travar(self.fonte) as travada:
-                salvo = travada.atual
-                if not salvo or salvo.get("semente") != self._semente:
-                    salvo = None
-                if salvo and self._utilizavel(salvo):
-                    self._adotar(salvo)
-                else:
-                    renovacao = salvo.get("refresh_token") if salvo else None
-                    travada.novo = await self._renovar(renovacao or self._renovacao)
-                    self._adotar(travada.novo)
-            return self._acesso
+        if self._tarefa is None or self._tarefa.done():
+            self._tarefa = asyncio.ensure_future(self._atualizar())
+            self._tarefa.add_done_callback(lambda t: t.cancelled() or t.exception())
+        # quando o Mercado Livre responde, o token antigo já morreu: a busca cancelada no meio
+        # não pode impedir que o novo seja guardado
+        await asyncio.shield(self._tarefa)
+        return self._acesso
+
+    async def _atualizar(self) -> None:
+        if self._acesso and self._relogio() < self._expira:
+            return
+        if self._guarda is None:
+            self._adotar(await self._renovar(self._renovacao))
+            return
+        async with self._guarda.travar(self.fonte) as travada:
+            salvo = travada.atual
+            if not salvo or salvo.get("semente") != self._semente:
+                salvo = None
+            if salvo and self._utilizavel(salvo):
+                self._adotar(salvo)
+                return
+            renovacao = (salvo or {}).get("refresh_token") or self._renovacao
+            try:
+                travada.novo = await self._renovar(renovacao)
+            except ErroExterno:
+                # o banco pode ter perdido a gravação de um token que esta instância já trocou
+                if renovacao == self._renovacao or _resumo(self._renovacao) == self._semente:
+                    raise
+                travada.novo = await self._renovar(self._renovacao)
+            self._adotar(travada.novo)
 
     def _utilizavel(self, salvo: dict[str, Any]) -> bool:
         acesso, expira = salvo.get("access_token"), salvo.get("expires_at")
@@ -119,7 +138,7 @@ class CofreTokens:
         self._renovacao = dados["refresh_token"]
 
     async def _renovar(self, renovacao: str) -> dict[str, Any]:
-        if self._recusado == _resumo(renovacao):
+        if _resumo(renovacao) in self._recusados:
             raise ErroExterno(REAUTORIZAR, 401)
         resposta = await self._http.requisitar(
             "POST",
@@ -137,7 +156,7 @@ class CofreTokens:
         corpo = corpo if isinstance(corpo, dict) else {}
         if resposta.status_code != 200:
             if corpo.get("error") == "invalid_grant":
-                self._recusado = _resumo(renovacao)
+                self._recusados.add(_resumo(renovacao))
                 raise ErroExterno(REAUTORIZAR, 401)
             motivo = str(corpo.get("error") or "sem motivo")[:60]
             raise ErroExterno(

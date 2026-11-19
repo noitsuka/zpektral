@@ -175,6 +175,70 @@ async def teste_sem_banco_renova_e_gira_o_token_na_memoria(simulador, http, conf
     assert usados == ["r1", "r2"]
 
 
+async def teste_busca_cancelada_no_meio_da_renovacao_ainda_guarda_o_token(
+    simulador, http, config, guarda
+):
+    configurado(config)
+    chamado, liberar = asyncio.Event(), asyncio.Event()
+
+    async def responder(_):
+        chamado.set()
+        await liberar.wait()
+        return resposta_json({"access_token": "a0", "refresh_token": "r2", "expires_in": 21600})
+
+    simulador.post(URL_TOKEN).mock(side_effect=responder)
+    cofre = CofreTokens(http, config, guarda)
+    busca = asyncio.create_task(cofre.obter_token())
+    await chamado.wait()
+    busca.cancel()
+    liberar.set()
+    with pytest.raises(asyncio.CancelledError):
+        await busca
+    for _ in range(100):
+        if await guarda.ler("mercadolivre"):
+            break
+        await asyncio.sleep(0.01)
+    assert (await guarda.ler("mercadolivre"))["refresh_token"] == "r2"
+    assert await cofre.obter_token() == "a0"
+
+
+async def teste_token_trocado_e_nao_gravado_segue_valendo_pela_memoria(
+    simulador, http, config, guarda
+):
+    configurado(config)
+    agora = [1000.0]
+    usados: list[str] = []
+
+    def responder(requisicao: httpx.Request):
+        renovacao = parse_qs(requisicao.content.decode())["refresh_token"][0]
+        usados.append(renovacao)
+        if renovacao == "r2":
+            return resposta_json({"error": "invalid_grant"}, status=400)
+        n = len(usados)
+        return resposta_json(
+            {"access_token": f"a{n}", "refresh_token": f"r{n + 2}", "expires_in": 21600}
+        )
+
+    simulador.post(URL_TOKEN).mock(side_effect=responder)
+    cofre = CofreTokens(http, config, guarda, relogio=lambda: agora[0])
+    await cofre.obter_token()
+    agora[0] += 21600
+    await cofre.obter_token()
+    # o banco perde a última gravação e volta a um token que já foi trocado
+    async with guarda.travar("mercadolivre") as travada:
+        travada.novo = {**travada.atual, "refresh_token": "r2", "expires_at": 0}
+    agora[0] += 21600
+    assert await cofre.obter_token() == "a4"
+    assert usados == ["r1", "r3", "r2", "r4"]
+    assert (await guarda.ler("mercadolivre"))["refresh_token"] == "r6"
+
+
+async def teste_com_banco_e_sem_cofre_a_fonte_fica_desativada(http, config):
+    configurado(config)
+    config.url_banco = "postgresql://usuario@banco/zpektral"
+    assert FonteMercadoLivre(http, config).ativa is False
+
+
 async def teste_requisicoes_simultaneas_renovam_uma_vez(simulador, http, config, guarda):
     configurado(config)
     rota = rota_token(simulador, [])

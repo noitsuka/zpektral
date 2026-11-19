@@ -1,5 +1,6 @@
 import base64
 import binascii
+import logging
 import os
 import zlib
 from collections.abc import AsyncIterator
@@ -15,6 +16,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from app.banco import CredencialOAuth
 
+log = logging.getLogger("zpektral.credenciais")
 _TAMANHO_NONCE = 12
 
 
@@ -67,18 +69,29 @@ class GuardaCredenciais:
             cifrado = await sessao.scalar(
                 select(CredencialOAuth.dados).where(CredencialOAuth.fonte == fonte)
             )
-        return self._cifra.decifrar(cifrado, fonte) if cifrado else None
+        return self._abrir(cifrado, fonte)
+
+    def _abrir(self, cifrado: str | None, fonte: str) -> dict[str, Any] | None:
+        if not cifrado:
+            return None
+        dados = self._cifra.decifrar(cifrado, fonte)
+        if dados is None:
+            # chave trocada ou registro adulterado: a fonte recomeça pela semente do ambiente
+            log.error("credencial de %s não abre com a CHAVE_CREDENCIAIS atual", fonte)
+        return dados
 
     @asynccontextmanager
     async def travar(self, fonte: str) -> AsyncIterator[Travada]:
         """Lê a credencial e grava `novo` no fim; uma instância por vez, quando é PostgreSQL."""
         async with self._sessoes() as sessao, sessao.begin():
             if (await sessao.connection()).dialect.name == "postgresql":
+                # instância congelada no meio da renovação não segura a trava das outras
+                await sessao.execute(text("SET LOCAL idle_in_transaction_session_timeout = '30s'"))
                 # trava consultiva e não de linha: vale também antes de a linha existir
                 chave = zlib.crc32(f"credencial:{fonte}".encode())
                 await sessao.execute(text("SELECT pg_advisory_xact_lock(:chave)"), {"chave": chave})
             linha = await sessao.get(CredencialOAuth, fonte)
-            travada = Travada(self._cifra.decifrar(linha.dados, fonte) if linha else None)
+            travada = Travada(self._abrir(linha.dados if linha else None, fonte))
             yield travada
             if travada.novo is None:
                 return
