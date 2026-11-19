@@ -43,7 +43,7 @@ Para testar, abra o [site](https://zpektral.vercel.app) e procure "geladeira fro
 - Histórico do preço na própria loja, com o aviso "menor preço desta loja em N dias" quando for o caso
 - Desconto com evidência: o desconto anunciado pela loja aparece como anunciado, a queda em relação ao histórico aparece como verificada, e o preço "de" que nunca foi visto ganha um alerta
 - Página de quedas de preço observadas nas buscas, com mediana, menor preço e dias de observação
-- Ofertas parecidas ficam separadas das que casam com a busca, com o que falta em cada uma. Se a busca tem marca, outras marcas não aparecem, e "jbl flip 6" não traz a JBL Charge 6
+- Ofertas parecidas ficam separadas das que casam com a busca. Se a busca tem marca, outras marcas não aparecem, e "jbl flip 6" não traz a JBL Charge 6
 - Cada palavra da busca é um pedido, e a coleira para gatos não aparece em "coleira antipulgas cachorro". Quando quase nenhuma loja tem o produto exato, a busca se reavalia com a palavra rara pesando mais que a comum, pela frequência em 79 mil títulos reais: "mangá punpun" traz os volumes de Boa Noite Punpun, que não repetem "mangá", e não traz camiseta de manga curta; "oyasumi punpun" acha a edição brasileira. Palavra que nenhuma loja usa, como "bonita" em "air fryer bonita", e palavra de intenção, como "barata", deixam de esconder as ofertas
 - "sem fio" não traz fone com fio, e o ano pedido ("camisa do corinthians 2024") que o anúncio não repete não esconde o produto, mas outro ano esconde
 - Busca que entende nomes diferentes para o mesmo produto, como "máquina de lavar louça" e "lava-louças", corrige erros de digitação e acentos esquecidos, como "geladiera" e "fogao", e aceita o código de barras (EAN) do produto
