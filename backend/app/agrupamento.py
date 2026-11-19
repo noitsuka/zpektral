@@ -299,9 +299,11 @@ def marcar_fora_da_curva(ofertas: list[Oferta]) -> None:
         if o.grupo:
             membros.setdefault(o.grupo, []).append(o)
     for do_grupo in membros.values():
-        if len({o.loja.id for o in do_grupo}) < 3:
+        # o preço da versão mais barata não é o do produto: não entra na mediana
+        referencia = [o for o in do_grupo if Alerta.PRECO_VARIA_POR_VERSAO not in o.alertas]
+        if len({o.loja.id for o in referencia}) < 3:
             continue
-        mediana = statistics.median(o.melhor_preco for o in do_grupo)
+        mediana = statistics.median(o.melhor_preco for o in referencia)
         for o in do_grupo:
             if o.melhor_preco < mediana * RAZAO_FORA_DA_CURVA:
                 o.alertar(Alerta.PRECO_FORA_DA_CURVA)
@@ -406,7 +408,12 @@ def _reavaliada(o: Oferta, consulta: Consulta, outra: Consulta) -> float:
 
 def rebaixar_muito_abaixo(ofertas: list[Oferta]) -> None:
     piso = piso_de_preco(
-        [o.melhor_preco for o in ofertas if o.relevancia >= RELEVANCIA_MINIMA_NIVEL]
+        [
+            o.melhor_preco
+            for o in ofertas
+            if o.relevancia >= RELEVANCIA_MINIMA_NIVEL
+            and Alerta.PRECO_VARIA_POR_VERSAO not in o.alertas
+        ]
     )
     if piso is None:
         return

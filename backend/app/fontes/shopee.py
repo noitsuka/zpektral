@@ -2,6 +2,7 @@ import hashlib
 import json
 import time
 from typing import Any
+from urllib.parse import urlsplit
 
 from app.cliente_http import ClienteHttp, ErroExterno, ler_json
 from app.configuracao import Configuracoes
@@ -102,7 +103,13 @@ class FonteShopee:
         inicio = time.monotonic()
         por_item: dict[Any, dict[str, Any]] = {}
         for pagina in range(1, self._config.shopee_paginas + 1):
-            da_pagina, continua = await self._pagina(ctx.texto, pagina)
+            try:
+                da_pagina, continua = await self._pagina(ctx.texto, pagina)
+            except ErroExterno:
+                # a pausa do limite já ficou marcada; o que as páginas anteriores trouxeram vale
+                if not por_item:
+                    raise
+                break
             for no in da_pagina:
                 por_item.setdefault(no.get("itemId"), no)
             if not continua or not da_pagina:
@@ -147,13 +154,13 @@ class FonteShopee:
         alertas = []
         if no.get("priceMax") and para_centavos(no["priceMax"]) > preco:
             alertas.append(Alerta.PRECO_VARIA_POR_VERSAO)
-        pagina = no.get("productLink")
-        if not pagina and no.get("shopId") and no.get("itemId"):
-            pagina = url_do_produto(no["shopId"], no["itemId"])
+        link = _da_shopee(no.get("offerLink")) or _da_shopee(no.get("productLink"))
+        if not link and no.get("shopId") and no.get("itemId"):
+            link = url_do_produto(no["shopId"], no["itemId"])
         return Oferta(
             id=f"{self.id}:{no.get('itemId')}",
             titulo=titulo,
-            link=no.get("offerLink") or pagina or "",
+            link=link or "",
             loja=self._ref,
             preco=preco,
             origem=Origem.MARKETPLACE,
@@ -164,3 +171,14 @@ class FonteShopee:
             relevancia=ctx.relevancia_de(titulo, no.get("shopName")),
             posicao=posicao,
         )
+
+
+def _da_shopee(link: object) -> str | None:
+    """Só link https da própria Shopee: a resposta da API não escolhe para onde a pessoa vai."""
+    if not isinstance(link, str):
+        return None
+    partes = urlsplit(link)
+    host = partes.hostname or ""
+    if partes.scheme == "https" and (host == "shopee.com.br" or host.endswith(".shopee.com.br")):
+        return link
+    return None

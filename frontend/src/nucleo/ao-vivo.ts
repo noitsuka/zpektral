@@ -11,7 +11,13 @@ const MAD_PARA_DESVIO = 1.4826;
 
 export function rebaixarMuitoAbaixo(ofertas: Oferta[]): Oferta[] {
   const logs = ofertas
-    .filter((o) => o.relevancia >= RELEVANCIA_MINIMA_NIVEL && o.melhor_preco > 0)
+    .filter(
+      (o) =>
+        o.relevancia >= RELEVANCIA_MINIMA_NIVEL &&
+        o.melhor_preco > 0 &&
+        // o preço da versão mais barata não mede o nível do produto
+        !o.alertas.includes("preco_varia_por_versao"),
+    )
     .map((o) => Math.log(o.melhor_preco));
   if (logs.length < MINIMO_OFERTAS_NIVEL) return ofertas;
   const centro = mediana(logs)!;

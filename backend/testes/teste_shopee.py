@@ -7,7 +7,7 @@ import pytest
 from pydantic import SecretStr
 
 from app.cliente_http import ErroExterno
-from app.fontes.shopee import API, FonteShopee, assinatura
+from app.fontes.shopee import API, FonteShopee, assinatura, url_do_produto
 from app.modelos import Alerta, Origem, StatusFrete
 from testes.conftest import contexto, resposta_json
 
@@ -146,6 +146,38 @@ async def teste_pagina_ate_o_limite_configurado_e_para_sem_proxima(simulador, ht
     assert paginas_pedidas == [1, 2]
     assert [o.id for o in ofertas] == ["shopee:10", "shopee:20"]
     assert [o.posicao for o in ofertas] == [0, 1]
+
+
+async def teste_limite_na_segunda_pagina_mantem_a_primeira(simulador, http, config):
+    habilitar(config)
+    config.shopee_paginas = 2
+    agora = [1000.0]
+    simulador.post(API).mock(
+        side_effect=[
+            resposta_json(_pagina([_no(1)], continua=True)),
+            resposta_json(_erro(10030, "Rate limit exceeded")),
+        ]
+    )
+    fonte = FonteShopee(http, config, relogio=lambda: agora[0])
+    assert [o.id for o in await fonte.buscar(contexto("fone jbl"))] == ["shopee:1"]
+    with pytest.raises(ErroExterno):
+        await fonte.buscar(contexto("fone jbl"))
+
+
+async def teste_link_de_fora_da_shopee_nao_entra(simulador, http, config):
+    habilitar(config)
+    nos = [
+        _no(1, offerLink="https://golpe.example/1"),
+        _no(2, offerLink="https://golpe.example/2", productLink="http://shopee.com.br/x"),
+        _no(3, offerLink="https://shopee.com.br.golpe.example/3"),
+    ]
+    simulador.post(API).mock(resposta_json(_pagina(nos, continua=False)))
+    ofertas = await FonteShopee(http, config).buscar(contexto("fone jbl"))
+    assert [o.link for o in ofertas] == [
+        "https://shopee.com.br/product/77/1",
+        url_do_produto(77, 2),
+        "https://shopee.com.br/product/77/3",
+    ]
 
 
 async def teste_campos_do_produto(simulador, http, config):

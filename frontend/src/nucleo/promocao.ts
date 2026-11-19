@@ -46,7 +46,9 @@ export function avaliarPromocao(
   agora: number = Date.now(),
 ): Promocao {
   const selos: Selo[] = [];
-  const avaliacao = serie ? avaliarHistorico(oferta.preco, serie, hoje) : null;
+  // o preço da versão mais barata não é o do item que a série acompanha
+  const comparavel = serie && !oferta.alertas.includes("preco_varia_por_versao");
+  const avaliacao = comparavel ? avaliarHistorico(oferta.preco, serie, hoje) : null;
 
   if (avaliacao?.situacao === "menor") {
     selos.push({
