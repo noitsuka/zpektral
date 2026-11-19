@@ -26,7 +26,8 @@ class Configuracoes(BaseSettings):
     )
 
     segundos_limite_fonte: PositiveFloat = 12
-    segundos_limite_conexao: PositiveFloat = 3
+    # medido na Vercel: com 3 s, 18 lojas não conectavam na primeira busca de uma instância nova
+    segundos_limite_conexao: PositiveFloat = 6
     segundos_limite_leitura: PositiveFloat = 7
     hosts_maximos: PositiveInt = 256
     requisicoes_por_host: PositiveInt = 16

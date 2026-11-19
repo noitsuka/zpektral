@@ -1,8 +1,12 @@
+import asyncio
+import time
+
 import httpx
 import pytest
 
 from app.cliente_http import ErroExterno, ler_json
 from app.cliente_http import _resolve_para_interno as resolver_real
+from app.main import criar_app
 
 
 @pytest.mark.parametrize(
@@ -126,3 +130,20 @@ async def teste_resolucao_guarda_o_resultado_por_host(monkeypatch):
     assert await resolver_real("localtest.me") is True
     assert await resolver_real("localtest.me") is True
     assert chamadas == ["localtest.me"]
+
+
+async def teste_resolucoes_de_nome_da_busca_nao_fazem_fila(config):
+    # caso real: na Vercel, a primeira busca de uma instância nova dava ConnectTimeout em todas
+    # as lojas, porque as ~200 consultas de DNS esperavam nas poucas threads do executor padrão
+    app = criar_app(config.model_copy(update={"arquivo_historico_local": ""}))
+    async with app.router.lifespan_context(app):
+        loop = asyncio.get_running_loop()
+        inicio = time.monotonic()
+        await asyncio.gather(*(loop.run_in_executor(None, time.sleep, 0.5) for _ in range(64)))
+        assert time.monotonic() - inicio < 1.5
+
+
+def teste_conexao_tem_folga_para_a_instancia_nova():
+    from app.configuracao import Configuracoes
+
+    assert Configuracoes(_env_file=None).segundos_limite_conexao >= 6

@@ -1,4 +1,6 @@
+import asyncio
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -30,6 +32,10 @@ def criar_app(config: Configuracoes | None = None) -> FastAPI:
 
     @asynccontextmanager
     async def ciclo_de_vida(app: FastAPI):
+        # cada loja resolve o nome duas vezes no executor padrão (checagem do destino e conexão);
+        # com as poucas threads de uma função da Vercel, a primeira busca de uma instância nova
+        # fazia fila e estourava o tempo de conexão em todas as lojas
+        asyncio.get_running_loop().set_default_executor(ThreadPoolExecutor(max_workers=64))
         http = ClienteHttp(config)
         navegador = (
             NavegadorPlaywright(config)
