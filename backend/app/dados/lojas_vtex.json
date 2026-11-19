@@ -93,5 +93,6 @@
   {"id": "savegnago", "nome": "Savegnago", "dominio": "www.savegnago.com.br", "busca": "auto", "segmento": "mercado"},
   {"id": "giassi", "nome": "Giassi", "dominio": "www.giassi.com.br", "busca": "auto", "segmento": "mercado"},
   {"id": "gbarbosa", "nome": "GBarbosa", "dominio": "www.gbarbosa.com.br", "busca": "auto", "segmento": "mercado"},
-  {"id": "drogariaglobo", "nome": "Drogaria Globo", "dominio": "www.drogariaglobo.com.br", "busca": "auto", "segmento": "farmacia"}
+  {"id": "drogariaglobo", "nome": "Drogaria Globo", "dominio": "www.drogariaglobo.com.br", "busca": "auto", "segmento": "farmacia"},
+  {"id": "fastshop", "nome": "Fast Shop", "dominio": "site.fastshop.com.br", "busca": "auto", "segmento": "eletro"}
 ]
