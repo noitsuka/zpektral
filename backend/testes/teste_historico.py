@@ -545,3 +545,16 @@ def teste_oferta_do_mercado_livre_nao_entra_no_historico(config):
     trabalho.adicionar(Lote(relatorio, [o.consolidar() for o in ofertas], Fase.FINAL))
     precos, _, _ = RegistroHistorico(None).linhas(trabalho)
     assert [p.oferta for p in precos] == ["a:1"]
+
+
+def teste_preco_da_versao_mais_barata_nao_entra_no_historico(config):
+    from app.busca import Fase, Lote, TrabalhoBusca
+    from app.modelos import Alerta, Loja, Oferta, RelatorioFonte, StatusFonte
+
+    trabalho = TrabalhoBusca("fone", None)
+    ofertas = [Oferta(f"s:{n}", "Fone", "x", Loja("s", "S"), 100, relevancia=100) for n in (1, 2)]
+    ofertas[0].alertar(Alerta.PRECO_VARIA_POR_VERSAO)
+    relatorio = RelatorioFonte("s", "S", StatusFonte.OK)
+    trabalho.adicionar(Lote(relatorio, [o.consolidar() for o in ofertas], Fase.FINAL))
+    precos, _, _ = RegistroHistorico(None).linhas(trabalho)
+    assert [p.oferta for p in precos] == ["s:2"]

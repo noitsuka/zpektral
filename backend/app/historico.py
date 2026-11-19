@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from app.banco import HistoricoPreco, SaudeLoja
 from app.busca import TrabalhoBusca, chave_cache
 from app.cache import CacheComValidade
-from app.modelos import Loja, Oferta, StatusFonte, StatusFrete, instante_iso
+from app.modelos import Alerta, Loja, Oferta, StatusFonte, StatusFrete, instante_iso
 from app.relevancia import normalizar_ean
 
 log = logging.getLogger("zpektral.historico")
@@ -389,6 +389,7 @@ def _gravavel(o: Oferta) -> bool:
     return (
         0 < len(o.id) <= TAMANHO_MAXIMO_OFERTA
         and o.loja.id not in FONTES_SEM_HISTORICO
+        and Alerta.PRECO_VARIA_POR_VERSAO not in o.alertas
         and o.relevancia >= RELEVANCIA_MINIMA_HISTORICO
         and o.disponivel
         and o.frete.status is not StatusFrete.CALCULANDO

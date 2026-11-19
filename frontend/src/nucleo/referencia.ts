@@ -5,7 +5,9 @@ const LOJAS_MINIMAS = 3;
 const DIFERENCA_MINIMA = 0.03;
 
 // Total com frete só se compara com total com frete; sem CEP, todos são o preço do produto.
-const comparavel = (o: Oferta) => o.total_exato || o.frete.status === "sem_cep";
+// O preço da versão mais barata de um anúncio não é o preço do produto procurado.
+const comparavel = (o: Oferta) =>
+  (o.total_exato || o.frete.status === "sem_cep") && !o.alertas.includes("preco_varia_por_versao");
 
 export function mediana(valores: number[]): number | null {
   if (!valores.length) return null;

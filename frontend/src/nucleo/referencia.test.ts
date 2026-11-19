@@ -13,6 +13,7 @@ function oferta(loja: string, total: number, grupo: string | null = "g1"): Ofert
     disponivel: true,
     total_exato: true,
     frete: { status: "calculado" },
+    alertas: [] as Oferta["alertas"],
   } as Oferta;
 }
 
@@ -77,5 +78,17 @@ describe("preço típico de um produto", () => {
     expect(comparadoAoTipico(semFrete, "melhor", tipicos)).toBeNull();
     const semCep = { ...semFrete, frete: { status: "sem_cep" } } as Oferta;
     expect(comparadoAoTipico(semCep, "melhor", tipicos)).toBeCloseTo(50 / 110 - 1);
+  });
+
+  it("não usa o preço da versão mais barata de um anúncio", () => {
+    const semCep = (loja: string, total: number) =>
+      ({ ...oferta(loja, total), total_exato: false, frete: { status: "sem_cep" } }) as Oferta;
+    const versao = { ...semCep("s", 10), alertas: ["preco_varia_por_versao"] } as Oferta;
+    const tipicos = precosTipicos(
+      [semCep("a", 100), semCep("b", 120), semCep("c", 110), versao],
+      "melhor",
+    );
+    expect(tipicos.get("g1")).toBe(110);
+    expect(comparadoAoTipico(versao, "melhor", tipicos)).toBeNull();
   });
 });

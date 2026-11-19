@@ -129,6 +129,23 @@ describe("melhor oferta", () => {
     expect(m.diferenca).toBe(50);
   });
 
+  it("sem CEP, o preço da versão mais barata de um anúncio não é a melhor oferta", () => {
+    const semCep = { ...FRETE, status: "sem_cep" as const, valor: null };
+    const m = melhorOferta(
+      [
+        oferta("a:1", 200, { total_exato: false, frete: semCep }),
+        oferta("s:1", 50, {
+          total_exato: false,
+          frete: semCep,
+          alertas: ["preco_varia_por_versao"],
+        }),
+      ],
+      FILTROS_PADRAO,
+      false,
+    )!;
+    expect(m.oferta.id).toBe("a:1");
+  });
+
   it("ignora a segunda oferta da mesma loja na comparação", () => {
     const m = melhorOferta(
       [oferta("a:1", 100), oferta("a:2", 110), oferta("b:1", 150)],

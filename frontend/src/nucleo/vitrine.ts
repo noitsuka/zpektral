@@ -70,7 +70,8 @@ function elegivel(o: Oferta): boolean {
     o.relevancia >= RELEVANCIA_PRINCIPAL &&
     o.disponivel &&
     o.frete.status !== "nao_entrega" &&
-    !o.alertas.includes("preco_fora_da_curva")
+    !o.alertas.includes("preco_fora_da_curva") &&
+    !o.alertas.includes("preco_varia_por_versao")
   );
 }
 
