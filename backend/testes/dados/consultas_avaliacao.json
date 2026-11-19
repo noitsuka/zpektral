@@ -766,6 +766,126 @@
         {"nome": "peso", "aceita": ["4 kg"], "rivais": ["400 g", "500 g", "800 g", "1 kg", "1 6 kg", "2 kg", "2 2 kg", "3 kg", "5 kg"]}
       ],
       "proibe": ["liquido", "^amaciante", "^tira manchas", "^capsula*"]
+    },
+    {
+      "id": "manga-punpun",
+      "consulta": "mangá punpun",
+      "categoria": "livros e midia",
+      "tipos": ["generica", "nome proprio"],
+      "conjunto": "desenvolvimento",
+      "exige": [["punpun"]],
+      "proibe": ["caderno", "sketchbook", "notebook", "journal", "^poster", "^quadro", "^chaveiro", "^caneca", "^camiseta", "^adesivo", "^action figure", "^pelucia", "^luminaria"]
+    },
+    {
+      "id": "oyasumi-punpun",
+      "consulta": "oyasumi punpun",
+      "categoria": "livros e midia",
+      "tipos": ["nome original", "nome proprio"],
+      "conjunto": "desenvolvimento",
+      "exige": [["punpun"]],
+      "proibe": ["caderno", "sketchbook", "notebook", "journal", "^poster", "^quadro", "^chaveiro", "^caneca", "^camiseta", "^adesivo", "^action figure", "^pelucia", "^luminaria"]
+    },
+    {
+      "id": "notebook-barato",
+      "consulta": "notebook barato",
+      "categoria": "informatica",
+      "tipos": ["generica", "intencao"],
+      "conjunto": "desenvolvimento",
+      "exige": [["notebook"]],
+      "proibe": ["^capa", "^case", "^mochila", "^bolsa", "^maleta", "^suporte", "^base", "^carregador", "^fonte", "^bateria", "^teclado", "^tela", "^cooler", "^mouse", "^pelicula", "^adesivo", "^skin", "^cabo", "^hd", "^ssd", "^memoria", "^mesa", "para notebook", "compativel", "caderno", "journal", "sketchbook", "^agenda", "^planner"]
+    },
+    {
+      "id": "livro-harry-potter-pedra-filosofal",
+      "consulta": "livro harry potter e a pedra filosofal",
+      "categoria": "livros e midia",
+      "tipos": ["longa", "nome proprio"],
+      "conjunto": "teste",
+      "exige": [["harry potter"], ["pedra filosofal"]],
+      "proibe": ["^caneca", "^camiseta", "funko", "^varinha", "^chaveiro", "^quadro", "^poster", "^pelucia", "lego", "^luminaria", "^cachecol", "^colar", "^miniatura", "^boneco", "^jogo", "^dvd", "blu ray", "^filme", "^quebra cabeca"]
+    },
+    {
+      "id": "god-of-war-ragnarok-ps5",
+      "consulta": "jogo god of war ragnarok ps5",
+      "categoria": "games",
+      "tipos": ["nome proprio", "plataforma"],
+      "conjunto": "teste",
+      "exige": [["god of war"], ["ragnarok"]],
+      "atributos": [
+        {"nome": "plataforma", "aceita": ["ps5", "playstation 5"], "rivais": ["ps4", "playstation 4", "pc", "xbox"]}
+      ],
+      "proibe": ["^camiseta", "^caneca", "funko", "^action figure", "^boneco", "^poster", "^quadro", "^chaveiro", "^livro", "artbook", "art book", "^luminaria", "^controle", "^miniatura", "^estatua", "^mousepad", "^capa"]
+    },
+    {
+      "id": "funko-pop-naruto",
+      "consulta": "funko pop naruto",
+      "categoria": "brinquedos",
+      "tipos": ["marca", "nome proprio"],
+      "conjunto": "teste",
+      "exige": [["funko"], ["naruto"]],
+      "proibe": ["^camiseta", "^caneca", "^chaveiro", "keychain", "^protetor", "^caixa protetora", "^case"]
+    },
+    {
+      "id": "tenis-adidas-samba",
+      "consulta": "tenis adidas samba",
+      "categoria": "moda e calcados",
+      "tipos": ["marca e modelo", "sem acento"],
+      "conjunto": "teste",
+      "exige": [["adidas"], ["samba"]],
+      "proibe": ["^meia", "^camiseta", "^bolsa", "^bone", "^jaqueta", "^calca", "^shorts", "^moletom", "^cadarco", "^palmilha", "^mochila"]
+    },
+    {
+      "id": "camisa-do-flamengo",
+      "consulta": "camisa do flamengo",
+      "categoria": "moda e calcados",
+      "tipos": ["nome proprio", "curta"],
+      "conjunto": "teste",
+      "exige": [["flamengo"], ["camisa", "camiseta", "manto", "jersey"]],
+      "proibe": ["^caneca", "^bandeira", "^chaveiro", "^bone", "^short", "^calca", "^jaqueta", "^copo", "^toalha", "^almofada", "^mochila", "^bola", "^quadro", "^capa", "^meia", "^miniatura"]
+    },
+    {
+      "id": "perfume-la-vie-est-belle",
+      "consulta": "perfume la vie est belle",
+      "categoria": "beleza e farmacia",
+      "tipos": ["nome proprio", "longa"],
+      "conjunto": "teste",
+      "exige": [["la vie est belle"]],
+      "proibe": ["body splash", "body spray", "^locao", "^hidratante", "^creme", "^gel de banho", "^sabonete", "^desodorante", "inspirado", "contratipo", "similar", "^essencia", "decant", "amostra", "^porta perfume"]
+    },
+    {
+      "id": "whey-protein-growth",
+      "consulta": "whey protein growth",
+      "categoria": "mercado",
+      "tipos": ["marca", "curta"],
+      "conjunto": "teste",
+      "exige": [["whey"], ["growth"]],
+      "proibe": ["^coqueteleira", "^shaker", "^copo", "^garrafa", "^camiseta"]
+    },
+    {
+      "id": "kindle-paperwhite",
+      "consulta": "kindle paperwhite",
+      "categoria": "eletronicos",
+      "tipos": ["marca e modelo", "curta"],
+      "conjunto": "teste",
+      "exige": [["kindle"], ["paperwhite"]],
+      "proibe": ["^capa", "^case", "^capinha", "^pelicula", "^suporte", "^cabo", "^carregador", "^bolsa", "^luz", "^adesivo", "^skin", "^protetor", "^tela", "^bateria", "para kindle", "compativel"]
+    },
+    {
+      "id": "zelda-tears-of-the-kingdom",
+      "consulta": "zelda tears of the kingdom",
+      "categoria": "games",
+      "tipos": ["nome proprio", "longa"],
+      "conjunto": "teste",
+      "exige": [["zelda"], ["tears of the kingdom"]],
+      "proibe": ["^camiseta", "^caneca", "^amiibo", "^poster", "^chaveiro", "^guia", "^livro", "artbook", "art book", "^luminaria", "^pelucia", "^boneco", "^action figure", "^estatua", "^quadro", "^capa", "^case", "^mousepad"]
+    },
+    {
+      "id": "boneco-homem-aranha",
+      "consulta": "boneco homem aranha",
+      "categoria": "brinquedos",
+      "tipos": ["nome proprio", "generica"],
+      "conjunto": "teste",
+      "exige": [["homem aranha", "spider man", "spiderman"], ["boneco", "figura", "action figure", "figure"]],
+      "proibe": ["^fantasia", "^mascara", "^camiseta", "^mochila", "^lancheira", "^luva", "^livro", "^caneca", "^pijama", "^tenis", "^chinelo", "^bola", "^balao", "^painel", "^topo de bolo", "^kit festa", "^adesivo"]
     }
   ]
 }

@@ -96,12 +96,12 @@ def teste_metricas_com_recall_por_pooling():
 
 def teste_consultas_de_avaliacao_sao_validas():
     consultas = carregar_consultas(CONSULTAS)
-    assert len(consultas) >= 60
+    assert len(consultas) >= 75
     assert len({c["id"] for c in consultas}) == len(consultas)
     conjuntos = [c["conjunto"] for c in consultas]
-    assert 35 <= conjuntos.count("desenvolvimento") <= 45
-    assert 18 <= conjuntos.count("teste") <= 25
-    assert len({c["categoria"] for c in consultas}) >= 10
+    assert 40 <= conjuntos.count("desenvolvimento") <= 50
+    assert 30 <= conjuntos.count("teste") <= 40
+    assert len({c["categoria"] for c in consultas}) >= 14
     for c in consultas:
         assert c["exige"] or c.get("atributos")
         assert all(not t.startswith("$") for a in c.get("atributos", []) for t in a["rivais"])
