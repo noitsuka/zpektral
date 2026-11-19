@@ -21,11 +21,11 @@
 
 ## Visão geral
 
-O preço de um anúncio raramente é o que se paga. O frete muda conforme o CEP, o Pix costuma ter desconto, o parcelamento pode ter juros e algumas lojas somam impostos que só aparecem no fim da compra.
+O preço do anúncio quase nunca é o que você paga no fim. O frete muda conforme o CEP, o Pix costuma ter desconto, o parcelamento pode ter juros e algumas lojas somam impostos que só aparecem no fechamento da compra.
 
-O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produto e o CEP, o site coloca o item no carrinho de cada loja, lê o valor que seria cobrado na hora de pagar e mostra as lojas lado a lado, da mais barata para a mais cara. Os resultados aparecem enquanto as lojas respondem. Na mediana de 10 buscas medidas sem CEP, a primeira oferta relevante chegou em 0,42 s e a busca inteira terminou em cerca de 7 s.
+O zpektral faz esse caminho em todas as lojas ao mesmo tempo. Você digita o produto e o CEP, o site coloca o item no carrinho de cada loja, lê o valor que seria cobrado na hora de pagar e mostra as lojas lado a lado, da mais barata para a mais cara. Os resultados aparecem enquanto as lojas respondem. Na mediana de 10 buscas medidas sem CEP, a primeira oferta relevante chegou em 0,42 s e a busca inteira terminou em cerca de 7 s.
 
-**Para testar:** abra o [site](https://zpektral.vercel.app), digite "geladeira frost free" ou "air fryer" e um CEP qualquer.
+Para testar, abra o [site](https://zpektral.vercel.app) e procure "geladeira frost free" ou "air fryer" com um CEP qualquer.
 
 ## Telas
 
@@ -35,7 +35,7 @@ O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produ
 
 ## Funcionalidades
 
-**Para quem compra**
+### Para quem compra
 
 - Preço final de cada loja para o CEP informado, com frete, prazo e transportadora
 - Conta aberta de cada oferta: desconto no Pix, frete e o custo dos juros do parcelamento em reais
@@ -43,13 +43,13 @@ O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produ
 - Histórico do preço na própria loja, com o aviso "menor preço desta loja em N dias" quando for o caso
 - Desconto com evidência: o desconto anunciado pela loja aparece como anunciado, a queda em relação ao histórico aparece como verificada, e o preço "de" que nunca foi visto ganha um alerta
 - Página de quedas de preço observadas nas buscas, com mediana, menor preço e dias de observação
-- Ofertas parecidas separadas das que casam com a busca, dizendo o que falta em cada uma. Quem pede uma marca não vê outras entre os parecidos, e o número do modelo só vale junto do nome da linha: "jbl flip 6" não traz a JBL Charge 6
+- Ofertas parecidas ficam separadas das que casam com a busca, com o que falta em cada uma. Se a busca tem marca, outras marcas não aparecem, e "jbl flip 6" não traz a JBL Charge 6
 - Busca que entende nomes diferentes para o mesmo produto, como "máquina de lavar louça" e "lava-louças", corrige erros de digitação e acentos esquecidos, como "geladiera" e "fogao", e aceita o código de barras (EAN) do produto
 - Separação entre o produto e as peças dele: o cesto da air fryer não aparece como air fryer, e produtos de marcas ou EANs diferentes não se misturam
 - Filtros por voltagem, condição e forma de pagamento
 - Buscas recentes guardadas só no navegador
 
-**Por baixo**
+### Por baixo
 
 - O total exato vem do carrinho da loja, sem estimativa; o que a loja não informa aparece como não informado
 - Parte das cotações é refeita em paralelo, e o vendedor que devolve valores diferentes para o mesmo carrinho perde o selo de total exato
@@ -134,7 +134,7 @@ pip install -e ".[dev]"
 pytest
 ```
 
-Mais de 1.000 testes, com respostas reais das lojas gravadas, testes de propriedades e 300 entradas aleatórias contra a API. A suíte `pytest -m live` busca cinco produtos em cinco capitais, sorteia ofertas e refaz o carrinho na loja para conferir o total; na última execução, 300 ofertas conferidas e nenhuma divergência. No frontend, `npm test`, `npm run lint` e `npx knip`. `npm run e2e` roda onze cenários ponta a ponta com Playwright, no desktop e no celular, com o build de produção e uma API falsa que serve dados gerados pelo próprio backend (`backend/scripts/dados_e2e.py`); a CI roda todos eles.
+Pouco mais de 1.100 testes, com respostas reais das lojas gravadas, testes de propriedades e 300 entradas aleatórias contra a API. A suíte `pytest -m live` busca cinco produtos em cinco capitais, sorteia ofertas e refaz o carrinho na loja para conferir o total; na última execução, 300 ofertas conferidas e nenhuma divergência. No frontend, `npm test`, `npm run lint` e `npx knip`. `npm run e2e` roda onze cenários ponta a ponta com Playwright, no desktop e no celular, com o build de produção e uma API falsa que serve dados gerados pelo próprio backend (`backend/scripts/dados_e2e.py`); a CI roda todos eles.
 
 ## Executando localmente
 
