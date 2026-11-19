@@ -65,13 +65,41 @@ async def teste_corpo_assinado_e_o_corpo_enviado(simulador, http, config):
     assert o.link == "https://s.shopee.com.br/abc"
 
 
+def _erro(codigo, mensagem):
+    return {"errors": [{"message": mensagem, "extensions": {"code": codigo, "message": mensagem}}]}
+
+
 async def teste_erros_do_graphql_sao_levantados(simulador, http, config):
     habilitar(config)
-    simulador.post(API).mock(
-        resposta_json({"errors": [{"message": "error [10020]: Invalid Signature"}]})
-    )
-    with pytest.raises(ErroExterno, match="Invalid Signature"):
+    simulador.post(API).mock(resposta_json({"errors": [{"message": "System error"}]}))
+    with pytest.raises(ErroExterno, match="System error") as erro:
         await FonteShopee(http, config).buscar(contexto("fone"))
+    assert not erro.value.bloqueio
+
+
+@pytest.mark.parametrize("codigo", [10020, 10031, 10032, 10033, 10034, 10035])
+async def teste_acesso_negado_pela_shopee_vira_bloqueio(simulador, http, config, codigo):
+    habilitar(config)
+    simulador.post(API).mock(resposta_json(_erro(codigo, "Invalid Signature")))
+    with pytest.raises(ErroExterno) as erro:
+        await FonteShopee(http, config).buscar(contexto("fone"))
+    assert erro.value.bloqueio
+
+
+async def teste_limite_de_consultas_pausa_a_fonte(simulador, http, config):
+    habilitar(config)
+    agora = [1000.0]
+    rota = simulador.post(API).mock(resposta_json(_erro(10030, "Rate limit exceeded")))
+    fonte = FonteShopee(http, config, relogio=lambda: agora[0])
+    for _ in range(2):
+        with pytest.raises(ErroExterno) as erro:
+            await fonte.buscar(contexto("fone"))
+        assert erro.value.bloqueio
+    assert rota.call_count == 1
+
+    agora[0] += 15 * 60
+    rota.mock(resposta_json(_pagina([_no(1)], continua=False)))
+    assert len(await fonte.buscar(contexto("fone"))) == 1
 
 
 def _pagina(nos, continua):

@@ -18,6 +18,12 @@ from app.navegador.shopee import FreteShopeeNavegador, url_do_produto
 
 API = "https://open-api.affiliate.shopee.com.br/graphql"
 LIMITE = 50
+# códigos de errors[].extensions.code na documentação da Open API de afiliados
+LIMITE_EXCEDIDO = 10030
+RECUSAS = {10020, LIMITE_EXCEDIDO, 10031, 10032, 10033, 10034, 10035}
+# shortcut: o limite é de 2.000 consultas por hora sem dizer quando a janela vira; pausa fixa
+# até a API informar o reinício
+SEGUNDOS_PAUSA_LIMITE = 15 * 60
 CONSULTA_GRAPHQL = (
     "{productOfferV2(keyword: %s, limit: %d, page: %d){nodes{itemId productName priceMin "
     "priceMax priceDiscountRate imageUrl shopName shopId offerLink productLink}"
@@ -53,6 +59,7 @@ class FonteShopee:
         self._relogio = relogio
         self._frete = frete
         self._ref = Loja(self.id, self.nome)
+        self._pausa_ate = 0.0
 
     @property
     def ativa(self) -> bool:
@@ -77,14 +84,21 @@ class FonteShopee:
             raise ErroExterno("shopee: resposta inesperada")
         if erros := dados.get("errors"):
             primeiro = erros[0] if isinstance(erros, list) and erros else {}
-            mensagem = primeiro.get("message") if isinstance(primeiro, dict) else None
-            raise ErroExterno(f"shopee: {str(mensagem or 'erro')[:200]}")
+            primeiro = primeiro if isinstance(primeiro, dict) else {}
+            extensoes = primeiro.get("extensions")
+            codigo = extensoes.get("code") if isinstance(extensoes, dict) else None
+            if codigo == LIMITE_EXCEDIDO:
+                self._pausa_ate = self._relogio() + SEGUNDOS_PAUSA_LIMITE
+            mensagem = str(primeiro.get("message") or "erro")[:200]
+            raise ErroExterno(f"shopee: {mensagem}", bloqueio=codigo in RECUSAS)
         oferta = (dados.get("data") or {}).get("productOfferV2") or {}
         nos = oferta.get("nodes") or []
         continua = bool((oferta.get("pageInfo") or {}).get("hasNextPage"))
         return [n for n in nos if isinstance(n, dict)], continua
 
     async def buscar(self, ctx: ContextoBusca, previa: Previa | None = None) -> list[Oferta]:
+        if self._relogio() < self._pausa_ate:
+            raise ErroExterno("shopee: limite de consultas da hora atingido", bloqueio=True)
         inicio = time.monotonic()
         por_item: dict[Any, dict[str, Any]] = {}
         for pagina in range(1, self._config.shopee_paginas + 1):
