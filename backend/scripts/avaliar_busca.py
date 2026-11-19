@@ -18,7 +18,6 @@ from app.busca import ServicoBusca
 from app.cliente_http import ClienteHttp, DestinoProibido
 from app.configuracao import Configuracoes
 from app.fontes import criar_fontes
-from app.fontes.vtex import carregar_lojas
 from app.ordenacao import Filtros, aplicar
 
 CONSULTAS = Path(__file__).resolve().parents[1] / "testes" / "dados" / "consultas_avaliacao.json"
@@ -154,13 +153,12 @@ async def rodar(
 ) -> list[dict]:
     # prazo folgado: a primeira passada grava as respostas que as outras versões vão reler
     config = Configuracoes(_env_file=None, segundos_limite_fonte=30)
-    vtex = {loja.id for loja in carregar_lojas()}
     saida = []
     async with ClienteGravado(config, banco, somente_cache) as http:
+        # o filtro entra antes de o Buscapé saber quais lojas são diretas: loja fora do cadastro
+        # medido continua aparecendo por ele, como na versão que não a tem
         fontes = [
-            f
-            for f in criar_fontes(http, config)
-            if f.id not in FORA_POR_ROBOTS and (lojas is None or f.id not in vtex or f.id in lojas)
+            f for f in criar_fontes(http, config, ids_vtex=lojas) if f.id not in FORA_POR_ROBOTS
         ]
         servico = ServicoBusca(fontes, config)
         for consulta in consultas:

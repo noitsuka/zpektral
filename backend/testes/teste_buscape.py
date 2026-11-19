@@ -202,3 +202,11 @@ async def teste_oferta_da_pagina_usa_o_nome_do_produto(http, config, monkeypatch
     assert por_loja["Fast Shop"].relevancia >= 90
     # quando o título do lojista casa tão bem quanto, ele fica
     assert por_loja["Colombo"].titulo == da_colombo
+
+
+async def teste_loja_fora_do_cadastro_medido_continua_pelo_buscape(http, config):
+    from app.fontes import criar_fontes
+
+    [buscape] = [f for f in criar_fontes(http, config, ids_vtex={"carrefour"}) if f.id == "buscape"]
+    assert buscape._direta("Carrefour")
+    assert not buscape._direta("Fast Shop")
