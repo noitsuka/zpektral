@@ -724,3 +724,27 @@ def teste_perfume_inspirado_nao_e_o_original():
 def teste_peca_do_aspirador_nao_e_o_aspirador(titulo):
     assert s("aspirador de pó vertical", titulo) < 40
     assert s("extensor aspirador philips", "Tubo Extensor Aspirador Philips XC2011") >= 90
+
+
+@pytest.mark.parametrize(
+    ("consulta", "produto", "de_pet"),
+    [
+        (
+            "moletom com capuz",
+            "Moletom com Capuz Masculino Preto Básico",
+            "Moletom com Capuz para Cães Cool Flicks Preto",
+        ),
+        (
+            "cadeirinha para carro",
+            "Cadeirinha para Carro Bebê Conforto Passeio Baby",
+            "Cadeirinha para Carro Pet Multicoisa para Cão e Gato",
+        ),
+    ],
+)
+def teste_versao_para_pet_cede_o_lugar_quando_a_busca_nao_e_de_pet(consulta, produto, de_pet):
+    assert 90 <= s(consulta, de_pet) < s(consulta, produto)
+
+
+def teste_busca_de_pet_nao_rebaixa_o_produto_de_pet():
+    assert s("moletom para cachorro", "Moletom com Capuz para Cães Cool Flicks Preto") >= 95
+    assert s("cama para gato", "Cama para Gato Redonda Pelúcia") >= 95

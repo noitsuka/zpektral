@@ -52,6 +52,7 @@ PARTES_DESCRITIVAS = frozenset(
 # título dividido por " - ": "Pay Day 3 - PS5" é um jogo para o PS5, não o PS5
 _SEPARADOR = re.compile(r"\s[-\u2013|]\s")
 INSPIRADOS = frozenset("inspirado inspirada inspired contratipo".split())
+PETS = frozenset("cachorro gato pet felino canino".split())  # "cão" e "cães" viram "cachorro"
 PALAVRAS_PARA = frozenset({"para", "pra", "p", "compativel", "compat", "compatible", "for"})
 PARTE_DE = frozenset({"de", "da", "do", "das", "dos"})
 COLETIVOS = frozenset({"jogo", "kit", "conjunto", "par", "combo", "caixa", "pacote", "linha"})
@@ -647,10 +648,12 @@ def pontuar(consulta: Consulta, titulo: str, marca: str | None = None) -> int:
     # Para Dell") casa todas as palavras e, mais barato, ficava em primeiro. Ele cede o lugar
     # sem sair da lista principal; se a busca começa por marca ou nome ("samsung galaxy a55",
     # "kimetsu no yaiba"), não há como saber qual tipo é o produto e nada muda.
-    if (
-        resultado >= RELEVANCIA_PRINCIPAL
-        and consulta.cabeca_e_tipo
-        and abre_com_outro_tipo(consulta, titulo)
+    # Pela mesma regra, a versão para pet do que foi pedido ("Moletom com Capuz para Cães",
+    # "Cadeirinha para Carro Pet") vem depois. Na busca de pet sem a palavra ("ração golden"),
+    # quase toda oferta cede igual e a ordem entre elas não muda.
+    if resultado >= RELEVANCIA_PRINCIPAL and (
+        (consulta.cabeca_e_tipo and abre_com_outro_tipo(consulta, titulo))
+        or (PETS.isdisjoint(consulta.termos) and not PETS.isdisjoint(palavras_titulo))
     ):
         resultado = max(RELEVANCIA_PRINCIPAL, resultado - QUEDA_DE_OUTRO_PRODUTO)
     return round(resultado)
