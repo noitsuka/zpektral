@@ -8,7 +8,7 @@ from pydantic import SecretStr
 
 from app.cliente_http import ErroExterno
 from app.fontes.shopee import API, FonteShopee, assinatura
-from app.modelos import Origem, StatusFrete
+from app.modelos import Alerta, Origem, StatusFrete
 from testes.conftest import contexto, resposta_json
 
 NOS = {
@@ -120,16 +120,41 @@ async def teste_pagina_ate_o_limite_configurado_e_para_sem_proxima(simulador, ht
     assert [o.posicao for o in ofertas] == [0, 1]
 
 
-async def teste_campos_do_produto_e_desconto(simulador, http, config):
+async def teste_campos_do_produto(simulador, http, config):
     habilitar(config)
-    simulador.post(API).mock(
-        resposta_json(_pagina([_no(5, preco="80.00", priceDiscountRate=20)], continua=False))
-    )
+    simulador.post(API).mock(resposta_json(_pagina([_no(5, preco="80.00")], continua=False)))
     [o] = await FonteShopee(http, config).buscar(contexto("fone jbl"))
-    assert o.preco == 8000 and o.preco_original == 10000
+    assert o.preco == 8000
     assert o.vendedor == "JBL Oficial"
     assert o.imagem == "https://cf.shopee.com.br/file/5"
     assert o.link == "https://s.shopee.com.br/5"
+    assert o.alertas == []
+
+
+async def teste_porcentagem_de_desconto_nao_inventa_preco_antigo(simulador, http, config):
+    habilitar(config)
+    no = _no(5, preco="80.00", priceDiscountRate=20)
+    simulador.post(API).mock(resposta_json(_pagina([no], continua=False)))
+    [o] = await FonteShopee(http, config).buscar(contexto("fone jbl"))
+    assert o.preco == 8000 and o.preco_original is None and o.desconto == 0
+
+
+async def teste_preco_que_muda_com_a_versao_vem_marcado(simulador, http, config):
+    habilitar(config)
+    no = _no(5, preco="80.00", priceMax="120.00")
+    simulador.post(API).mock(resposta_json(_pagina([no], continua=False)))
+    [o] = await FonteShopee(http, config).buscar(contexto("fone jbl"))
+    assert o.preco == 8000
+    assert o.alertas == [Alerta.PRECO_VARIA_POR_VERSAO]
+    assert not o.total_exato
+
+
+async def teste_mesmo_item_em_duas_paginas_vira_uma_oferta(simulador, http, config):
+    habilitar(config)
+    paginas = iter([_pagina([_no(1), _no(2)], True), _pagina([_no(2), _no(3)], False)])
+    simulador.post(API).mock(side_effect=lambda _: resposta_json(next(paginas)))
+    ofertas = await FonteShopee(http, config).buscar(contexto("fone jbl"))
+    assert [o.id for o in ofertas] == ["shopee:1", "shopee:2", "shopee:3"]
 
 
 class FreteFalso:

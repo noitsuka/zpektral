@@ -1,6 +1,14 @@
 from datetime import UTC, datetime, timedelta, timezone
 
-from app.modelos import Loja, Oferta, nomes_de_promocao, validade_informada
+from app.modelos import (
+    Alerta,
+    Frete,
+    Loja,
+    Oferta,
+    StatusFrete,
+    nomes_de_promocao,
+    validade_informada,
+)
 
 AGORA = datetime(2026, 11, 17, 22, 0, tzinfo=UTC)
 
@@ -57,3 +65,11 @@ def teste_nome_interno_de_regra_nao_vira_promocao():
         ]
     )
     assert nomes == ["Black Friday 2026", "SUPEROFERTA"]
+
+
+def teste_preco_da_versao_mais_barata_nao_e_total_exato():
+    frete = Frete(StatusFrete.CALCULADO, valor=1000)
+    exata = Oferta("s:1", "Fone", "https://s.example/1", Loja("s", "S"), 9000, frete=frete)
+    assert exata.consolidar().total_exato
+    exata.alertar(Alerta.PRECO_VARIA_POR_VERSAO)
+    assert not exata.consolidar().total_exato

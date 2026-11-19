@@ -13,7 +13,7 @@ from app.fontes.base import (
     escolher_para_cotar,
     montar_ofertas,
 )
-from app.modelos import Loja, Oferta, Origem
+from app.modelos import Alerta, Loja, Oferta, Origem
 from app.navegador.shopee import FreteShopeeNavegador, url_do_produto
 
 API = "https://open-api.affiliate.shopee.com.br/graphql"
@@ -86,12 +86,14 @@ class FonteShopee:
 
     async def buscar(self, ctx: ContextoBusca, previa: Previa | None = None) -> list[Oferta]:
         inicio = time.monotonic()
-        nos: list[dict[str, Any]] = []
+        por_item: dict[Any, dict[str, Any]] = {}
         for pagina in range(1, self._config.shopee_paginas + 1):
             da_pagina, continua = await self._pagina(ctx.texto, pagina)
-            nos.extend(da_pagina)
+            for no in da_pagina:
+                por_item.setdefault(no.get("itemId"), no)
             if not continua or not da_pagina:
                 break
+        nos = list(por_item.values())
         lojas: dict[str, int | str] = {
             f"{self.id}:{n.get('itemId')}": loja
             for n in nos
@@ -127,10 +129,10 @@ class FonteShopee:
             return None
         titulo = no.get("productName") or ""
         preco = para_centavos(no["priceMin"])
-        desconto = no.get("priceDiscountRate")
-        original = None
-        if isinstance(desconto, int | float) and 0 < desconto < 100:
-            original = round(preco / (1 - desconto / 100))
+        # sem preço "de" na API: a porcentagem de desconto não vira preço antigo inventado
+        alertas = []
+        if no.get("priceMax") and para_centavos(no["priceMax"]) > preco:
+            alertas.append(Alerta.PRECO_VARIA_POR_VERSAO)
         pagina = no.get("productLink")
         if not pagina and no.get("shopId") and no.get("itemId"):
             pagina = url_do_produto(no["shopId"], no["itemId"])
@@ -143,8 +145,8 @@ class FonteShopee:
             origem=Origem.MARKETPLACE,
             vendedor=no.get("shopName"),
             imagem=no.get("imageUrl"),
-            preco_original=original,
             frete=ctx.frete_sem_cotacao(),
+            alertas=alertas,
             relevancia=ctx.relevancia_de(titulo, no.get("shopName")),
             posicao=posicao,
         )

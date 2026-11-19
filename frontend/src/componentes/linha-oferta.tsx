@@ -87,6 +87,7 @@ const ALERTAS: Partial<Record<Alerta, string>> = {
   preco_mudou_no_checkout: "O preço mudou no carrinho",
   preco_fora_da_curva: "Bem abaixo das outras lojas, confira o anúncio",
   preco_instavel: "A loja muda o valor entre consultas",
+  preco_varia_por_versao: "Preço da versão mais barata",
 };
 
 function alertasVisiveis(oferta: Oferta): string[] {
