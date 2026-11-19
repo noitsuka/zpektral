@@ -46,6 +46,10 @@ async def eventos_da_busca(
         elif estado is StatusFonte.OK:
             yield _evento_lote(lote, f)
     resultado, facetas = aplicar(trabalho.ofertas_agrupadas(), f)
+    # os lotes saíram filtrados; a loja com parciais manda o lote de novo, já com elas
+    for lote in trabalho.definitivo.values():
+        if any(o.id in trabalho.parciais for o in lote.ofertas):
+            yield _evento_lote(lote, f)
     yield evento(
         "fim",
         {

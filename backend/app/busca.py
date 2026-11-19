@@ -12,7 +12,9 @@ from app.agrupamento import (
     atribuir_grupos,
     chave_propria,
     marcar_fora_da_curva,
+    mostrar_parciais,
     rebaixar_muito_abaixo,
+    soltar_palavras_sem_eco,
 )
 from app.cache import CacheComValidade
 from app.cliente_http import ErroExterno
@@ -66,6 +68,7 @@ class TrabalhoBusca:
     concluido: asyncio.Event = field(default_factory=asyncio.Event)
     gravado: asyncio.Event = field(default_factory=asyncio.Event)
     _mudou: asyncio.Event = field(default_factory=asyncio.Event)
+    parciais: set[str] = field(default_factory=set)
     _versao: int = 0
     _agrupado: int = -1
 
@@ -81,6 +84,7 @@ class TrabalhoBusca:
 
     def concluir(self) -> None:
         self.tempo_decorrido_ms = round((time.monotonic() - self.inicio) * 1000)
+        self._versao += 1  # as parciais só entram com todas as lojas respondidas
         self.concluido.set()
         self._acordar()
 
@@ -130,6 +134,10 @@ class TrabalhoBusca:
             atribuir_grupos(ofertas)
             marcar_fora_da_curva(ofertas)
             rebaixar_muito_abaixo(ofertas)
+            if self.terminou:
+                consulta = interpretar_consulta(self.consulta)
+                self.parciais = soltar_palavras_sem_eco(ofertas, consulta)
+                self.parciais |= mostrar_parciais(ofertas, consulta)
             self._agrupado = self._versao
         return ofertas
 

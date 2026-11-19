@@ -1,6 +1,7 @@
+import math
 import re
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from functools import lru_cache
 from importlib import resources
 from itertools import pairwise
@@ -24,6 +25,10 @@ _MAIS = re.compile(r"(?<=[0-9A-Za-z])\++(?![0-9A-Za-z])")
 PALAVRAS_VAZIAS = frozenset(
     "a o as os de da do das dos e em no na nos nas com sem para por pra p um uma the".split()
 )
+
+# dizem o que a pessoa quer pagar, não o produto: em "geladeira barata", nenhuma geladeira
+# trazia "barata" no título e todas sumiam, e a loja que buscava a frase devolvia inseticida
+PALAVRAS_DE_INTENCAO = frozenset("barato barata promocao oferta desconto melhor".split())
 
 PALAVRAS_ACESSORIO = frozenset(
     """
@@ -120,6 +125,9 @@ MARCAS_VAZIAS = frozenset(
     }
 )
 PISO_ESPECIFICACAO = 72  # o site esconde abaixo de 70 e só cota frete a partir de 65
+# na consulta pela raridade, a palavra típica das buscas (em ~1% dos títulos) pesa perto de 1,
+# como na nota principal; o número segue com peso 2
+ESCALA_DA_RARIDADE = 5.0
 LETRAS_UNIDADE = frozenset("lvwkgx")
 UNIDADES = LETRAS_UNIDADE | frozenset("gb tb mb kg ml mm cm m hz ghz mah pol btu".split())
 
@@ -277,6 +285,9 @@ def texto_para_lojas(texto: str) -> str:
     if gtin := _gtin(texto):
         return gtin
     palavras = corrigir(texto).split()
+    produto = [p for p in palavras if not _so_intencao(p)]
+    if produto:
+        palavras = produto
     termos, dono = _brutos_por_palavra(palavras)
     trocas = {
         dono[inicio]: (dono[fim - 1], sinonimo.nas_lojas)
@@ -293,6 +304,11 @@ def texto_para_lojas(texto: str) -> str:
             saida.append(palavras[i])
             i += 1
     return " ".join(saida)
+
+
+def _so_intencao(palavra: str) -> bool:
+    brutos = _termos_brutos(palavra)
+    return bool(brutos) and PALAVRAS_DE_INTENCAO.issuperset(brutos)
 
 
 def sem_unidade_por_extenso(texto: str) -> str:
@@ -332,6 +348,9 @@ class Consulta:
     tipo: str | None = field(init=False)
     marcas: frozenset[str] = field(init=False)
     linhas: tuple[tuple[str, str], ...] = field(init=False)
+    anos: frozenset[str] = field(init=False)
+    sem: frozenset[str] = field(init=False)
+    com: frozenset[str] = field(init=False)
 
     # o que só depende da consulta sai daqui uma vez, e não a cada título pontuado
     def __post_init__(self) -> None:
@@ -378,6 +397,11 @@ class Consulta:
             and a not in marcas
         )
         object.__setattr__(self, "linhas", linhas)
+        object.__setattr__(self, "anos", frozenset(filter(_ano, modelos)))
+        # "sem" e "com" são palavras vazias, mas "sem fio" e "com fio" são produtos opostos
+        brutos = _termos_brutos(corrigir(self.texto))
+        object.__setattr__(self, "sem", frozenset(b for a, b in pairwise(brutos) if a == "sem"))
+        object.__setattr__(self, "com", frozenset(b for a, b in pairwise(brutos) if a == "com"))
 
     @property
     def esta_vazia(self) -> bool:
@@ -402,6 +426,8 @@ def _termos_de_cada_palavra(palavras: list[str]) -> tuple[tuple[str, tuple[str, 
 def interpretar_consulta(texto: str) -> Consulta:
     corrigido = corrigir(texto)
     termos = tuple(dict.fromkeys(t for t in termos_do_texto(corrigido) if t not in PALAVRAS_VAZIAS))
+    if any(t not in PALAVRAS_DE_INTENCAO for t in termos):
+        termos = tuple(t for t in termos if t not in PALAVRAS_DE_INTENCAO)
     brutos = _termos_brutos(corrigido)
     palavras_do_produto = {
         s.termo: sum(t not in PALAVRAS_VAZIAS for t in brutos[inicio:fim])
@@ -431,6 +457,7 @@ def termos_ausentes(
     vazias: list[str] = []
     aberto = False
     for palavra, termos in consulta.palavras:
+        termos = tuple(t for t in termos if t in consulta.termos or t not in PALAVRAS_DE_INTENCAO)
         if not termos:
             vazias.append(palavra)
             continue
@@ -460,6 +487,10 @@ def _contados(texto: str) -> frozenset[str]:
 
 def _tem_numero(termo: str) -> bool:
     return any(c.isdigit() for c in termo)
+
+
+def _ano(termo: str) -> bool:
+    return len(termo) == 4 and termo.isdigit() and 1990 <= int(termo) <= 2039
 
 
 def _acertos(
@@ -541,7 +572,9 @@ def pontuar(consulta: Consulta, titulo: str, marca: str | None = None) -> int:
                 primeira_palavra = min(primeira_palavra, achados[termo])
         if consumir:
             casado += peso
-        elif numero:
+        # o ano que o anúncio não traz não é outro modelo ("camisa do corinthians 2024"); outro
+        # ano no título, sim
+        elif numero and not (termo in consulta.anos and not any(map(_ano, palavras_titulo))):
             falta_numero = True
 
     resultado = casado / total * 95
@@ -583,6 +616,13 @@ def pontuar(consulta: Consulta, titulo: str, marca: str | None = None) -> int:
     # todos os termos casam, mas o título é outra versão do modelo ("15 pro" para "iphone 15")
     if consulta.modelos and _outra_versao(consulta, palavras_titulo):
         resultado = min(resultado, 40)
+    # pediu "sem fio" e o título diz "com fio", ou o contrário
+    if consulta.sem or consulta.com:
+        pares_titulo = set(pairwise(palavras_titulo))
+        if any(("com", p) in pares_titulo for p in consulta.sem) or any(
+            ("sem", p) in pares_titulo for p in consulta.com
+        ):
+            resultado = min(resultado, 40)
 
     if (
         not consulta.pede_acessorio
@@ -667,6 +707,84 @@ def _marcas() -> frozenset[str]:
 
 
 @lru_cache(maxsize=1)
+def _frequencias() -> tuple[int, dict[str, int]]:
+    # gerada por scripts/gerar_frequencias.py: em quantos títulos reais cada termo aparece
+    arquivo = resources.files("app").joinpath("dados/frequencias.txt")
+    total, *linhas = arquivo.read_text("utf-8").split()
+    pares = zip(linhas[::2], linhas[1::2], strict=True)
+    return int(total), {termo: int(n) for termo, n in pares}
+
+
+@lru_cache(maxsize=1024)
+def consulta_pela_raridade(texto: str) -> Consulta:
+    """A mesma consulta, com cada palavra pesando pela raridade nos títulos reais.
+
+    A nota principal exige todas as palavras: cada uma é um pedido, e a coleira para gatos não
+    serve a quem pediu "coleira antipulgas cachorro". Quando quase nenhuma loja tem o produto
+    exato, a busca se reavalia por esta: em "mangá punpun", "punpun" está em 1 de 79 mil
+    títulos e "manga" em 1.500, junto de camisetas de manga curta e sucos de manga, e o volume
+    de Boa Noite Punpun, que não repete "mangá", passa à frente da camiseta.
+    """
+    consulta = interpretar_consulta(texto)
+    pesos = tuple(
+        p if _tem_numero(t) else p * _peso_da_palavra(t)
+        for t, p in zip(consulta.termos, consulta.pesos, strict=True)
+    )
+    return replace(consulta, pesos=pesos)
+
+
+@lru_cache(maxsize=4096)
+def _peso_da_palavra(termo: str) -> float:
+    # a raridade (IDF) entra ao quadrado para o nome raro pesar várias vezes a palavra comum
+    total, contagem = _frequencias()
+    raridade = math.log((total + 1) / (contagem.get(termo, 0) + 1)) / math.log(total + 1)
+    peso = ESCALA_DA_RARIDADE * raridade**2
+    # a marca costuma ficar implícita no nome da linha ("Moto G85", "Galaxy S24") e a marca
+    # errada já tem trava própria: ela não pesa mais que uma palavra comum
+    return min(peso, 1.0) if termo in _marcas() else peso
+
+
+def parcial_de_nome_raro(consulta: Consulta, titulo: str, ausentes: list[str]) -> bool:
+    """O título traz um nome raro da busca e só não traz outro, que a loja pode escrever de
+    outro jeito: "Boa Noite Punpun" em "oyasumi punpun".
+
+    Faltar palavra comum ("boneco") não conta, e casar só a parte comum também não: em
+    "graphic novel sandman", outra graphic novel não serve.
+    """
+    _, contagem = _frequencias()
+
+    def raro(t: str) -> bool:
+        return t not in contagem and not _tem_numero(t)
+
+    faltaram = [t for t in termos_do_texto(" ".join(ausentes)) if t not in PALAVRAS_VAZIAS]
+    trouxe = set(termos_do_texto(titulo)) & {t for t in consulta.termos if raro(t)}
+    return bool(faltaram) and all(map(raro, faltaram)) and bool(trouxe)
+
+
+@lru_cache(maxsize=1)
+def _tipos() -> frozenset[str]:
+    # gerada por scripts/gerar_frequencias.py: palavras que quase sempre abrem o título
+    return frozenset(resources.files("app").joinpath("dados/tipos.txt").read_text("utf-8").split())
+
+
+def cabeca_do_titulo(termos: tuple[str, ...]) -> str | None:
+    return next((t for t in termos if t not in PALAVRAS_VAZIAS and t not in COLETIVOS), None)
+
+
+def abre_com_outro_tipo(consulta: Consulta, titulo: str) -> bool:
+    """O título abre com um tipo de produto que a busca não pediu: "Caneca Demon Slayer",
+    "Bola de Futebol Seleção Brasileira". Só serve onde o sinônimo não visto custa pouco: a
+    sandália Havaianas é o chinelo pedido, e a lista não sabe disso."""
+    cabeca = cabeca_do_titulo(termos_do_texto(titulo))
+    if cabeca not in _tipos() or cabeca in consulta.termos:
+        return False
+    # "Livro - Boa Noite Punpun - Vol. 5": a categoria sozinha antes do separador é rótulo da
+    # loja, e o produto é o que vem depois
+    rotulo = _SEPARADOR.split(titulo, maxsplit=1)
+    return not (len(rotulo) == 2 and termos_do_texto(rotulo[0]) == (cabeca,))
+
+
+@lru_cache(maxsize=1)
 def _produtos() -> frozenset[str]:
     return frozenset(termos_do_texto(PALAVRAS_DE_PRODUTO))
 
@@ -727,7 +845,9 @@ def nucleo_da_busca(texto: str) -> str | None:
         if termos and termos[0] in PALAVRAS_PARA:
             depois_de_para = True
             continue
-        if all(t in PALAVRAS_VAZIAS or t in _produtos() for t in termos):
+        if all(
+            t in PALAVRAS_VAZIAS or t in _produtos() or t in PALAVRAS_DE_INTENCAO for t in termos
+        ):
             continue
         mantidas.append(palavra)
     distintiva = any(_distintiva(normalizar(p)) for p in mantidas)

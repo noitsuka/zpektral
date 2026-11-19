@@ -7,7 +7,18 @@ from functools import lru_cache
 from itertools import product, starmap
 
 from app.modelos import Alerta, Condicao, Oferta
-from app.relevancia import CORES, eh_titulo_de_acessorio, normalizar, termos_do_texto
+from app.relevancia import (
+    CORES,
+    Consulta,
+    abre_com_outro_tipo,
+    consulta_pela_raridade,
+    eh_titulo_de_acessorio,
+    interpretar_consulta,
+    normalizar,
+    parcial_de_nome_raro,
+    pontuar,
+    termos_do_texto,
+)
 
 _MODELO = re.compile(r"(?<![a-z0-9-])(?=[a-z0-9-]*\d)(?=[a-z0-9-]*[a-z])[a-z0-9]+(?:-[a-z0-9]+)*")
 _NAO_E_MODELO = re.compile(
@@ -311,6 +322,86 @@ def piso_de_preco(precos: list[int]) -> float | None:
     centro = statistics.median(logs)
     mad = statistics.median(abs(v - centro) for v in logs)
     return centro - max(DESVIOS_ABAIXO * MAD_PARA_DESVIO * mad, math.log(FATOR_MINIMO_ABAIXO))
+
+
+RELEVANCIA_PARECIDA = 70  # o site esconde abaixo disso
+RELEVANCIA_PARCIAL = 45
+LOJAS_COM_O_PEDIDO = 3
+CASA_O_RESTO = 90  # nota de quem traz todas as palavras que sobraram
+
+
+def soltar_palavras_sem_eco(ofertas: list[Oferta], consulta: Consulta) -> set[str]:
+    """Palavra da busca que nenhuma oferta de nenhuma loja traz deixa de contar na nota.
+
+    Ela não separa uma oferta da outra e escondia todas: em "air fryer bonita", nenhum anúncio
+    diz "bonita", e toda air fryer ficava com 63. A oferta continua com a palavra entre as que
+    faltaram, e o site a mostra como parecida. Número não sai: a capacidade pedida que nenhuma
+    loja tem não vira outra capacidade. Devolve os ids das ofertas que passaram a aparecer.
+    """
+    vistos: set[str] = set()
+    for o in ofertas:
+        vistos.update(termos_do_texto(o.titulo))
+        if o.marca:
+            vistos.update(termos_do_texto(o.marca))
+    sem_eco = {t for t in consulta.termos if t not in vistos and t.isalpha()}
+    if not sem_eco or consulta.gtin:
+        return set()
+    texto = " ".join(p for p, termos in consulta.palavras if not termos or set(termos) - sem_eco)
+    reduzida = interpretar_consulta(texto)
+    if reduzida.esta_vazia:
+        return set()
+    promovidas = set()
+    for o in ofertas:
+        if o.relevancia >= RELEVANCIA_PARECIDA or Alerta.PRECO_FORA_DA_CURVA in o.alertas:
+            continue
+        # só sobe quem traz todas as outras palavras: em "tenis de corida masculino 42", sem o
+        # erro que nenhum anúncio repete, o relógio masculino de 42 mm continua fora
+        if pontuar(reduzida, o.titulo, o.marca) < CASA_O_RESTO:
+            continue
+        if (nova := round(_reavaliada(o, consulta, reduzida))) >= RELEVANCIA_PARECIDA:
+            o.relevancia = min(100, nova)
+            promovidas.add(o.id)
+    return promovidas
+
+
+def mostrar_parciais(ofertas: list[Oferta], consulta: Consulta) -> set[str]:
+    """Com menos de três lojas vendendo o que foi pedido, reavalia a busca pelo peso da
+    raridade e mostra como parecidas as ofertas que passam, com o que faltou indicado no site.
+
+    Em "mangá punpun", os volumes de Boa Noite Punpun, que não repetem "mangá", entram; a
+    camiseta de manga curta não. Também entra o que só não traz um nome raro, que a loja
+    escreve de outro jeito: em "oyasumi punpun", a edição brasileira. Fica de fora o título que
+    abre com outro tipo de produto, como a caneca, e as travas da relevância (outra cor, outra
+    capacidade, outra marca, peça) seguem valendo. Devolve os ids das ofertas que passaram a
+    aparecer.
+    """
+    lojas = {o.loja.id for o in ofertas if o.relevancia >= RELEVANCIA_PARECIDA}
+    if len(lojas) >= LOJAS_COM_O_PEDIDO:
+        return set()
+    rara = consulta_pela_raridade(consulta.texto)
+    promovidas = set()
+    for o in ofertas:
+        if (
+            o.relevancia >= RELEVANCIA_PARECIDA
+            or Alerta.PRECO_FORA_DA_CURVA in o.alertas
+            or abre_com_outro_tipo(consulta, o.titulo)
+        ):
+            continue
+        nota = _reavaliada(o, consulta, rara)
+        if nota >= RELEVANCIA_PARECIDA or (
+            nota >= RELEVANCIA_PARCIAL
+            and parcial_de_nome_raro(consulta, o.titulo, o.termos_ausentes)
+        ):
+            o.relevancia = RELEVANCIA_PARECIDA
+            promovidas.add(o.id)
+    return promovidas
+
+
+def _reavaliada(o: Oferta, consulta: Consulta, outra: Consulta) -> float:
+    # a nota da loja já traz os descontos de vendedor e de loja de brinquedos: a proporção
+    # entre as duas contas os mantém
+    cheia = pontuar(consulta, o.titulo, o.marca)
+    return o.relevancia * pontuar(outra, o.titulo, o.marca) / cheia if cheia else 0.0
 
 
 def rebaixar_muito_abaixo(ofertas: list[Oferta]) -> None:

@@ -152,6 +152,14 @@ async def teste_transmissao_avisa_a_fonte_bloqueada():
     assert orjson.loads(falha.split(b"\ndata: ", 1)[1])["fonte"]["status"] == "bloqueada"
 
 
+def _eventos(blocos: list[bytes]) -> list[tuple[str, dict]]:
+    saida = []
+    for bloco in blocos:
+        cabeca, dados = bloco.split(b"\ndata: ", 1)
+        saida.append((cabeca.removeprefix(b"event: ").decode(), orjson.loads(dados)))
+    return saida
+
+
 async def teste_transmissao_manda_o_fim_e_so_fecha_depois_de_gravar(config):
     ordem = []
 
@@ -166,6 +174,19 @@ async def teste_transmissao_manda_o_fim_e_so_fecha_depois_de_gravar(config):
             ordem.append("fim")
     ordem.append("fechou")
     assert ordem == ["fim", "gravou", "fechou"]
+
+
+async def teste_transmissao_reenvia_a_loja_que_ganhou_parciais(config):
+    original = FonteFalsa("a", [("Oyasumi Punpun 12", 3000)])
+    brasileira = FonteFalsa("b", [("Boa Noite Punpun - Volume 4 - Inio Asano", 3500)])
+    svc = ServicoBusca([original, brasileira], config)
+    trabalho, _ = svc.iniciar("oyasumi punpun", None)
+    eventos = _eventos([b async for b in eventos_da_busca(trabalho, None, [], Filtros())])
+
+    lotes_b = [d["ofertas"] for nome, d in eventos if nome == "lote" and d["fonte"]["id"] == "b"]
+    assert lotes_b[0] == []
+    assert [o["termos_ausentes"] for o in lotes_b[-1]] == [["oyasumi"]]
+    assert [nome for nome, _ in eventos][-1] == "fim"
 
 
 async def teste_transmissao_envia_cada_fonte_e_depois_o_fim(cliente_api):

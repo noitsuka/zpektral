@@ -7,6 +7,7 @@ from app.agrupamento import (
     chave_propria,
     especificacoes,
     marcar_fora_da_curva,
+    mostrar_parciais,
 )
 from app.modelos import Alerta, Loja, Oferta
 
@@ -416,3 +417,143 @@ def teste_grupo_provisorio_nao_junta_cor_nem_marca_diferentes():
 def teste_pacote_nao_se_junta_com_a_unidade_sem_quantidade(unidade, pacote):
     ofertas = [oferta("u", unidade), oferta("p", pacote)]
     assert not _juntas(ofertas, "u", "p")
+
+
+def _no_fim(consulta: str, *ofertas: tuple[str, str]) -> tuple[set[str], dict[str, int]]:
+    from app.relevancia import interpretar_consulta, termos_ausentes
+
+    q = interpretar_consulta(consulta)
+    lista = []
+    for loja, titulo in ofertas:
+        o = _pontuada(loja, consulta, titulo)
+        o.termos_ausentes = termos_ausentes(q, titulo)
+        lista.append(o)
+    promovidas = mostrar_parciais(lista, q)
+    return promovidas, {o.id: o.relevancia for o in lista}
+
+
+def teste_sem_loja_com_o_pedido_a_reavaliacao_pela_raridade_traz_o_produto():
+    # "mangá punpun": nenhum anúncio diz as duas palavras
+    promovidas, notas = _no_fim(
+        "mangá punpun",
+        ("a", "Boa Noite Punpun - Vol. 1 - Inio Asano"),
+        ("b", "Camiseta Manga Curta Basic+ Gola V Preta"),
+    )
+    assert promovidas == {"a"}
+    assert notas["a"] == 70 and notas["b"] < 70
+
+
+def teste_com_poucas_lojas_entra_o_que_so_nao_traz_um_nome_raro():
+    # "oyasumi punpun": só uma loja tem o título original; a edição brasileira não diz "oyasumi"
+    promovidas, notas = _no_fim(
+        "oyasumi punpun",
+        ("a", "Oyasumi Punpun 12"),
+        ("b", "Boa Noite Punpun - Volume 4 - Inio Asano"),
+    )
+    assert promovidas == {"b"}
+    assert notas == {"a": 100, "b": 70}
+
+
+def teste_com_lojas_vendendo_o_pedido_a_coleira_de_gato_segue_fora():
+    # "cachorro" é palavra comum e pesa pouco pela raridade, mas é o que a pessoa pediu
+    promovidas, notas = _no_fim(
+        "coleira antipulgas cachorro",
+        ("a", "Coleira Antipulgas para Cachorro Seresto G"),
+        ("b", "Coleira Antipulgas Cachorro Pequeno Porte"),
+        ("c", "Coleira Antipulgas e Carrapatos para Cachorro"),
+        ("d", "Coleira Antipulgas para Gatos Ajustável 39cm"),
+    )
+    assert promovidas == set()
+    assert notas["d"] < 70
+
+
+def teste_com_tres_lojas_com_o_pedido_as_parciais_seguem_escondidas():
+    promovidas, notas = _no_fim(
+        "oyasumi punpun",
+        ("a", "Oyasumi Punpun 12"),
+        ("b", "Oyasumi Punpun 1"),
+        ("c", "Oyasumi Punpun Vol. 3"),
+        ("d", "Boa Noite Punpun - Volume 4"),
+    )
+    assert promovidas == set()
+    assert notas["d"] < 70
+
+
+def teste_parcial_com_preco_fora_da_curva_nao_volta():
+    from app.relevancia import interpretar_consulta
+
+    o = _pontuada("b", "oyasumi punpun", "Boa Noite Punpun - Volume 4")
+    o.termos_ausentes = ["oyasumi"]
+    o.alertar(Alerta.PRECO_FORA_DA_CURVA)
+    antes = o.relevancia
+    assert mostrar_parciais([o], interpretar_consulta("oyasumi punpun")) == set()
+    assert o.relevancia == antes
+
+
+def _pontuada(id: str, consulta: str, titulo: str) -> Oferta:
+    from app.relevancia import interpretar_consulta, pontuar
+
+    return oferta(id, titulo, loja=id, relevancia=pontuar(interpretar_consulta(consulta), titulo))
+
+
+def teste_palavra_que_nenhuma_oferta_traz_deixa_de_contar():
+    from app.agrupamento import soltar_palavras_sem_eco
+    from app.relevancia import interpretar_consulta
+
+    fritadeira = _pontuada("a", "air fryer bonita", "Fritadeira Air Fryer Mondial 4L Preta")
+    assert fritadeira.relevancia < 70
+    assert soltar_palavras_sem_eco([fritadeira], interpretar_consulta("air fryer bonita")) == {"a"}
+    assert fritadeira.relevancia >= 70
+
+
+def teste_palavra_que_alguma_oferta_traz_continua_contando():
+    from app.agrupamento import soltar_palavras_sem_eco
+    from app.relevancia import interpretar_consulta
+
+    original = _pontuada("a", "oyasumi punpun", "Oyasumi Punpun 12")
+    brasileira = _pontuada("b", "oyasumi punpun", "Boa Noite Punpun - Volume 4")
+    consulta = interpretar_consulta("oyasumi punpun")
+    assert soltar_palavras_sem_eco([original, brasileira], consulta) == set()
+    assert brasileira.relevancia < 70
+
+
+def teste_numero_que_nenhuma_oferta_traz_nao_sai():
+    from app.agrupamento import soltar_palavras_sem_eco
+    from app.relevancia import interpretar_consulta
+
+    outra = _pontuada("a", "geladeira frost free 559l", "Geladeira Frost Free 450L Inox")
+    antes = outra.relevancia
+    consulta = interpretar_consulta("geladeira frost free 559l")
+    assert soltar_palavras_sem_eco([outra], consulta) == set()
+    assert outra.relevancia == antes <= 40
+
+
+def teste_sem_a_palavra_sem_eco_so_sobe_quem_traz_todas_as_outras():
+    from app.agrupamento import soltar_palavras_sem_eco
+    from app.relevancia import interpretar_consulta
+
+    consulta = "tenis de corida masculino 42"
+    tenis = _pontuada("a", consulta, "Tênis Asics Gel Masculino Running 42")
+    relogio = _pontuada("b", consulta, "Relógio Masculino Mondaine Analógico 42MM")
+    assert tenis.relevancia >= 70  # sem "corida" e com o resto, já aparecia como parecido
+    assert soltar_palavras_sem_eco([tenis, relogio], interpretar_consulta(consulta)) == set()
+    assert relogio.relevancia < 70
+
+
+def teste_no_ultimo_recurso_casar_so_a_parte_comum_nao_basta():
+    promovidas, _ = _no_fim(
+        "graphic novel sandman",
+        ("a", "The Sandman Vol. 1 Prelúdios e Noturnos"),
+        ("b", "Corpo Público (graphic Novel)"),
+        ("c", "A Vingança De Hades Graphic Novel"),
+    )
+    assert "b" not in promovidas and "c" not in promovidas
+
+
+def teste_no_ultimo_recurso_o_titulo_de_outro_tipo_de_produto_fica_fora():
+    promovidas, _ = _no_fim(
+        "demon slayer manga",
+        ("a", "Demon slayer - kimetsu no yaiba vol. 15"),
+        ("b", "Caneca Demon Slayer (Mod.2)"),
+    )
+    assert promovidas == {"a"}

@@ -40,4 +40,5 @@ npm run dev
 
 - `python -m scripts.medir_busca`: latência, tempo até a primeira oferta relevante, requisições e memória da busca.
 - `python -m scripts.desempenho`: custo da pontuação, do agrupamento e da ordenação com ofertas sintéticas.
+- `python -m scripts.gerar_frequencias`: busca categorias variadas em todas as lojas e regrava `app/dados/frequencias.txt` (em quantos títulos cada termo aparece) e `app/dados/tipos.txt` (palavras que quase sempre abrem o título). Quando quase nenhuma loja tem o produto exato, a busca se reavalia com o peso da raridade e deixa de fora o título que abre com outro tipo de produto.
 - `python -m scripts.sondar_lojas_vtex <arquivo.json>`: confere robots.txt, busca e frete de lojas candidatas.

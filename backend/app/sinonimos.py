@@ -66,6 +66,7 @@ SINONIMOS = (
     Sinonimo("ps5", None, ("ps5", "playstation 5", "play station 5", "play 5")),
     Sinonimo("ps4", None, ("ps4", "playstation 4", "play station 4", "play 4")),
     Sinonimo("cachorro", None, ("cachorro", "cão", "cães")),
+    Sinonimo("capa", None, ("capa", "capinha")),
 )
 
 PALAVRAS_DE_PRODUTO = """

@@ -1,6 +1,13 @@
 import pytest
 
-from app.relevancia import interpretar_consulta, normalizar, pontuar
+from app.relevancia import (
+    consulta_pela_raridade,
+    interpretar_consulta,
+    normalizar,
+    pontuar,
+    termos_ausentes,
+    texto_para_lojas,
+)
 
 
 def s(consulta: str, titulo: str) -> int:
@@ -18,6 +25,44 @@ def teste_consulta_tira_palavras_vazias_e_separa_codigos():
     q = interpretar_consulta("Placa de vídeo RTX4060")
     assert q.termos == ("placa", "video", "rtx", "4060")
     assert q.pesos == (1.0, 1.0, 1.0, 2.0)
+
+
+def r(consulta: str, titulo: str) -> int:
+    return pontuar(consulta_pela_raridade(consulta), titulo)
+
+
+def teste_pela_raridade_o_nome_raro_pesa_mais_que_a_palavra_comum():
+    comum, rara = consulta_pela_raridade("mangá punpun").pesos
+    assert rara > 3 * comum
+    # a nota principal exige as duas palavras; pela raridade, o mangá passa e a camiseta não
+    assert s("mangá punpun", "Boa Noite Punpun - Vol. 1 - Inio Asano") < 70
+    assert r("mangá punpun", "Boa Noite Punpun - Vol. 1 - Inio Asano") >= 70
+    assert r("mangá punpun", "Coleção boa noite PunPun 1-7") >= 70
+    assert r("mangá punpun", "Camiseta Manga Curta Basic+ Gola V Preta") < 40
+    assert r("mangá punpun", "Suco Del Valle Néctar Manga 290ml") < 40
+    # o número segue com o peso da nota principal
+    assert consulta_pela_raridade("iphone 15").pesos[1] == 2.0
+
+
+def teste_pela_raridade_a_marca_nao_pesa_mais_que_palavra_comum():
+    # "heineken" está em 55 de 79 mil títulos; pela raridade pesaria o dobro de "cerveja"
+    assert consulta_pela_raridade("cerveja heineken").pesos[1] == 1.0
+
+
+def teste_capinha_e_capa_sao_o_mesmo_produto():
+    assert s("capinha iphone 13", "Capa iPhone 13 Silicone Preta") >= 90
+
+
+def teste_palavra_de_intencao_nao_conta_na_nota_nem_vai_para_a_loja():
+    assert s("geladeira barata", "Geladeira Consul Frost Free 340L Branca") >= 90
+    assert s("geladeira barata", "Barata Inseticida SBP 300ml") < 40
+    assert s("melhores ofertas de notebook", "Notebook Lenovo IdeaPad 15") >= 90
+    assert texto_para_lojas("geladeira barata") == "geladeira"
+    q = interpretar_consulta("geladeira barata")
+    assert termos_ausentes(q, "Geladeira Consul Frost Free 340L") == []
+    # sozinha, a palavra é a busca
+    assert interpretar_consulta("barata").termos == ("barata",)
+    assert texto_para_lojas("barata") == "barata"
 
 
 @pytest.mark.parametrize(
@@ -568,3 +613,57 @@ def teste_marca_informada_diferente_esconde_mesmo_fora_da_lista():
     assert pontuar(consulta, titulo, "3Green") <= 40
     assert 70 <= pontuar(consulta, titulo, "Não Informado") < 90
     assert pontuar(consulta, titulo, "LG") >= 90
+
+
+@pytest.mark.parametrize(
+    ("consulta", "oposto", "certo"),
+    [
+        (
+            "fone de ouvido sem fio",
+            "Fone de Ouvido com Fio Lightning Compatível iPhone",
+            "Fone de Ouvido Sem Fio Bluetooth TWS",
+        ),
+        ("água mineral sem gás", "Água Mineral com Gás 500ml", "Água Mineral Sem Gás 1,5L"),
+        ("fone com microfone", "Fone de Ouvido sem Microfone P2", "Fone com Microfone P2"),
+    ],
+)
+def teste_sem_e_com_sao_produtos_opostos(consulta, oposto, certo):
+    assert s(consulta, oposto) <= 40
+    assert s(consulta, certo) >= 90
+
+
+def teste_ano_que_o_anuncio_nao_traz_nao_derruba_e_outro_ano_derruba():
+    sem_ano = s("camisa do corinthians 2024", "Camisa Corinthians Lumina Masculina Preta")
+    assert 40 < sem_ano < 70  # falta o ano: parecida, não outro modelo
+    assert s("camisa do corinthians 2024", "Camisa Corinthians I 2023 Nike Masculina") <= 40
+    assert s("camisa do corinthians 2024", "Camisa Corinthians I 2024 Nike Masculina") >= 90
+    # número com unidade não é ano
+    assert s("aspirador 2000w", "Aspirador de Pó 1600W Vertical") <= 40
+
+
+def teste_parcial_de_nome_raro_exige_trazer_um_nome_raro():
+    from app.relevancia import parcial_de_nome_raro
+
+    oyasumi = interpretar_consulta("oyasumi punpun")
+    assert parcial_de_nome_raro(oyasumi, "Boa Noite Punpun - Volume 4", ["oyasumi"])
+    sandman = interpretar_consulta("graphic novel sandman")
+    assert not parcial_de_nome_raro(sandman, "Corpo Público (Graphic Novel)", ["sandman"])
+    boneco = interpretar_consulta("boneco homem aranha")
+    assert not parcial_de_nome_raro(boneco, "Caneca Homem Aranha", ["boneco"])
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo", "outro"),
+    [
+        ("demon slayer manga", "Caneca Demon Slayer (Mod.2)", True),
+        ("camisa seleção brasileira", "Caneca Seleção Brasileira Copa 325ml", True),
+        ("demon slayer manga", "Demon slayer - kimetsu no yaiba vol. 15", False),
+        ("mangá punpun", "Livro - Boa Noite Punpun - Vol. 5", False),
+        ("o hobbit livro", "Kit O Hobbit e pôster", False),
+        ("camisa seleção brasileira", "Camisa Seleção Brasileira Elite Copa", False),
+    ],
+)
+def teste_titulo_que_abre_com_outro_tipo_de_produto(consulta, titulo, outro):
+    from app.relevancia import abre_com_outro_tipo
+
+    assert abre_com_outro_tipo(interpretar_consulta(consulta), titulo) is outro
