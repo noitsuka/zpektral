@@ -17,6 +17,8 @@ TOKEN = "https://api.mercadolibre.com/oauth/token"
 RAIZ = Path(__file__).resolve().parent.parent
 ARQUIVO_ENV = RAIZ / ".env"
 VERCEL = "vercel@66.2.0"
+PROJETO_VERCEL = "zpektral-api"
+CONFIRMACAO = "producao"
 
 
 def ler_env() -> dict[str, str]:
@@ -31,6 +33,9 @@ def ler_env() -> dict[str, str]:
 
 
 def gravar_env(novos: dict[str, str]) -> None:
+    # uma quebra de linha vinda da resposta criaria outra variável no .env
+    if any("\n" in v or "\r" in v for v in novos.values()):
+        sys.exit("Valor com quebra de linha recusado; nada foi gravado.")
     linhas = ARQUIVO_ENV.read_text("utf-8").splitlines() if ARQUIVO_ENV.exists() else []
     restantes = dict(novos)
     saida = []
@@ -55,20 +60,20 @@ def gravar_privado(caminho: Path, conteudo: str) -> None:
         temporario.unlink(missing_ok=True)
 
 
-def enviar_para_vercel(variaveis: dict[str, str]) -> None:
-    """Grava cada variável como sensível só em Production; o valor vai pela entrada padrão,
-    nunca pela linha de comando nem pela tela."""
+def enviar_para_vercel(variaveis: dict[str, str], ambiente: str) -> None:
+    """Grava cada variável como sensível só no ambiente pedido do projeto da API; o valor vai
+    pela entrada padrão, nunca pela linha de comando nem pela tela."""
     npx = shutil.which("npx")
     if npx is None:
         sys.exit("npx não encontrado: instale o Node.js para enviar as variáveis à Vercel.")
     for nome, valor in variaveis.items():
-        comando = [npx, "--yes", VERCEL, "env", "add", nome]
-        comando += ["--environment", "production", "--sensitive", "--force"]
+        comando = [npx, "--yes", VERCEL, "env", "add", nome, "--project", PROJETO_VERCEL]
+        comando += ["--environment", ambiente, "--sensitive", "--force"]
         feito = subprocess.run(comando, input=valor, text=True, capture_output=True, cwd=RAIZ)
         if feito.returncode != 0:
             motivo = (feito.stderr or "").replace(valor, "***").strip()[-300:] if valor else ""
             sys.exit(f"A Vercel recusou {nome} (código {feito.returncode}): {motivo}")
-        print(f"  {nome}: gravada como sensível em Production")
+        print(f"  {nome}: gravada como sensível em {ambiente} de {PROJETO_VERCEL}")
 
 
 def codigo_da_resposta(colado: str) -> str:
@@ -85,14 +90,22 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Autoriza o zpektral na API do Mercado Livre.")
     parser.add_argument(
         "--vercel",
-        action="store_true",
-        help="manda as credenciais para a produção na Vercel em vez de gravar o backend/.env",
+        choices=["preview", "production"],
+        help=f"manda as credenciais para esse ambiente de {PROJETO_VERCEL} na Vercel em vez de "
+        "gravar o backend/.env; production pede confirmação",
     )
-    para_vercel = parser.parse_args().vercel
+    ambiente = parser.parse_args().vercel
     # sem o Node, a autorização seria feita e perdida: o token não aparece na tela
-    if para_vercel and shutil.which("npx") is None:
+    if ambiente and shutil.which("npx") is None:
         sys.exit("npx não encontrado: instale o Node.js antes de autorizar com --vercel.")
-    atual = {} if para_vercel else ler_env()
+    if ambiente == "production":
+        resposta = input(
+            f"As credenciais vão para Production de {PROJETO_VERCEL}. "
+            f"Digite {CONFIRMACAO} para seguir: "
+        )
+        if resposta.strip().lower() != CONFIRMACAO:
+            sys.exit("Nada foi autorizado nem enviado.")
+    atual = {} if ambiente else ler_env()
     print("Autorização do Mercado Livre para o zpektral.")
     print("Crie um app em https://developers.mercadolivre.com.br/devcenter, com um")
     print("endereço de redirecionamento https que você controle (pode ser qualquer página).\n")
@@ -117,8 +130,9 @@ def main() -> None:
     print(f"\n1. Abra no navegador e entre na sua conta:\n   {AUTORIZACAO}?{parametros}")
     print("2. Depois de autorizar, copie o endereço completo da página para onde foi levado.")
     colado = input("\nCole aqui o endereço (ou só o code): ")
-    if "state=" in colado and parse_qs(urlsplit(colado.strip()).query).get("state") != [estado]:
-        sys.exit("O endereço colado não é a resposta deste pedido (state diferente).")
+    consulta = parse_qs(urlsplit(colado.strip()).query)
+    if "code" in consulta and consulta.get("state") != [estado]:
+        sys.exit("O endereço colado não é a resposta deste pedido (state ausente ou diferente).")
     codigo = codigo_da_resposta(colado)
 
     resposta = httpx.post(
@@ -150,14 +164,15 @@ def main() -> None:
         "ML_TOKEN_RENOVACAO": corpo["refresh_token"],
         "CHAVE_CREDENCIAIS": atual.get("CHAVE_CREDENCIAIS") or nova_chave(),
     }
-    if para_vercel:
-        enviar_para_vercel(variaveis)
-        print("\nPronto. A autorização vale a partir do próximo deploy de produção da API.")
+    if ambiente:
+        enviar_para_vercel(variaveis, ambiente)
+        tipo = "produção" if ambiente == "production" else "preview"
+        print(f"\nPronto. A autorização vale a partir do próximo deploy de {tipo} da API.")
         return
     gravar_env(variaveis)
     print("\nPronto. As quatro variáveis estão em backend/.env e o token renovado fica cifrado")
-    print("no banco local. Este token é só deste computador: para a produção, rode de novo")
-    print("com --vercel, que gera outra autorização e outra chave.")
+    print("no banco local. Este token é só deste computador: para a Vercel, rode de novo com")
+    print("--vercel preview ou --vercel production, que gera outra autorização e outra chave.")
 
 
 if __name__ == "__main__":
