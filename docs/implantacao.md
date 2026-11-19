@@ -73,3 +73,14 @@ grant usage, select on all sequences in schema public to zpektral_atualizador;
 ```
 
 Depois, coloque no secret a URL direta com esse papel. Limitações conhecidas: os executores do GitHub ficam fora do Brasil, e algumas lojas recusam acesso de fora; o GitHub desliga workflows agendados depois de 60 dias sem atividade no repositório público.
+
+## 7. Mercado Livre (migração 0004 e credenciais)
+
+A migração `0004` só cria a tabela `credenciais_oauth`, então o código no ar continua funcionando com ela. Ordem:
+
+1. Ponto de restauração e ensaio como nas seções 1 e 2, com os nomes `antes-0004` e `ensaio-0004`; `select version_num from alembic_version` deve devolver `0004`.
+2. Não dar ao papel `zpektral_atualizador` nenhum acesso a `credenciais_oauth`: a atualização agendada não usa o Mercado Livre.
+3. Autorizar com `python -m scripts.autorizar_mercadolivre --vercel` (passos em `docs/fontes.md`). As quatro variáveis ficam só em Production. Preview e Development não recebem nenhuma delas, para que nenhum outro ambiente gaste a cadeia de tokens da produção.
+4. Deploy de produção da API e uma busca de conferência. Na primeira, a fonte renova o token e grava a linha cifrada.
+
+Restaurar o banco a partir de um branch anterior à última renovação traz um refresh token já trocado: depois de restaurar, rodar o passo 3 de novo.

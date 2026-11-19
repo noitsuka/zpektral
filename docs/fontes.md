@@ -1,6 +1,6 @@
 # Fontes de preço
 
-Estado medido em 17 de novembro de 2026. As lojas VTEX foram sondadas com `scripts/sondar_lojas_vtex.py`; Amazon, KaBuM! e Buscapé, com uma busca pelo próprio `ServicoBusca`.
+Estado medido em 17 de novembro de 2026 e revisto em 19 de novembro (Fast Shop, Mercado Livre, Shopee e redes de afiliados). As lojas VTEX foram sondadas com `scripts/sondar_lojas_vtex.py`; Amazon, KaBuM! e Buscapé, com uma busca pelo próprio `ServicoBusca`.
 
 ## Estados de uma fonte
 
@@ -32,12 +32,12 @@ A entrada e a saída de `degradada` e de `bloqueada` disparam o webhook de alert
 
 | Fonte | Como entra | O que entrega | Estado medido |
 | --- | --- | --- | --- |
-| 95 lojas VTEX | busca inteligente ou catálogo legado, e simulação do carrinho | preço do carrinho, estoque, frete e prazo por CEP, Pix, parcelamento, EAN | aprovadas em duas rodadas da sonda |
+| 96 lojas VTEX | busca inteligente ou catálogo legado, e simulação do carrinho | preço do carrinho, estoque, frete e prazo por CEP, Pix, parcelamento, EAN | aprovadas em duas rodadas da sonda |
 | Amazon | página pública de busca (`/s?k=`) | preço, preço de tabela, parcelamento, imagem, frete grátis anunciado; sem frete por CEP | `ok`, 55 ofertas para "air fryer" |
 | KaBuM! | catálogo público | preço, Pix, parcelamento, frete grátis anunciado; sem frete por CEP | `ok`, 60 ofertas para "fone bluetooth" e nenhuma para "air fryer" |
 | Buscapé | página pública de busca e de produto | menor preço por loja, origem `comparador`, sem frete | `ok`, 68 ofertas para "air fryer" |
-| Mercado Livre | API oficial | preço e frete por CEP | `desativada`, sem credenciais |
-| Shopee | API de afiliados | preço e link de afiliado; frete só pelo navegador opcional | `desativada`, sem credenciais |
+| Mercado Livre | API oficial: catálogo (`/products/search`) e ofertas de cada produto | preço, preço anterior informado, vendedor, marca, GTIN, frete por CEP | `desativada`, sem credenciais; fora do histórico de preços |
+| Shopee | API de afiliados | preço da versão mais barata, faixa de preço por versão, loja e link de afiliado; sem frete | `desativada`, sem credenciais |
 | eBay | API Browse | preço em dólar, frete para o Brasil e imposto estimado | `desativada`, sem credenciais |
 
 Amazon na Vercel (`gru1`), em 18/11/2026: 8 de 8 buscas pela API de homologação trouxeram a Amazon com `ok`, entre 1,0 e 2,8 s (47 e 48 ofertas nas duas primeiras). As falhas vistas antes foram intermitentes, e o plano Hobby guarda os logs da função só por 30 minutos, então a causa delas não ficou registrada. Página 200 sem nenhum resultado devolve zero ofertas (antes quebrava a leitura e virava `erro`), e o 503 com a página de robô da Amazon sai como `bloqueada`.
@@ -47,7 +47,7 @@ Amazon na Vercel (`gru1`), em 18/11/2026: 8 de 8 buscas pela API de homologaçã
 | Segmento | Lojas | Nomes |
 | --- | --- | --- |
 | Geral | 2 | Americanas, Carrefour |
-| Eletro | 16 | Arno, Brastemp, Cadence, Climario, Compra Certa, Consul, Electrolux, Elgin, KitchenAid, Lojas MM, Mallory, Mondial, Obabox, Oster, Walita, WebContinental |
+| Eletro | 17 | Arno, Brastemp, Cadence, Climario, Compra Certa, Consul, Electrolux, Elgin, Fast Shop, KitchenAid, Lojas MM, Mallory, Mondial, Obabox, Oster, Walita, WebContinental |
 | Tecnologia | 5 | Fujioka, iByte, Intelbras, Motorola, Multi |
 | Casa | 5 | Altenburg, Brinox, Imaginarium, Karsten, Trousseau |
 | Construção | 6 | Obramax, Quero-Quero, Rede Construir, Telhanorte, Todimo, Tumelero |
@@ -106,19 +106,52 @@ Candidatas novas (220, nenhuma das 58 atuais, das sete que saíram em outubro ne
 | robots.txt com 5xx | 2 | Cybelar, Passarela |
 | Sem frete ou sem estoque | 2 | Drogaria Rosário (não entrega nem em Brasília), Bretas (nada com estoque) |
 
+### Sondagem de 19 de novembro de 2026
+
+Busca de lojas de móveis, eletro, informática, construção e casa, com a mesma sonda (robots.txt pela RFC 9309, busca e simulação do carrinho) e quatro lojas em paralelo.
+
+| Resultado | Lojas |
+| --- | --- |
+| Entrou | Fast Shop, em `site.fastshop.com.br` (o `www` responde 503 no robots.txt): aprovada com CEP de São Paulo e de Belo Horizonte |
+| Aprovada e deixada de fora | Poloar: a busca inteligente da loja devolve quase só multi-splits da Fujitsu, que passavam como 12.000 BTU pelo "(2x 12.000)" do título; mais anúncios sem ganho de precisão |
+| robots.txt proíbe as APIs | Britânia, Casa&Video, Madesa (a simulação), Mobly, Philco, Polishop, Samsung (a simulação) |
+| Bloqueio (403) | Kalunga |
+| Não respondem como VTEX | Black+Decker, Camicado, Colombo, Dufrio, Dutra Máquinas, eFácil, Esmaltec, Etna (encerrou em 2022), Ferreira Costa, Fischer, Frigelar (Oracle Commerce), Gazin, Havan (Magento), Leroy Merlin, Leveros, Lojas KD, Nagem, Suggar, Tok&Stok, WAP, Zema (Oracle Commerce) |
+| Falha de conexão | C&C (vendida em 2023), Girafa, Ricardo Eletro, Vonder |
+
+Medição da Fast Shop nas 77 buscas julgadas, com as mesmas respostas gravadas para as outras lojas (`avaliar_busca.py rodar --lojas` com o cadastro antigo):
+
+| | cobertura | precisão | p@5 | MRR | lojas com relevante | requisições por busca |
+| --- | --- | --- | --- | --- | --- | --- |
+| sem a Fast Shop | 0,845 | 0,883 | 0,947 | 0,978 | 8,88 | 122,7 |
+| com a Fast Shop | 0,889 | 0,884 | 0,949 | 0,978 | 9,35 | 124,7 |
+
+Ela trouxe 648 ofertas exibidas em 38 das 77 buscas, quase todas do produto pedido. Os deslizes vistos são da régua de relevância que vale para todas as lojas: notebook "com SSD de 1 TB" em "ssd 1tb nvme" e Kindle Scribe em "kindle paperwhite", ambos com nota entre 70 e 76.
+
+A estante Multy (Artely) continua só em Amazon, Buscapé (Magazine Luiza), WebContinental, Americanas, Carrefour e Tumelero. As outras lojas que a vendem são Casas Bahia, Ponto, Extra e MadeiraMadeira, nenhuma acessível sem contornar proteção ou contrariar o robots.txt, e o Mercado Livre, que depende da autorização.
+
 ## Fontes autorizadas: pesquisa
 
-Lida nas páginas oficiais em novembro de 2026. Onde a página recusou leitura automatizada ou só carrega com JavaScript, está marcado como não verificado. Nenhum conector novo foi escrito, porque todos dependem de conta ou credencial que o projeto ainda não tem.
+Lida nas páginas oficiais em novembro de 2026. Onde a página recusou leitura automatizada, a leitura foi pela cópia do Web Archive ou pelos arquivos JavaScript públicos do próprio portal, e está dito qual. O que não foi confirmado está marcado como não verificado. Nenhum conector novo foi escrito, porque todos dependem de conta, aprovação ou contrato que o projeto ainda não tem.
 
-### Mercado Livre (já integrado)
+### Mercado Livre (integrado, aguardando autorização)
 
-- Entrega: busca e frete por CEP (`/items/{id}/shipping_options?zip_code=`), já usados por `app/fontes/mercadolivre.py`.
-- Não verificado: a documentação em developers.mercadolivre.com.br respondeu 403 à leitura automatizada. Pela busca na web, a página de erro 403 cita escopos inválidos como causa; o app já explica esse caso ("confira se o app tem acesso à busca") e o marca como `bloqueada`.
-- Passos do dono, como o projeto já espera:
-  1. Criar um app em https://developers.mercadolivre.com.br/devcenter com um endereço de redirecionamento `https` que você controle.
-  2. Em `backend`, rodar `python -m scripts.autorizar_mercadolivre`, informar App ID, Client Secret e o redirecionamento, abrir o link, autorizar e colar o endereço de volta.
-  3. O script grava `ML_ID_CLIENTE`, `ML_SEGREDO_CLIENTE` e `ML_TOKEN_RENOVACAO` em `backend/.env` e o token em `.ml-token.json`. Em produção, as três variáveis vão para o projeto da API na Vercel.
-- Ponto a conferir na documentação: o app grava o token renovado em `ML_ARQUIVO_TOKEN`, e o disco da Vercel não persiste. Se o token de renovação for de uso único, a produção precisa guardar o token em outro lugar.
+Documentação lida pelas cópias do Web Archive de developers.mercadolivre.com.br (o site responde 403 à leitura automatizada), de 2025 a agosto de 2026.
+
+- **Busca por palavra-chave:** `/sites/MLB/search?q=` saiu da documentação em 07/04/2025 ([itens e buscas](https://web.archive.org/web/20250523103622/https://developers.mercadolivre.com.br/pt_br/itens-e-buscas)) e responde 403 mesmo com token válido; há relatos públicos de desenvolvedores até outubro de 2026, sem motivo oficial. Sem token, conferido em 19/11/2026: `{"message":"forbidden","status":403}`.
+- **Caminho que o conector usa:** `/products/search?status=active&site_id=MLB&q=` (catálogo: nome, marca, GTIN e fotos, sem preço) e, para até 6 produtos que casam com a busca, `/products/{id}/items` (as ofertas que disputam a página do produto: preço, `original_price`, vendedor, condição e frete grátis). Entram as 3 ofertas novas mais baratas de cada produto. O vendedor vem de `/users?ids=`; se falhar, a oferta fica sem nome. Os dois recursos ficam sob a permissão funcional "Publicação e sincronização"; sem ela, a resposta é 403 `PA_UNAUTHORIZED_RESULT_FROM_POLICIES`, e a fonte sai como `bloqueada` com essa explicação ([permissões](https://web.archive.org/web/20260813152447/https://developers.mercadolibre.com.ar/es_ar/permisos-funcionales), [catálogo](https://web.archive.org/web/20260817170934/https://developers.mercadolibre.com.co/en_us/products-search), [ofertas do produto](https://web.archive.org/web/20250804054810/https://developers.mercadolivre.com.br/pt_br/concorrencia-em-catalogo)).
+- **Limitações:** só aparecem produtos de catálogo; anúncio fora do catálogo não é encontrado. Desde 12/05/2025 `/products/{id}` não traz mais preço, por isso as ofertas vêm de `/items` do produto. Chamadas por busca: 1 no catálogo, até 6 nas ofertas, 1 nos vendedores e até 32 no frete. Limite de requisições não publicado; 429 vira `bloqueada`.
+- **Frete:** `/items/{id}/shipping_options?zip_code=` continua documentado e é uma estimativa para uma unidade ([custos de envio](https://web.archive.org/web/20250216094738/https://developers.mercadolivre.com.br/pt_br/custos-de-envio-e-sla)). Não foi possível confirmar que responde a um app que não é o vendedor.
+- **OAuth:** `authorization_code`, access token de 6 horas, refresh token de uso único (cada renovação devolve outro), válido por 6 meses, invalidado por troca de senha, troca do Client Secret, revogação ou 4 meses sem chamadas. É preciso marcar `offline_access` no app para receber o refresh token. PKCE é opcional ([autenticação](https://web.archive.org/web/20250804064557/https://developers.mercadolivre.com.br/pt_br/autenticacao-e-autorizacao)).
+- **Como o token é guardado:** a tabela `credenciais_oauth` (migração `0004`) guarda o par de tokens cifrado com AES-GCM pela `CHAVE_CREDENCIAIS`. Uma trava consultiva do PostgreSQL faz uma instância renovar por vez, a renovação não é cancelada junto com a busca, e o `ML_TOKEN_RENOVACAO` do ambiente é a semente: trocar a variável recomeça a cadeia. Com banco e sem chave válida, a fonte fica desativada. Restaurar o banco a partir de um branch antigo traz um token já trocado: é preciso autorizar de novo.
+- **Termos da API** ([termos](https://web.archive.org/web/20250607191142/https://developers.mercadolivre.com.br/pt_br/termos-e-condicoes)): conteúdo exibido atualizado ao menos a cada 24 horas (6 horas para listas de anúncios), só cópias intermediárias (2.2.1.3), proibido armazenar conteúdo para serviço concorrente (7.4) e scraping (7.6). O cache de busca do zpektral é de 5 minutos, e as ofertas do Mercado Livre não entram no histórico de preços (`FONTES_SEM_HISTORICO`). Não há proibição nominal de comparador; a leitura jurídica fica com o dono.
+- **Programa de afiliados:** sem API nem feed de produtos, e os termos proíbem publicidade comparando produtos (5.3) e extração automatizada (4.3c). Não serve ao comparador.
+- **Passos do dono:**
+  1. Criar o app em https://developers.mercadolivre.com.br/devcenter com escopos `read` e `offline_access` (sem `write`), a permissão funcional "Publicação e sincronização" e um redirecionamento `https` que você controle.
+  2. Aplicar a migração `0004` na produção (`docs/implantacao.md`, seção 7).
+  3. Em `backend`, rodar `python -m scripts.autorizar_mercadolivre --vercel`, entrar com a conta que autoriza (administradora), colar o endereço de volta. O script grava as quatro variáveis como sensíveis só em Production; nada passa pela tela.
+  4. Fazer o deploy de produção da API e conferir uma busca. Sem `--vercel`, o script grava o `backend/.env` para uso local, com outra autorização.
+- **Revogar:** revogar o acesso do app na conta que autorizou ou trocar o Client Secret (os dois invalidam os tokens, pela documentação de autenticação), apagar a linha com `delete from credenciais_oauth where fonte = 'mercadolivre'` e remover as quatro variáveis da Vercel.
 
 ### Amazon (Creators API)
 
@@ -128,6 +161,8 @@ Lida nas páginas oficiais em novembro de 2026. Onde a página recusou leitura a
 - Custo: nenhum preço publicado. Limite inicial de 1 requisição por segundo e 8.640 por dia, que cresce com a receita gerada.
 - Entrega: preço, preço de referência e economia, tipo e texto de disponibilidade, vendedor, condição, oferta em destaque. Não há frete, prazo nem Prime, e o preço vem calculado para um endereço padrão do país ([OffersV2](https://affiliate-program.amazon.com/creatorsapi/docs/en-us/api-reference/resources/offersV2)). Para o zpektral, troca a leitura do HTML por dados oficiais, mas continua sem frete por CEP.
 - Restrições do contrato do Associados Brasil ([contrato](https://associados.amazon.com.br/help/operating/agreement), [políticas](https://associados.amazon.com.br/help/operating/policies)): preço e disponibilidade só podem ser exibidos com dados da API ou link fornecido pela Amazon; em comparação com outras lojas, é preciso mostrar o menor preço novo da Amazon; não revender nem redistribuir o conteúdo. A página de políticas veio truncada na leitura; a parte sobre cache de até 24 horas, data e hora junto do preço e o aviso de que preços podem mudar foi lida só por resumo e precisa ser conferida.
+- Revisto em 19/11/2026: `SearchItems` aceita até 10 itens por chamada, filtro de preço e de entrega (Prime, frete grátis), sem custo de frete nem CEP ([SearchItems](https://affiliate-program.amazon.com/creatorsapi/docs/en-us/api-reference/operations/search-items)). Cache recomendado de 1 hora para ofertas; as políticas do Associados Brasil (atualizadas em 14/04/2026) limitam o cache a 24 horas, proíbem guardar imagens e pedem data e hora junto do preço quando a atualização for menos que horária. Só o titular da conta cadastra o app, gratuito.
+- O conector atual lê a página pública de busca (permitida pelo robots.txt) e grava as ofertas no histórico. Se a Creators API entrar no lugar, as ofertas dela precisam sair do histórico como as do Mercado Livre.
 - Passo do dono: entrar no Associados Brasil, chegar a 10 vendas em 30 dias e criar a credencial em Associates Central, Tools, Creators API, Create Application (Credential ID, Secret e versão; OAuth 2.0 com token de uma hora).
 
 ### Magazine Luiza
@@ -142,8 +177,11 @@ Lida nas páginas oficiais em novembro de 2026. Onde a página recusou leitura a
 - A Awin documenta feeds de produto para publishers, com comparadores de preço citados como o público principal. As colunas incluem `price`, `product_price_old`, `in_stock`, `stock_quantity`, `delivery_cost`, `delivery_time`, `ean`, `deep_link` e `last_updated`; o frete é um valor fixo, sem CEP ([colunas](https://help.awin.com/developers/docs/hosting-feeds), [feeds](https://help.awin.com/developers/docs/product-feed-publisher-guide-intro.md)).
 - `robots.txt`, lido num navegador em 18/11/2026 e igual nas três lojas: libera `*/b` (a busca por caminho, como `/geladeira-frost-free-559l/b`, com os produtos no `__NEXT_DATA__`) e proíbe `*/b?q` e `*/pdp-api`. A Brastemp BRO85 aparece nessa página.
 - Sem conector direto: o Akamai Bot Manager responde 403 a todo cliente que não passa no desafio de JavaScript, até no `robots.txt` e com o agente do zpektral. Só um navegador de verdade chega à página, e passar disso seria contornar a proteção.
-- Não verificado: se a Casas Bahia publica feed na Awin e o que os termos dela dizem sobre comparadores.
-- Passo do dono: criar conta de publisher na Awin, pedir entrada no programa da Casas Bahia e conferir no painel se há feed de produtos. Com feed, as ofertas entrariam sem frete por CEP, como o Buscapé.
+- Revisto em 19/11/2026: Casas Bahia (anunciante 17629) e Extra (17874) seguem na Awin, com 3% em produtos próprios e 2% de terceiros e cookie de 7 dias; o Extra não aceita pessoa física. Não foi achado perfil próprio do Ponto. O grupo está em recuperação judicial desde 16/08/2026, e o programa pode mudar.
+- Feeds da Awin: lista em CSV pela chave de datafeed, Create-a-Feed em CSV com colunas escolhidas, e a API de feed no formato Google em JSONL (5 requisições por minuto, sem exemplo de locale brasileiro) ([lista](https://help.awin.com/developers/docs/downloading-a-list-of-your-product-feeds.md), [API](https://help.awin.com/apidocs/retail-publisher-productapidocumentation-1.md)). A Publisher API não tem busca de produtos. Os termos brasileiros da Awin (agosto de 2025) exigem reproduzir os dados do anunciante com fidelidade (9.2.11) e não tratam de guardar preço.
+- Não verificado: se Casas Bahia ou Extra publicam feed e o que os termos de cada anunciante dizem sobre comparadores (só logado).
+- Importador não escrito: sem conta, não há como conferir o formato nem se o anunciante permite. Desenho previsto, quando houver feed aprovado: sincronização periódica fora da busca (como a atualização agendada), tabela própria com identidade pelo EAN, oferta que some do feed vira indisponível, validade pela data de importação, ofertas como origem `comparador` e sem frete por CEP.
+- Passo do dono: criar conta de publisher na Awin (muitos programas pedem CNPJ), pedir entrada nos programas da Casas Bahia e do Extra e conferir no painel se há feed de produtos e se o anunciante aceita comparador.
 
 ### MadeiraMadeira
 
@@ -155,15 +193,28 @@ Lida nas páginas oficiais em novembro de 2026. Onde a página recusou leitura a
 - Não verificado: feed ou API de produtos. A página de Product Search da Rakuten não carregou o conteúdo.
 - Passo do dono: cadastro de publisher na Rakuten Advertising (signup.linkshare.com) e pedido de entrada no programa.
 
-### Shopee (já integrada)
+### Shopee (integrada, aguardando acesso)
 
-- O app usa a Open API de afiliados (GraphQL em `open-api.affiliate.shopee.com.br`, consulta `productOfferV2`, assinatura SHA-256 com App ID, instante, corpo e segredo): preço mínimo e máximo, desconto, loja e link de afiliado, sem frete por CEP.
-- Não verificado: as páginas de afiliados só carregam com JavaScript, e open.shopee.com recusou a leitura.
-- Passo do dono: conta em affiliate.shopee.com.br, pedido de acesso à Open API no painel e `SHOPEE_ID_APP` e `SHOPEE_SEGREDO` no ambiente da API.
+Documentação lida em 19/11/2026 nos arquivos JavaScript públicos do portal de afiliados brasileiro (a página só carrega com JavaScript) e em cópias de terceiros.
+
+- **Conector conferido:** endpoint `https://open-api.affiliate.shopee.com.br/graphql`, cabeçalho `SHA256 Credential=..., Timestamp=..., Signature=...` com SHA-256 de App ID, instante, corpo e segredo (o exemplo oficial bate), instante com tolerância de 10 minutos. Todos os campos pedidos em `productOfferV2` existem; `priceMin` e `priceMax` são texto e `priceDiscountRate` é inteiro em porcentagem.
+- **Preço:** a API dá o preço mínimo e o máximo do anúncio, sem dizer a qual versão cada um pertence, sem preço antigo e sem cupom. Quando o máximo passa do mínimo, a oferta mostra o mínimo com o aviso "Preço da versão mais barata" e o total deixa de contar como exato. A porcentagem de desconto não vira mais preço "de".
+- **Erros:** chegam com HTTP 200 em `errors[].extensions.code`. Assinatura recusada (10020), conta sem acesso, congelada ou na lista negra (10031 a 10035) e limite estourado (10030) deixam a fonte `bloqueada`; no 10030 ela fica 15 minutos sem chamar a API. O limite no Brasil é de 2.000 consultas por hora; cada busca usa até `SHOPEE_PAGINAS` (2).
+- **Frete:** não há API de frete para afiliados. As ofertas entram sem frete e, no menor total, ficam abaixo das que têm total confirmado. O frete pelo navegador (`SHOPEE_FRETE_NAVEGADOR`) continua desligado e não deve ser ligado em produção: os termos de afiliado proíbem scraping (4.3d) e a página da Shopee tem verificação de robô.
+- **Product Feed** (`listItemFeeds` e `getItemFeedData`, desde 05/03/2026): catálogos diários completos e de alterações, até 500 linhas por chamada. Serviria para sincronizar sem gastar a cota, mas as colunas não estão documentadas; fica para depois do acesso.
+- **Termos** ([artigo 124094](https://help.shopee.com.br/portal/10/article/124094-Programa-de-Afiliados-Shopee-Termos-e-Condi%C3%A7%C3%B5es), 09/09/2026): o site precisa ser cadastrado e aprovado como mídia; não pode usar marca ou logotipo da Shopee como se fosse dela (2.3a); proibido indexar links de afiliado (4.3k) e redirecionar sozinho para eles (4.4). Os links de oferta do site saem com `nofollow` e só abrem com clique. Risco: o link "Termos" do portal aponta para o artigo 76443, de vendedores, que proíbe links para outras lojas; confirmar com a Shopee qual texto vale para um comparador.
+- **Passo do dono:** conta em affiliate.shopee.com.br com o site cadastrado como mídia, pedido de acesso à Open API pelo formulário do painel (sem critério público) e `SHOPEE_ID_APP` e `SHOPEE_SEGREDO` como variáveis sensíveis da API.
 
 ### AliExpress
 
-- Não verificado: o portal de afiliados e a documentação da API só carregam com JavaScript, e a página de documentação antiga respondeu 500. Envio para o Brasil, moeda em reais e frete por CEP ficam sem confirmação. Se entrar, seria como o eBay, com imposto de importação estimado.
+- Não verificado: o portal de afiliados e a documentação da API só carregam com JavaScript, e a página de documentação antiga respondeu 500. Pelo código de um SDK de terceiros, `aliexpress.affiliate.product.query` aceita `ship_to_country`, `target_currency` e `target_language`; resposta em reais e custo de frete não foram confirmados.
+- Imposto vigente desde 12/05/2026 (Lei 15.502, de 10/09/2026), para pessoa física no Remessa Conforme: imposto de importação zero até US$ 50 e 60% com desconto de US$ 30 acima disso; fora do programa, 60% sem desconto; ICMS de 17% a 20% calculado por dentro ([Receita Federal](https://www.gov.br/receitafederal/pt-br/assuntos/aduana-e-comercio-exterior/manuais/remessas-postal-e-expressa/preciso-pagar-impostos-nas-compras-internacionais/quanto-pagarei-de-imposto)). O AliExpress entraria pelas regras do Remessa Conforme, diferentes das do eBay.
+
+### eBay (integrado, sem credenciais)
+
+- A estimativa do conector segue a regra de fora do Remessa Conforme (60% sem desconto e ICMS por dentro, 20% por padrão), que continua valendo.
+- A Buy API é para parceiros do eBay Partner Network, o frete precisa aparecer separado mesmo quando é grátis, e o limite é de 5.000 chamadas por dia na Browse. Se o cadastro no Partner Network aceita residente no Brasil não foi verificado (a página respondeu 403).
+
 
 ### Redes de afiliados
 
@@ -188,9 +239,9 @@ Nenhum dos dois traz frete por CEP; as ofertas entrariam como origem `comparador
 
 ## O que depende do dono
 
-1. Mercado Livre: criar o app e rodar `scripts.autorizar_mercadolivre`; conferir como guardar o token renovado na Vercel.
-2. Shopee: pedir acesso à Open API de afiliados e configurar as duas variáveis.
+1. Mercado Livre: criar o app (escopos `read` e `offline_access`, permissão "Publicação e sincronização"), autorizar a migração `0004` na produção e rodar `scripts.autorizar_mercadolivre --vercel`. Se o catálogo responder 403 mesmo com a permissão, o acesso depende do próprio Mercado Livre.
+2. Shopee: cadastrar o site como mídia, pedir acesso à Open API, configurar as duas variáveis e confirmar com a Shopee se os termos de afiliado aceitam um comparador.
 3. Amazon: entrar no Associados Brasil e gerar 10 vendas em 30 dias para liberar a Creators API.
-4. Casas Bahia, Ponto e Extra: conta de publisher na Awin e entrada no programa; conferir se há feed.
+4. Casas Bahia e Extra: conta de publisher na Awin (CNPJ), entrada nos programas e conferência do feed e dos termos de cada anunciante.
 5. Leroy Merlin: conta de publisher na Rakuten Advertising e entrada no programa.
 6. SerpApi ou DataForSEO: só depois de leitura jurídica dos termos, e com orçamento mensal.
