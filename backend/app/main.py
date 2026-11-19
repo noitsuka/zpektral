@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from sqlalchemy.exc import OperationalError
 
 from app.api import erros
 from app.api.erros import CapturaErros
@@ -67,7 +68,13 @@ def criar_app(config: Configuracoes | None = None) -> FastAPI:
         )
         motor = criar_motor(url_banco) if url_banco else None
         if motor is not None:
-            await criar_tabelas_locais(motor)
+            try:
+                await criar_tabelas_locais(motor)
+            except OperationalError as erro:
+                # num preview da Vercel sem banco, o arquivo local cai numa pasta somente leitura
+                log.warning("histórico local desligado: %s", erro.orig)
+                await motor.dispose()
+                motor = None
         sessoes = criar_sessoes(motor) if motor is not None else None
         historico = (
             RegistroHistorico(sessoes, dias_retencao=config.dias_historico) if sessoes else None

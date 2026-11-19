@@ -269,3 +269,14 @@ async def teste_cors_expoe_os_cabecalhos_que_o_site_le(cliente_api):
     r = await cliente_api.get("/lojas", headers={"origin": "http://localhost:3000"})
     expostos = r.headers["access-control-expose-headers"].lower()
     assert "retry-after" in expostos and "x-request-id" in expostos
+
+
+async def teste_api_sobe_sem_historico_quando_o_arquivo_local_nao_abre(config, tmp_path):
+    # caso real: num preview da Vercel sem banco, o arquivo local cai numa pasta somente leitura
+    from app.main import criar_app
+
+    arquivo = tmp_path / "pasta-que-nao-existe" / "historico.db"
+    sem_banco = config.model_copy(update={"url_banco": "", "arquivo_historico_local": str(arquivo)})
+    aplicacao = criar_app(sem_banco)
+    async with aplicacao.router.lifespan_context(aplicacao):
+        assert aplicacao.state.historico is None
