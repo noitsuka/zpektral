@@ -1,12 +1,12 @@
 import getpass
-import json
 import os
 import sys
-import time
 from pathlib import Path
 from urllib.parse import parse_qs, urlencode, urlsplit
 
 import httpx
+
+from app.credenciais import nova_chave
 
 AUTORIZACAO = "https://auth.mercadolivre.com.br/authorization"
 TOKEN = "https://api.mercadolibre.com/oauth/token"
@@ -99,26 +99,17 @@ def main() -> None:
         motivo = corpo.get("message") or corpo.get("error") or f"HTTP {resposta.status_code}"
         sys.exit(f"O Mercado Livre recusou a troca do código: {motivo}")
 
-    arquivo_token = RAIZ / (atual.get("ML_ARQUIVO_TOKEN") or ".ml-token.json")
-    gravar_privado(
-        arquivo_token,
-        json.dumps(
-            {
-                "access_token": corpo["access_token"],
-                "refresh_token": corpo["refresh_token"],
-                "expires_at": time.time() + int(corpo.get("expires_in", 21600)) - 300,
-            }
-        ),
-    )
     gravar_env(
         {
             "ML_ID_CLIENTE": id_cliente,
             "ML_SEGREDO_CLIENTE": segredo,
             "ML_TOKEN_RENOVACAO": corpo["refresh_token"],
+            "CHAVE_CREDENCIAIS": atual.get("CHAVE_CREDENCIAIS") or nova_chave(),
         }
     )
-    print("\nPronto. Credenciais salvas em backend/.env e o token em", arquivo_token.name)
-    print("Reinicie a API: o Mercado Livre passa a aparecer nas buscas, com frete do seu CEP.")
+    print("\nPronto. ML_ID_CLIENTE, ML_SEGREDO_CLIENTE, ML_TOKEN_RENOVACAO e CHAVE_CREDENCIAIS")
+    print("estão em backend/.env. O token renovado fica cifrado no banco da API.")
+    print("Para a produção, as quatro vão como variáveis sensíveis do projeto da API na Vercel.")
 
 
 if __name__ == "__main__":

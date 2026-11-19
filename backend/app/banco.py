@@ -7,6 +7,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    Text,
     false,
     func,
     make_url,
@@ -85,6 +86,16 @@ class SaudeLoja(Base):
     mensagem: Mapped[str | None] = mapped_column(String(200))
 
     __table_args__ = (Index("ix_saude_lojas_loja_momento", "loja", "observado_em"),)
+
+
+class CredencialOAuth(Base):
+    __tablename__ = "credenciais_oauth"
+
+    fonte: Mapped[str] = mapped_column(String(40), primary_key=True)
+    dados: Mapped[str] = mapped_column(Text)
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
 def criar_motor(url: str) -> AsyncEngine:

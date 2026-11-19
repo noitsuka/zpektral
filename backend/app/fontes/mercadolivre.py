@@ -1,16 +1,15 @@
 import asyncio
-import json
+import hashlib
 import logging
 import math
-import os
 import time
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
 from app.cliente_http import ClienteHttp, ErroExterno, ler_json
 from app.configuracao import Configuracoes
+from app.credenciais import GuardaCredenciais
 from app.dinheiro import para_centavos
 from app.fontes.base import (
     ContextoBusca,
@@ -36,29 +35,52 @@ API = "https://api.mercadolibre.com"
 LIMITE_BUSCA = 50
 
 
+REAUTORIZAR = (
+    "mercado livre: a autorização expirou ou foi revogada; autorize de novo com "
+    "python -m scripts.autorizar_mercadolivre"
+)
+
+
+def _resumo(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()[:16]
+
+
 class CofreTokens:
-    def __init__(self, http: ClienteHttp, config: Configuracoes, relogio=time.time):
+    """Access token em memória; o refresh token, que o Mercado Livre troca a cada renovação,
+    fica cifrado no banco para valer em todas as instâncias.
+
+    O ML_TOKEN_RENOVACAO do ambiente é a semente: enquanto o banco guarda tokens nascidos dela,
+    vale o do banco; trocar a variável (nova autorização) recomeça a partir dela."""
+
+    fonte = "mercadolivre"
+
+    def __init__(
+        self,
+        http: ClienteHttp,
+        config: Configuracoes,
+        guarda: GuardaCredenciais | None = None,
+        relogio=time.time,
+    ):
         self._http = http
         self._config = config
+        self._guarda = guarda
         self._relogio = relogio
-        self._caminho = Path(config.ml_arquivo_token)
         self._trava = asyncio.Lock()
         self._acesso: str | None = None
         self._expira = 0.0
-        self._renovacao = config.ml_token_renovacao.get_secret_value()
-        salvo = self._ler()
-        if isinstance(salvo.get("refresh_token"), str) and salvo["refresh_token"]:
-            self._renovacao = salvo["refresh_token"]
-            acesso, expira = salvo.get("access_token"), salvo.get("expires_at")
-            if isinstance(acesso, str) and isinstance(expira, int | float):
-                self._acesso, self._expira = acesso, float(expira)
+        self._rejeitado: str | None = None
+        self._recusado: str | None = None
+        semente = config.ml_token_renovacao.get_secret_value()
+        self._renovacao = semente
+        self._semente = _resumo(semente) if semente else None
 
     @property
     def configurado(self) -> bool:
         s = self._config
-        return bool(s.ml_id_cliente and s.ml_segredo_cliente.get_secret_value() and self._renovacao)
+        return bool(s.ml_id_cliente and s.ml_segredo_cliente.get_secret_value() and self._semente)
 
     def invalidar(self, rejeitado: str) -> None:
+        self._rejeitado = rejeitado
         if self._acesso == rejeitado:
             self._acesso, self._expira = None, 0.0
 
@@ -68,61 +90,85 @@ class CofreTokens:
         async with self._trava:
             if self._acesso and self._relogio() < self._expira:
                 return self._acesso
-            resposta = await self._http.requisitar(
-                "POST",
-                f"{API}/oauth/token",
-                tentativas=0,
-                data={
-                    "grant_type": "refresh_token",
-                    "client_id": self._config.ml_id_cliente,
-                    "client_secret": self._config.ml_segredo_cliente.get_secret_value(),
-                    "refresh_token": self._renovacao,
-                },
+            if self._guarda is None:
+                self._adotar(await self._renovar(self._renovacao))
+                return self._acesso
+            async with self._guarda.travar(self.fonte) as travada:
+                salvo = travada.atual
+                if not salvo or salvo.get("semente") != self._semente:
+                    salvo = None
+                if salvo and self._utilizavel(salvo):
+                    self._adotar(salvo)
+                else:
+                    renovacao = salvo.get("refresh_token") if salvo else None
+                    travada.novo = await self._renovar(renovacao or self._renovacao)
+                    self._adotar(travada.novo)
+            return self._acesso
+
+    def _utilizavel(self, salvo: dict[str, Any]) -> bool:
+        acesso, expira = salvo.get("access_token"), salvo.get("expires_at")
+        return (
+            isinstance(acesso, str)
+            and acesso != self._rejeitado
+            and isinstance(expira, int | float)
+            and self._relogio() < expira
+        )
+
+    def _adotar(self, dados: dict[str, Any]) -> None:
+        self._acesso, self._expira = dados["access_token"], float(dados["expires_at"])
+        self._renovacao = dados["refresh_token"]
+
+    async def _renovar(self, renovacao: str) -> dict[str, Any]:
+        if self._recusado == _resumo(renovacao):
+            raise ErroExterno(REAUTORIZAR, 401)
+        resposta = await self._http.requisitar(
+            "POST",
+            f"{API}/oauth/token",
+            tentativas=0,
+            aceitos=(200, 400, 401),
+            data={
+                "grant_type": "refresh_token",
+                "client_id": self._config.ml_id_cliente,
+                "client_secret": self._config.ml_segredo_cliente.get_secret_value(),
+                "refresh_token": renovacao,
+            },
+        )
+        corpo = ler_json(resposta)
+        corpo = corpo if isinstance(corpo, dict) else {}
+        if resposta.status_code != 200:
+            if corpo.get("error") == "invalid_grant":
+                self._recusado = _resumo(renovacao)
+                raise ErroExterno(REAUTORIZAR, 401)
+            motivo = str(corpo.get("error") or "sem motivo")[:60]
+            raise ErroExterno(
+                f"mercado livre: renovação do token recusada (HTTP {resposta.status_code}, "
+                f"{motivo}); confira ML_ID_CLIENTE e ML_SEGREDO_CLIENTE",
+                resposta.status_code,
             )
-            corpo = ler_json(resposta)
-            acesso = corpo.get("access_token") if isinstance(corpo, dict) else None
-            if not isinstance(acesso, str) or not acesso:
-                raise ErroExterno("mercado livre: resposta de token sem access_token")
-            renovacao = corpo.get("refresh_token")
-            if isinstance(renovacao, str) and renovacao:
-                self._renovacao = renovacao
-            validade = corpo.get("expires_in")
-            validade = validade if isinstance(validade, int) and validade > 0 else 21600
-            self._acesso = acesso
-            self._expira = self._relogio() + max(60, validade - 300)
-            self._escrever()
-            return acesso
-
-    def _ler(self) -> dict[str, Any]:
-        try:
-            return json.loads(self._caminho.read_text("utf-8"))
-        except (OSError, ValueError):
-            return {}
-
-    def _escrever(self) -> None:
-        corpo = {
-            "access_token": self._acesso,
-            "refresh_token": self._renovacao,
-            "expires_at": self._expira,
+        acesso = corpo.get("access_token")
+        if not isinstance(acesso, str) or not acesso:
+            raise ErroExterno("mercado livre: resposta de token sem access_token")
+        nova = corpo.get("refresh_token")
+        validade = corpo.get("expires_in")
+        validade = validade if isinstance(validade, int) and validade > 0 else 21600
+        return {
+            "access_token": acesso,
+            "refresh_token": nova if isinstance(nova, str) and nova else renovacao,
+            "expires_at": self._relogio() + max(60, validade - 300),
+            "semente": self._semente,
         }
-        temporario = self._caminho.with_name(self._caminho.name + ".tmp")
-        try:
-            descritor = os.open(temporario, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-            with os.fdopen(descritor, "w", encoding="utf-8") as arquivo:
-                json.dump(corpo, arquivo)
-            os.replace(temporario, self._caminho)
-        except OSError as excecao:
-            log.warning("não foi possível salvar o token do mercado livre: %s", excecao)
 
 
 class FonteMercadoLivre:
     id = "mercadolivre"
     nome = "Mercado Livre"
 
-    def __init__(self, http: ClienteHttp, config: Configuracoes, cofre: CofreTokens | None = None):
+    def __init__(
+        self, http: ClienteHttp, config: Configuracoes, credenciais: GuardaCredenciais | None = None
+    ):
         self._http = http
         self._config = config
-        self._cofre = cofre if cofre is not None else CofreTokens(http, config)
+        self._cofre = CofreTokens(http, config, credenciais)
         self._ref = Loja(self.id, self.nome)
 
     @property

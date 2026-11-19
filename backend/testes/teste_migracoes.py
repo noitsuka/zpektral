@@ -36,3 +36,20 @@ def teste_migracao_do_historico_vai_e_volta_sem_perder_linhas(tmp_path):
     with sqlite3.connect(arquivo) as conexao:
         assert conexao.execute("SELECT count(*) FROM historico_precos").fetchone() == (1,)
     command.upgrade(config, "head")
+
+
+def teste_migracao_das_credenciais_cria_e_remove_a_tabela(tmp_path):
+    arquivo = tmp_path / "credenciais.db"
+    config = Config(str(Path(__file__).parents[1] / "alembic.ini"))
+    config.set_main_option("sqlalchemy.url", f"sqlite+aiosqlite:///{arquivo}")
+
+    command.upgrade(config, "head")
+    command.check(config)
+
+    def tabelas():
+        with sqlite3.connect(arquivo) as conexao:
+            return {n for (n,) in conexao.execute("SELECT name FROM sqlite_master")}
+
+    assert "credenciais_oauth" in tabelas()
+    command.downgrade(config, "0003")
+    assert "credenciais_oauth" not in tabelas()

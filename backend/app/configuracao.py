@@ -50,7 +50,8 @@ class Configuracoes(BaseSettings):
     ml_id_cliente: str = ""
     ml_segredo_cliente: SecretStr = SecretStr("")
     ml_token_renovacao: SecretStr = SecretStr("")
-    ml_arquivo_token: str = ".ml-token.json"
+    # AES-GCM de 32 bytes em base64 urlsafe; cifra no banco os tokens OAuth renovados
+    chave_credenciais: SecretStr = SecretStr("")
 
     url_webhook_alerta: SecretStr = SecretStr("")
 

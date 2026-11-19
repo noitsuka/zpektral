@@ -1,5 +1,5 @@
 import asyncio
-import json
+import logging
 import os
 import re
 from urllib.parse import parse_qs
@@ -8,6 +8,9 @@ import httpx
 import pytest
 from pydantic import SecretStr
 
+from app.banco import Base, criar_motor, criar_sessoes
+from app.cliente_http import ErroExterno
+from app.credenciais import Cifra, GuardaCredenciais, nova_chave
 from app.fontes.mercadolivre import CofreTokens, FonteMercadoLivre
 from app.modelos import StatusFrete
 from testes.conftest import contexto, resposta_json
@@ -45,12 +48,20 @@ RESULTADOS = {
 }
 
 
-def configurado(config, tmp_path):
+def configurado(config):
     config.ml_id_cliente = "id"
-    config.ml_segredo_cliente = SecretStr("secret")
+    config.ml_segredo_cliente = SecretStr("segredo-do-cliente")
     config.ml_token_renovacao = SecretStr("r1")
-    config.ml_arquivo_token = str(tmp_path / "token.json")
     return config
+
+
+@pytest.fixture
+async def guarda(tmp_path):
+    motor = criar_motor(f"sqlite+aiosqlite:///{tmp_path / 'credenciais.db'}")
+    async with motor.begin() as conexao:
+        await conexao.run_sync(Base.metadata.create_all)
+    yield GuardaCredenciais(criar_sessoes(motor), Cifra(nova_chave()))
+    await motor.dispose()
 
 
 def rota_token(simulador, tokens_renovacao: list[str]):
@@ -71,39 +82,110 @@ async def teste_desativada_sem_credenciais(http, config):
     assert FonteMercadoLivre(http, config).ativa is False
 
 
-async def teste_renovacao_de_token_roda_e_persiste(simulador, http, config, tmp_path):
-    configurado(config, tmp_path)
+async def teste_renovacao_guarda_o_token_novo_para_a_proxima_instancia(
+    simulador, http, config, guarda
+):
+    configurado(config)
     usados: list[str] = []
     rota_token(simulador, usados)
     agora = [1000.0]
-    loja = CofreTokens(http, config, relogio=lambda: agora[0])
+    cofre = CofreTokens(http, config, guarda, relogio=lambda: agora[0])
 
-    assert await loja.obter_token() == "a0"
-    assert await loja.obter_token() == "a0"
-    salvo = json.loads((tmp_path / "token.json").read_text())
-    assert salvo["refresh_token"] == "r2"
+    assert await cofre.obter_token() == "a0"
+    assert await cofre.obter_token() == "a0"
+    assert (await guarda.ler("mercadolivre"))["refresh_token"] == "r2"
 
     agora[0] += 21600
-    assert await loja.obter_token() == "a1"
+    assert await cofre.obter_token() == "a1"
     assert usados == ["r1", "r2"]
 
-    reiniciado = CofreTokens(http, config, relogio=lambda: agora[0] + 30000)
-    await reiniciado.obter_token()
-    assert usados[-1] == "r3"
+    reiniciada = CofreTokens(http, config, guarda, relogio=lambda: agora[0] + 30000)
+    assert await reiniciada.obter_token() == "a2"
+    assert usados == ["r1", "r2", "r3"]
 
 
-async def teste_requisicoes_simultaneas_renovam_uma_vez(simulador, http, config, tmp_path):
-    configurado(config, tmp_path)
+async def teste_outra_instancia_usa_o_token_valido_sem_renovar(simulador, http, config, guarda):
+    configurado(config)
+    rota = rota_token(simulador, [])
+    assert await CofreTokens(http, config, guarda).obter_token() == "a0"
+    assert await CofreTokens(http, config, guarda).obter_token() == "a0"
+    assert rota.call_count == 1
+
+
+async def teste_token_recusado_pela_api_nao_volta_do_banco(simulador, http, config, guarda):
+    configurado(config)
     usados: list[str] = []
-    rota = rota_token(simulador, usados)
-    loja = CofreTokens(http, config)
+    rota_token(simulador, usados)
+    assert await CofreTokens(http, config, guarda).obter_token() == "a0"
+    outra = CofreTokens(http, config, guarda)
+    outra.invalidar("a0")
+    assert await outra.obter_token() == "a1"
+    assert usados == ["r1", "r2"]
+
+
+async def teste_novo_token_no_ambiente_vale_sobre_o_guardado(simulador, http, config, guarda):
+    configurado(config)
+    usados: list[str] = []
+    rota_token(simulador, usados)
+    agora = [1000.0]
+    await CofreTokens(http, config, guarda, relogio=lambda: agora[0]).obter_token()
+
+    config.ml_token_renovacao = SecretStr("reautorizado")
+    agora[0] += 60
+    await CofreTokens(http, config, guarda, relogio=lambda: agora[0]).obter_token()
+    assert usados == ["r1", "reautorizado"]
+
+
+async def teste_autorizacao_revogada_pede_reautorizacao_sem_insistir(
+    simulador, http, config, guarda
+):
+    configurado(config)
+    rota = simulador.post(URL_TOKEN).mock(
+        resposta_json({"error": "invalid_grant", "message": "invalid_grant"}, status=400)
+    )
+    cofre = CofreTokens(http, config, guarda)
+    for _ in range(2):
+        with pytest.raises(ErroExterno, match="autorize de novo") as erro:
+            await cofre.obter_token()
+        assert erro.value.bloqueio
+    assert rota.call_count == 1
+
+
+async def teste_credenciais_nao_vazam_em_log_nem_em_erro(simulador, http, config, guarda, caplog):
+    configurado(config)
+    config.ml_token_renovacao = SecretStr("TG-renovacao-secreta")
+    simulador.post(URL_TOKEN).mock(httpx.Response(500, text="erro interno"))
+    caplog.set_level(logging.DEBUG)
+    with pytest.raises(ErroExterno) as erro:
+        await CofreTokens(http, config, guarda).obter_token()
+    texto = caplog.text + str(erro.value) + repr(config)
+    assert "TG-renovacao-secreta" not in texto
+    assert "segredo-do-cliente" not in texto
+
+
+async def teste_sem_banco_renova_e_gira_o_token_na_memoria(simulador, http, config):
+    configurado(config)
+    usados: list[str] = []
+    rota_token(simulador, usados)
+    agora = [1000.0]
+    cofre = CofreTokens(http, config, relogio=lambda: agora[0])
+    await cofre.obter_token()
+    agora[0] += 21600
+    await cofre.obter_token()
+    assert usados == ["r1", "r2"]
+
+
+async def teste_requisicoes_simultaneas_renovam_uma_vez(simulador, http, config, guarda):
+    configurado(config)
+    rota = rota_token(simulador, [])
+    loja = CofreTokens(http, config, guarda)
     emitidos = await asyncio.gather(*(loja.obter_token() for _ in range(10)))
     assert set(emitidos) == {"a0"}
     assert rota.call_count == 1
 
 
-async def teste_busca_com_frete_cotado(simulador, http, config, tmp_path):
-    configurado(config, tmp_path)
+async def teste_busca_com_frete_cotado(simulador, http, config):
+    configurado(config)
     rota_token(simulador, [])
     buscar = simulador.get(BUSCA_ML).mock(resposta_json(RESULTADOS))
 
@@ -139,8 +221,8 @@ async def teste_busca_com_frete_cotado(simulador, http, config, tmp_path):
     assert usados.parcelamento.juros
 
 
-async def teste_sem_opcoes_significa_sem_entrega(simulador, http, config, tmp_path):
-    configurado(config, tmp_path)
+async def teste_sem_opcoes_significa_sem_entrega(simulador, http, config):
+    configurado(config)
     rota_token(simulador, [])
     simulador.get(BUSCA_ML).mock(resposta_json({"results": RESULTADOS["results"][:1]}))
     simulador.get(FRETE_ML).mock(resposta_json({"options": []}))
@@ -148,8 +230,8 @@ async def teste_sem_opcoes_significa_sem_entrega(simulador, http, config, tmp_pa
     assert oferta.frete.status is StatusFrete.NAO_ENTREGA
 
 
-async def teste_cotacao_falha_mantem_oferta(simulador, http, config, tmp_path):
-    configurado(config, tmp_path)
+async def teste_cotacao_falha_mantem_oferta(simulador, http, config):
+    configurado(config)
     rota_token(simulador, [])
     simulador.get(BUSCA_ML).mock(resposta_json({"results": RESULTADOS["results"][:1]}))
     simulador.get(FRETE_ML).mock(httpx.Response(500))
@@ -158,8 +240,8 @@ async def teste_cotacao_falha_mantem_oferta(simulador, http, config, tmp_path):
     assert oferta.preco == 189990
 
 
-async def teste_token_revogado_e_renovado_uma_vez(simulador, http, config, tmp_path):
-    configurado(config, tmp_path)
+async def teste_token_revogado_e_renovado_uma_vez(simulador, http, config):
+    configurado(config)
     usados: list[str] = []
     rota_token(simulador, usados)
     respostas = iter([httpx.Response(401), resposta_json(RESULTADOS)])
@@ -170,25 +252,11 @@ async def teste_token_revogado_e_renovado_uma_vez(simulador, http, config, tmp_p
     assert busca.calls[-1].request.headers["authorization"] == "Bearer a1"
 
 
-async def teste_resposta_de_token_sem_access_token_vira_erro_externo(
-    simulador, http, config, tmp_path
-):
-    from app.cliente_http import ErroExterno
-
-    configurado(config, tmp_path)
+async def teste_resposta_de_token_sem_access_token_vira_erro_externo(simulador, http, config):
+    configurado(config)
     simulador.post(URL_TOKEN).mock(resposta_json({"error": "invalid_grant"}))
     with pytest.raises(ErroExterno):
         await CofreTokens(http, config).obter_token()
-
-
-def teste_arquivo_de_token_corrompido_e_ignorado(http, config, tmp_path):
-    configurado(config, tmp_path)
-    (tmp_path / "token.json").write_text(
-        json.dumps({"refresh_token": "r9", "access_token": 5, "expires_at": "amanhã"})
-    )
-    cofre = CofreTokens(http, config)
-    assert cofre._renovacao == "r9"
-    assert cofre._acesso is None and cofre._expira == 0.0
 
 
 def teste_data_de_entrega_sem_fuso_vira_prazo():
@@ -198,8 +266,8 @@ def teste_data_de_entrega_sem_fuso_vira_prazo():
     assert opcao.prazo_dias is not None and opcao.prazo_dias > 0
 
 
-async def teste_token_expirado_no_meio_da_cotacao_e_renovado(simulador, http, config, tmp_path):
-    configurado(config, tmp_path)
+async def teste_token_expirado_no_meio_da_cotacao_e_renovado(simulador, http, config):
+    configurado(config)
     usados: list[str] = []
     rota_token(simulador, usados)
     simulador.get(BUSCA_ML).mock(resposta_json({"results": RESULTADOS["results"][:1]}))
@@ -229,10 +297,8 @@ async def teste_token_expirado_no_meio_da_cotacao_e_renovado(simulador, http, co
     assert oferta.total_exato
 
 
-async def teste_busca_recusada_com_403_explica_o_motivo(simulador, http, config, tmp_path):
-    from app.cliente_http import ErroExterno
-
-    configurado(config, tmp_path)
+async def teste_busca_recusada_com_403_explica_o_motivo(simulador, http, config):
+    configurado(config)
     rota_token(simulador, [])
     simulador.get(BUSCA_ML).mock(
         resposta_json({"message": "forbidden", "error": "forbidden", "status": 403}, status=403)
@@ -242,8 +308,8 @@ async def teste_busca_recusada_com_403_explica_o_motivo(simulador, http, config,
     assert erro.value.bloqueio
 
 
-async def teste_frete_gratis_anunciado_sem_cep(simulador, http, config, tmp_path):
-    configurado(config, tmp_path)
+async def teste_frete_gratis_anunciado_sem_cep(simulador, http, config):
+    configurado(config)
     rota_token(simulador, [])
     simulador.get(BUSCA_ML).mock(resposta_json({"results": RESULTADOS["results"][1:2]}))
     frete = simulador.get(FRETE_ML).mock(resposta_json({"options": []}))
@@ -253,8 +319,8 @@ async def teste_frete_gratis_anunciado_sem_cep(simulador, http, config, tmp_path
     assert oferta.vendedor == "Loja Oficial"
 
 
-async def teste_vendedor_pelo_apelido(simulador, http, config, tmp_path):
-    configurado(config, tmp_path)
+async def teste_vendedor_pelo_apelido(simulador, http, config):
+    configurado(config)
     rota_token(simulador, [])
     simulador.get(BUSCA_ML).mock(resposta_json({"results": RESULTADOS["results"][:1]}))
     simulador.get(FRETE_ML).mock(resposta_json({"options": []}))
