@@ -9,18 +9,18 @@ Antes de cada `alembic upgrade` deste documento, conferir o alvo como em `docs/h
 ## 1. Antes de tudo
 
 1. Conferir que a CI passou no commit que vai ao ar (API, site, testes ponta a ponta e imagens).
-2. No Neon, criar um branch do banco de produção como ponto de restauração, com nome como `antes-0003`. É instantâneo e não copia dados de fato.
-3. Rodar a migração primeiro nesse branch, com a URL direta dele (não a do pooler):
+2. No Neon, criar um branch do banco de produção como ponto de restauração, com nome como `antes-0003`, e não mexer nele. É instantâneo e não copia dados de fato.
+3. Criar outro branch da produção para o ensaio, como `ensaio-0003`, e rodar a migração primeiro nele, com a URL direta dele (não a do pooler). Migrar o próprio `antes-0003` estragaria o ponto de restauração:
 
 ```powershell
 cd backend
 Remove-Item Env:DATABASE_URL_UNPOOLED -ErrorAction SilentlyContinue
-$env:DATABASE_URL = "<url direta do branch antes-0003>"
+$env:DATABASE_URL = "<url direta do branch ensaio-0003>"
 .venv\Scripts\python.exe -m alembic upgrade head
 .venv\Scripts\python.exe -m alembic check
 ```
 
-`alembic check` precisa dizer `No new upgrade operations detected`.
+`alembic check` precisa dizer `No new upgrade operations detected`. Depois do ensaio, o `ensaio-0003` pode ser apagado.
 
 ## 2. Banco de produção
 
