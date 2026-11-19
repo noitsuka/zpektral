@@ -1,6 +1,15 @@
 import pytest
 
-from app.modelos import Frete, Loja, Oferta, Origem, Pagamento, Parcelamento, StatusFrete
+from app.modelos import (
+    Alerta,
+    Frete,
+    Loja,
+    Oferta,
+    Origem,
+    Pagamento,
+    Parcelamento,
+    StatusFrete,
+)
 from app.ordenacao import FiltroFrete, Filtros, Ordem, Pesos, aplicar, notas_custo_beneficio
 
 
@@ -176,6 +185,45 @@ def teste_ordens_por_preco_e_desconto():
     assert ids(aplicar(conjunto, Filtros(ordem=Ordem.MENOR_PRECO))[0]) == ["low", "mid", "high"]
     assert ids(aplicar(conjunto, Filtros(ordem=Ordem.MAIOR_PRECO))[0]) == ["high", "mid", "low"]
     assert ids(aplicar(conjunto, Filtros(ordem=Ordem.MAIOR_DESCONTO))[0])[0] == "mid"
+
+
+def com_alerta(o: Oferta, alerta: Alerta) -> Oferta:
+    o.alertar(alerta)
+    return o.consolidar()
+
+
+def teste_preco_nao_confirmado_fica_depois_nas_ordens_por_preco():
+    conjunto = [
+        oferta("cotada", 300, frete=cotada(0)),
+        com_alerta(oferta("versao", 100), Alerta.PRECO_VARIA_POR_VERSAO),
+        oferta("sem_frete", 200),
+        com_alerta(oferta("instavel", 150, frete=cotada(0)), Alerta.PRECO_INSTAVEL),
+    ]
+    menor = ids(aplicar(conjunto, Filtros(ordem=Ordem.MENOR_PRECO))[0])
+    maior = ids(aplicar(conjunto, Filtros(ordem=Ordem.MAIOR_PRECO))[0])
+    # continuam na lista, depois de quem tem o preço confirmado
+    assert menor == ["sem_frete", "cotada", "versao", "instavel"]
+    assert maior == ["cotada", "sem_frete", "instavel", "versao"]
+
+
+def teste_preco_de_versao_com_frete_gratis_nao_compete_com_total_confirmado():
+    gratis = Frete(StatusFrete.GRATIS_ANUNCIADO, valor=0)
+    conjunto = [
+        com_alerta(oferta("versao", 100, frete=gratis), Alerta.PRECO_VARIA_POR_VERSAO),
+        oferta("gratis", 300, frete=gratis),
+        oferta("cotada", 400, frete=cotada(0)),
+    ]
+    menor_total = ids(aplicar(conjunto, Filtros(ordem=Ordem.MENOR_TOTAL))[0])
+    assert menor_total == ["gratis", "cotada", "versao"]
+
+
+def teste_custo_beneficio_trata_preco_de_versao_como_estimado():
+    pesos = Pesos(preco=0, prazo=0, relevancia=0, confianca=1)
+    certa = oferta("certa", 100, frete=cotada(0))
+    versao = com_alerta(oferta("versao", 100, frete=cotada(0)), Alerta.PRECO_VARIA_POR_VERSAO)
+    estimada = oferta("estimada", 100, frete=Frete(StatusFrete.ESTIMADO, valor=0))
+    notas = notas_custo_beneficio([certa, versao, estimada], Pagamento.AVISTA, pesos)
+    assert notas["certa"] > notas["versao"] == notas["estimada"]
 
 
 def teste_facetas_ignoram_o_proprio_filtro_do_usuario():
