@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 import re
 from contextlib import asynccontextmanager
 from urllib.parse import parse_qs
@@ -7,11 +8,12 @@ from urllib.parse import parse_qs
 import httpx
 import pytest
 from pydantic import SecretStr
+from sqlalchemy import text
 
 from app.banco import Base, criar_motor, criar_sessoes, criar_tabelas_locais
 from app.cliente_http import ErroExterno
 from app.credenciais import Cifra, GuardaCredenciais, nova_chave
-from app.fontes.mercadolivre import CofreTokens, FonteMercadoLivre
+from app.fontes.mercadolivre import AutorizacaoRecusada, CofreTokens, FonteMercadoLivre
 from app.modelos import Condicao, StatusFrete
 from testes.conftest import contexto, resposta_json
 
@@ -20,6 +22,7 @@ CATALOGO = re.compile(r"https://api\.mercadolibre\.com/products/search\?.*")
 ITENS = re.compile(r"https://api\.mercadolibre\.com/products/(MLB\d+)/items.*")
 USUARIOS = re.compile(r"https://api\.mercadolibre\.com/users\?ids=.*")
 FRETE_ML = re.compile(r"https://api\.mercadolibre\.com/items/(MLB\d+)/shipping_options.*")
+URL_PG = os.environ.get("URL_BANCO_TESTE")
 
 # formato de /products/search e /products/{id}/items na documentação do Mercado Livre
 PRODUTOS = {
@@ -261,6 +264,191 @@ async def teste_gravacao_perdida_depois_da_renovacao_e_refeita(simulador, http, 
     assert (await guarda.ler(cofre.chave))["refresh_token"] == "r2"
 
 
+def banco_sem_gravar(guarda, *, depois_do_commit=False):
+    """Faz o commit de quem grava falhar enquanto `caido[0]` for verdadeiro."""
+    original = guarda.travar
+    caido = [True]
+
+    @asynccontextmanager
+    async def travar(chave):
+        async with original(chave) as travada:
+            yield travada
+            if travada.novo is not None and caido[0] and not depois_do_commit:
+                raise OSError("a conexão caiu no commit")
+        if travada.novo is not None and caido[0] and depois_do_commit:
+            caido[0] = False
+            raise OSError("o commit foi feito, mas a confirmação se perdeu")
+
+    guarda.travar = travar
+    return caido
+
+
+async def teste_token_trocado_sem_gravar_fica_na_memoria_ate_o_banco_voltar(
+    simulador, http, config, guarda
+):
+    configurado(config)
+    usados: list[str] = []
+    rota_token(simulador, usados)
+    agora = [1000.0]
+    caido = banco_sem_gravar(guarda)
+    cofre = CofreTokens(http, config, guarda, relogio=lambda: agora[0])
+
+    assert await cofre.obter_token() == "a0"
+    assert await cofre.obter_token() == "a0"
+    assert await guarda.ler(cofre.chave) is None
+
+    caido[0] = False
+    assert await cofre.obter_token() == "a0"
+    assert (await guarda.ler(cofre.chave))["refresh_token"] == "r2"
+
+    agora[0] += 21600
+    assert await cofre.obter_token() == "a1"
+    # nunca o r1, que o Mercado Livre já tinha trocado
+    assert usados == ["r1", "r2"]
+
+
+async def teste_token_da_memoria_vale_sobre_o_antigo_do_banco(simulador, http, config, guarda):
+    configurado(config)
+    usados: list[str] = []
+    rota_token(simulador, usados)
+    agora = [1000.0]
+    caido = banco_sem_gravar(guarda)
+    cofre = CofreTokens(http, config, guarda, relogio=lambda: agora[0])
+    await cofre.obter_token()
+
+    caido[0] = False
+    agora[0] += 21600
+    assert await cofre.obter_token() == "a1"
+    assert usados == ["r1", "r2"]
+    assert (await guarda.ler(cofre.chave))["refresh_token"] == "r3"
+
+
+async def teste_confirmacao_perdida_do_commit_nao_regrava_por_cima(simulador, http, config, guarda):
+    configurado(config)
+    usados: list[str] = []
+    rota_token(simulador, usados)
+    agora = [1000.0]
+    banco_sem_gravar(guarda, depois_do_commit=True)
+    cofre = CofreTokens(http, config, guarda, relogio=lambda: agora[0])
+    assert await cofre.obter_token() == "a0"
+    assert (await guarda.ler(cofre.chave))["refresh_token"] == "r2"
+
+    agora[0] += 21600
+    assert await cofre.obter_token() == "a1"
+    assert usados == ["r1", "r2"]
+
+
+async def teste_renovacao_espera_a_resposta_mais_que_as_lojas(simulador, http, config, guarda):
+    configurado(config)
+    prazos = []
+
+    def responder(requisicao: httpx.Request):
+        prazos.append(requisicao.extensions["timeout"]["read"])
+        return resposta_json({"access_token": "a0", "refresh_token": "r2", "expires_in": 21600})
+
+    simulador.post(URL_TOKEN).mock(side_effect=responder)
+    await CofreTokens(http, config, guarda).obter_token()
+    # a resposta perdida depois da troca queima o token; a trava do banco cai aos 30 s
+    assert config.segundos_limite_leitura < prazos[0] < 30
+
+
+@pytest.mark.skipif(not URL_PG, reason="a queda da conexão e a trava são do PostgreSQL")
+async def teste_conexao_do_banco_derrubada_no_meio_da_renovacao(simulador, http, config):
+    configurado(config)
+    motores = [criar_motor(URL_PG) for _ in range(3)]
+    async with motores[0].begin() as conexao:
+        await conexao.run_sync(Base.metadata.drop_all)
+        await conexao.run_sync(Base.metadata.create_all)
+    chave = nova_chave()
+    guarda_a, guarda_b = (GuardaCredenciais(criar_sessoes(m), Cifra(chave)) for m in motores[:2])
+    a, b = CofreTokens(http, config, guarda_a), CofreTokens(http, config, guarda_b)
+    validos, usados = {"r1"}, []
+    trocado, liberar = asyncio.Event(), asyncio.Event()
+
+    async def mercado_livre(requisicao: httpx.Request):
+        # como o Mercado Livre: o token vale uma vez e já foi trocado quando a resposta sai
+        renovacao = parse_qs(requisicao.content.decode())["refresh_token"][0]
+        usados.append(renovacao)
+        if renovacao not in validos:
+            return resposta_json({"error": "invalid_grant"}, 400)
+        validos.discard(renovacao)
+        n = len(usados)
+        validos.add(f"r{n + 1}")
+        if n == 1:
+            trocado.set()
+            await liberar.wait()
+        return resposta_json(
+            {"access_token": f"a{n}", "refresh_token": f"r{n + 1}", "expires_in": 21600}
+        )
+
+    simulador.post(URL_TOKEN).mock(side_effect=mercado_livre)
+    try:
+        primeira = asyncio.create_task(a.obter_token())
+        await trocado.wait()
+        async with motores[2].connect() as conexao:
+            derrubadas = await conexao.scalar(
+                text(
+                    "select count(pg_terminate_backend(pid)) from pg_stat_activity "
+                    "where datname = current_database() and state = 'idle in transaction'"
+                )
+            )
+        assert derrubadas == 1
+        # sem a trava, outra instância apresenta o token que acabou de ser trocado
+        with pytest.raises(AutorizacaoRecusada):
+            await b.obter_token()
+        liberar.set()
+        assert await primeira == "a1"
+        assert (await guarda_a.ler(a.chave))["refresh_token"] == "r2"
+        # na busca seguinte, a outra instância acha no banco o token que a primeira gravou
+        assert await b.obter_token() == "a1"
+        assert usados == ["r1", "r1"]
+    finally:
+        async with motores[0].begin() as conexao:
+            await conexao.run_sync(Base.metadata.drop_all)
+        for motor in motores:
+            await motor.dispose()
+
+
+async def teste_registro_que_nao_abre_pede_reautorizacao_sem_apresentar_a_semente(
+    simulador, http, config, guarda
+):
+    configurado(config)
+    usados: list[str] = []
+    rota_token(simulador, usados)
+    await CofreTokens(http, config, guarda).obter_token()
+    # a CHAVE_CREDENCIAIS trocou: a linha existe, mas não abre
+    outra_chave = GuardaCredenciais(guarda._sessoes, Cifra(nova_chave()))
+    with pytest.raises(AutorizacaoRecusada):
+        await CofreTokens(http, config, outra_chave).obter_token()
+    assert usados == ["r1"]
+
+
+async def teste_renovacao_nao_segue_redirecionamento(simulador, http, config, guarda):
+    configurado(config)
+    simulador.post(URL_TOKEN).mock(
+        httpx.Response(307, headers={"location": "https://coletor.example/t"})
+    )
+    coletor = simulador.post("https://coletor.example/t").mock(resposta_json({}))
+    with pytest.raises(ErroExterno):
+        await CofreTokens(http, config, guarda).obter_token()
+    assert not coletor.called
+
+
+async def teste_na_vercel_so_ativa_com_o_cofre_no_postgres(http, config, tmp_path):
+    from app.main import guarda_de_credenciais
+
+    configurado(config)
+    config.vercel = True
+    config.chave_credenciais = SecretStr(nova_chave())
+    assert FonteMercadoLivre(http, config).ativa is False
+    # o SQLite de /tmp é de cada instância: a segunda apresentaria a semente já trocada
+    motor = criar_motor(f"sqlite+aiosqlite:///{tmp_path / 'local.db'}")
+    try:
+        assert guarda_de_credenciais(config, criar_sessoes(motor)) is None
+    finally:
+        await motor.dispose()
+
+
 async def teste_falha_passageira_nao_reapresenta_token_antigo(simulador, http, config, guarda):
     configurado(config)
     agora = [1000.0]
@@ -353,6 +541,84 @@ async def teste_busca_pelo_catalogo_com_frete_cotado(simulador, http, config):
     assert usado.titulo.endswith("(usado)") and usado.condicao is Condicao.USADO
     assert usado.vendedor == "OUTRA"
     assert por_id["mercadolivre:MLB3"].vendedor is None
+
+
+async def teste_busca_pelo_ean_acha_o_produto_do_catalogo(simulador, http, config):
+    configurado(config)
+    rota_token(simulador, [])
+    rota_itens = catalogo(simulador)
+    simulador.get(FRETE_ML).mock(_opcoes(25.9))
+    ofertas = await FonteMercadoLivre(http, config).buscar(contexto("7891234567895"))
+    assert [c.request.url.path for c in rota_itens.calls] == ["/products/MLB100/items"]
+    assert ofertas and all(o.relevancia == 100 for o in ofertas)
+
+
+async def teste_item_repetido_em_dois_produtos_entra_e_e_cotado_uma_vez(simulador, http, config):
+    configurado(config)
+    rota_token(simulador, [])
+    simulador.get(CATALOGO).mock(
+        resposta_json(
+            {"results": [PRODUTOS["results"][0], {**PRODUTOS["results"][0], "id": "MLB300"}]}
+        )
+    )
+    simulador.get(ITENS).mock(resposta_json({"results": [ITENS_100["results"][0]]}))
+    simulador.get(USUARIOS).mock(resposta_json([]))
+    rota_frete = simulador.get(FRETE_ML).mock(_opcoes(25.9))
+    ofertas = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060"))
+    assert [o.id for o in ofertas] == ["mercadolivre:MLB1"]
+    assert rota_frete.call_count == 1
+
+
+async def teste_item_com_id_fora_do_padrao_ou_condicao_desconhecida_fica_de_fora(
+    simulador, http, config
+):
+    configurado(config)
+    rota_token(simulador, [])
+    base = {"seller_id": 11, "price": 1000, "currency_id": "BRL"}
+    itens = {
+        "results": [
+            {**base, "item_id": "MLB7", "condition": "refurbished"},
+            {**base, "item_id": "1234567", "condition": "new"},
+            {**base, "item_id": "MLBU999", "condition": "new"},
+            {**base, "item_id": "MLB8", "condition": "not_specified"},
+        ]
+    }
+    catalogo(simulador, itens=itens)
+    simulador.get(FRETE_ML).mock(_opcoes(25.9))
+    ofertas = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060"))
+    assert [(o.id, o.condicao) for o in ofertas] == [("mercadolivre:MLB7", Condicao.RECONDICIONADO)]
+    assert ofertas[0].link == "https://produto.mercadolivre.com.br/MLB-7-_JM"
+
+
+async def teste_cotacao_que_falha_mantem_o_frete_gratis_anunciado(simulador, http, config):
+    configurado(config)
+    rota_token(simulador, [])
+    catalogo(simulador)
+    simulador.get(FRETE_ML).mock(httpx.Response(500))
+    ofertas = await FonteMercadoLivre(http, config).buscar(
+        contexto("rtx 4060"), previa=lambda _: None
+    )
+    por_id = {o.id: o for o in ofertas}
+    assert por_id["mercadolivre:MLB2"].frete.status is StatusFrete.GRATIS_ANUNCIADO
+    assert por_id["mercadolivre:MLB1"].frete.status is StatusFrete.NAO_INFORMADO
+
+
+async def teste_produto_que_falha_fica_no_log(simulador, http, config, caplog):
+    configurado(config)
+    rota_token(simulador, [])
+    simulador.get(CATALOGO).mock(
+        resposta_json(
+            {"results": [PRODUTOS["results"][0], {**PRODUTOS["results"][0], "id": "MLB300"}]}
+        )
+    )
+    simulador.get(re.compile(r".*/products/MLB100/items.*")).mock(resposta_json(ITENS_100))
+    simulador.get(re.compile(r".*/products/MLB300/items.*")).mock(httpx.Response(500))
+    simulador.get(USUARIOS).mock(resposta_json([]))
+    simulador.get(FRETE_ML).mock(_opcoes(25.9))
+    with caplog.at_level(logging.WARNING, logger="zpektral.mercadolivre"):
+        ofertas = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060"))
+    assert ofertas
+    assert "1 de 2 produtos" in caplog.text
 
 
 async def teste_cada_produto_traz_as_ofertas_novas_mais_baratas(simulador, http, config):

@@ -2,6 +2,7 @@ import asyncio
 import hashlib
 import logging
 import math
+import re
 import time
 from datetime import UTC, datetime
 from typing import Any
@@ -40,6 +41,11 @@ PRODUTOS_DO_CATALOGO = 10
 # cada produto custa uma chamada a mais; as ofertas de cada um disputam a mesma página
 PRODUTOS_COM_OFERTAS = 6
 OFERTAS_POR_PRODUTO = 3
+# resposta perdida depois da troca queima o refresh token: espera mais que nas lojas, mas
+# no total menos que os 30 s em que o banco derruba a transação parada com a trava
+SEGUNDOS_RESPOSTA_TOKEN = 25
+_ID_ITEM = re.compile(r"MLB\d+")
+CONDICOES = {"new": Condicao.NOVO, "used": Condicao.USADO, "refurbished": Condicao.RECONDICIONADO}
 
 
 REAUTORIZAR = (
@@ -85,6 +91,8 @@ class CofreTokens:
         self._expira = 0.0
         self._rejeitado: str | None = None
         self._recusados: set[str] = set()
+        # (resumo do token trocado, par novo) que o banco não recebeu: só esta instância o tem
+        self._pendente: tuple[str, dict[str, Any]] | None = None
         self._semente = config.ml_token_renovacao.get_secret_value()
         self._renovacao = self._semente
         self.chave = f"{self.fonte}:{_resumo(self._semente)}" if self._semente else self.fonte
@@ -97,7 +105,7 @@ class CofreTokens:
             s.ml_id_cliente
             and s.ml_segredo_cliente.get_secret_value()
             and self._semente
-            and (self._guarda is not None or not s.url_banco)
+            and (self._guarda is not None or not (s.url_banco or s.vercel))
         )
 
     def invalidar(self, rejeitado: str) -> None:
@@ -106,7 +114,7 @@ class CofreTokens:
             self._acesso, self._expira = None, 0.0
 
     async def obter_token(self) -> str:
-        if self._acesso and self._relogio() < self._expira:
+        if self._pendente is None and self._acesso and self._relogio() < self._expira:
             return self._acesso
         if self._tarefa is None or self._tarefa.done():
             self._tarefa = asyncio.ensure_future(self._atualizar())
@@ -117,6 +125,8 @@ class CofreTokens:
         return self._acesso
 
     async def _atualizar(self) -> None:
+        if self._pendente is not None:
+            await self._gravar_pendente()
         if self._acesso and self._relogio() < self._expira:
             return
         if self._guarda is None:
@@ -125,6 +135,9 @@ class CofreTokens:
         novo: dict[str, Any] | None = None
         try:
             async with self._guarda.travar(self.chave) as travada:
+                # a semente já foi trocada quando a linha existe: apresentá-la de novo é inútil
+                if travada.ilegivel:
+                    raise AutorizacaoRecusada
                 salvo = travada.atual
                 if salvo and self._utilizavel(salvo):
                     self._adotar(salvo)
@@ -136,9 +149,24 @@ class CofreTokens:
             if novo is None:
                 raise
             # o Mercado Livre já trocou o token: sem esta gravação, só autorizando de novo
-            log.error("mercado livre: o token renovado não foi gravado; tentando outra vez")
+            self._pendente = (_resumo(renovacao), novo)
+            await self._gravar_pendente()
+
+    async def _gravar_pendente(self) -> None:
+        origem, par = self._pendente
+        try:
             async with self._guarda.travar(self.chave) as travada:
-                travada.novo = novo
+                salvo = (travada.atual or {}).get("refresh_token") or self._semente
+                # se o banco já tem outro token, o commit tinha passado e só a confirmação se perdeu
+                if not travada.ilegivel and _resumo(salvo) == origem:
+                    travada.novo = par
+        except Exception:
+            log.error(
+                "mercado livre: o token renovado não foi gravado; fica nesta instância e "
+                "a gravação é refeita na próxima busca"
+            )
+            return
+        self._pendente = None
 
     def _utilizavel(self, salvo: dict[str, Any]) -> bool:
         acesso, expira = salvo.get("access_token"), salvo.get("expires_at")
@@ -156,18 +184,25 @@ class CofreTokens:
     async def _renovar(self, renovacao: str) -> dict[str, Any]:
         if _resumo(renovacao) in self._recusados:
             raise AutorizacaoRecusada
-        resposta = await self._http.requisitar(
-            "POST",
-            f"{API}/oauth/token",
-            tentativas=0,
-            aceitos=(200, 400, 401),
-            data={
-                "grant_type": "refresh_token",
-                "client_id": self._config.ml_id_cliente,
-                "client_secret": self._config.ml_segredo_cliente.get_secret_value(),
-                "refresh_token": renovacao,
-            },
-        )
+        try:
+            async with asyncio.timeout(SEGUNDOS_RESPOSTA_TOKEN):
+                resposta = await self._http.requisitar(
+                    "POST",
+                    f"{API}/oauth/token",
+                    tentativas=0,
+                    aceitos=(200, 400, 401),
+                    timeout=SEGUNDOS_RESPOSTA_TOKEN,
+                    # um 307 reenviaria o Client Secret e o refresh token a outro endereço
+                    follow_redirects=False,
+                    data={
+                        "grant_type": "refresh_token",
+                        "client_id": self._config.ml_id_cliente,
+                        "client_secret": self._config.ml_segredo_cliente.get_secret_value(),
+                        "refresh_token": renovacao,
+                    },
+                )
+        except TimeoutError:
+            raise ErroExterno("mercado livre: renovação do token sem resposta") from None
         corpo = ler_json(resposta)
         corpo = corpo if isinstance(corpo, dict) else {}
         if resposta.status_code != 200:
@@ -230,7 +265,7 @@ class FonteMercadoLivre:
             raise ErroExterno("mercado livre: resposta de busca inesperada")
         produtos = [p for p in dados.get("results") or [] if isinstance(p, dict) and p.get("id")]
         # só o produto que casa com a busca gasta a chamada das ofertas
-        notas = [ctx.relevancia_de(str(p.get("name") or ""), None) for p in produtos]
+        notas = [_nota(ctx, p) for p in produtos]
         escolhidos = [
             p
             for p, nota in sorted(zip(produtos, notas, strict=True), key=lambda par: -par[1])
@@ -243,12 +278,19 @@ class FonteMercadoLivre:
         if escolhidos and len(falhas) == len(escolhidos):
             bloqueio = next((f for f in falhas if getattr(f, "bloqueio", False)), None)
             raise bloqueio or falhas[0]
-        pares = [
-            (produto, item)
-            for produto, itens in zip(escolhidos, listas, strict=True)
-            if not isinstance(itens, BaseException)
-            for item in itens
-        ]
+        if falhas:
+            log.warning(
+                "mercado livre: %d de %d produtos sem ofertas (%s)",
+                len(falhas),
+                len(escolhidos),
+                falhas[0],
+            )
+        # o mesmo anúncio pode disputar duas páginas de produto
+        por_item: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
+        for produto, itens in zip(escolhidos, listas, strict=True):
+            for item in [] if isinstance(itens, BaseException) else itens:
+                por_item.setdefault(str(item["item_id"]), (produto, item))
+        pares = list(por_item.values())
         vendedores = await self._vendedores({item.get("seller_id") for _, item in pares}, token)
         ofertas = montar_ofertas(
             self.id, pares, lambda par, pos: self._oferta(*par, pos, ctx, vendedores)
@@ -261,6 +303,7 @@ class FonteMercadoLivre:
             lambda o: o,
         )
         if ctx.endereco is not None:
+            anunciados = {o.id: o.frete for o in a_cotar}
             if previa is not None and a_cotar:
                 for o in a_cotar:
                     o.frete = ctx.frete_calculando()
@@ -271,7 +314,8 @@ class FonteMercadoLivre:
             )
             for o in a_cotar:
                 if o.frete.status is StatusFrete.CALCULANDO:
-                    o.frete = ctx.frete_sem_cotacao()
+                    # sem cotação no prazo, volta o que o anúncio diz (frete grátis, se diz)
+                    o.frete = anunciados[o.id]
         return [o.consolidar() for o in ofertas]
 
     async def _consultar(self, url: str, token: str) -> tuple[httpx.Response, str]:
@@ -333,26 +377,21 @@ class FonteMercadoLivre:
         ctx: ContextoBusca,
         vendedores: dict[Any, str],
     ) -> Oferta | None:
-        if not item.get("price"):
+        id_item = str(item["item_id"])
+        condicao = CONDICOES.get(item.get("condition"))
+        if not item.get("price") or not _ID_ITEM.fullmatch(id_item) or condicao is None:
             return None
         info_frete = item.get("shipping") or {}
         if info_frete.get("free_shipping"):
             frete = Frete(StatusFrete.GRATIS_ANUNCIADO, valor=0)
         else:
             frete = ctx.frete_sem_cotacao()
-        atributos = {
-            a.get("id"): a.get("value_name")
-            for a in produto.get("attributes") or []
-            if isinstance(a, dict)
-        }
-        gtins = (g.strip() for g in str(atributos.get("GTIN") or "").split(","))
+        marca, ean = _marca_e_ean(produto)
         fotos = [f.get("url") for f in produto.get("pictures") or [] if isinstance(f, dict)]
         foto = fotos[0] if fotos and isinstance(fotos[0], str) else ""
         titulo = str(produto.get("name") or "")
-        usado = item.get("condition") == "used"
-        if usado:
-            titulo = f"{titulo} (usado)"
-        id_item = str(item["item_id"])
+        if condicao is not Condicao.NOVO:
+            titulo = f"{titulo} ({condicao.value})"
         vendedor = vendedores.get(item.get("seller_id"))
         original = item.get("original_price")
         return Oferta(
@@ -364,12 +403,12 @@ class FonteMercadoLivre:
             origem=Origem.MARKETPLACE,
             vendedor=vendedor,
             imagem=foto.replace("http://", "https://") or None,
-            marca=atributos.get("BRAND"),
-            ean=next(filter(None, map(normalizar_ean, gtins)), None),
-            condicao=Condicao.USADO if usado else None,
+            marca=marca,
+            ean=ean,
+            condicao=condicao,
             preco_original=para_centavos(original) if original else None,
             frete=frete,
-            relevancia=ctx.relevancia_de(titulo, vendedor),
+            relevancia=ctx.relevancia_de(titulo, vendedor, ean, marca),
             posicao=posicao,
         )
 
@@ -407,6 +446,21 @@ class FonteMercadoLivre:
                 cotado_em=datetime.now(UTC).isoformat(timespec="seconds"),
             )
         oferta.consolidar()
+
+
+def _marca_e_ean(produto: dict[str, Any]) -> tuple[str | None, str | None]:
+    atributos = {
+        a.get("id"): a.get("value_name")
+        for a in produto.get("attributes") or []
+        if isinstance(a, dict)
+    }
+    gtins = (g.strip() for g in str(atributos.get("GTIN") or "").split(","))
+    return atributos.get("BRAND"), next(filter(None, map(normalizar_ean, gtins)), None)
+
+
+def _nota(ctx: ContextoBusca, produto: dict[str, Any]) -> int:
+    marca, ean = _marca_e_ean(produto)
+    return ctx.relevancia_de(str(produto.get("name") or ""), None, ean, marca)
 
 
 def _opcao(bruto: dict[str, Any]) -> OpcaoFrete:

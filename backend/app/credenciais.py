@@ -55,6 +55,8 @@ class Cifra:
 class Travada:
     atual: dict[str, Any] | None
     novo: dict[str, Any] | None = None
+    # a linha existe, mas não abre com a chave atual (chave trocada ou registro adulterado)
+    ilegivel: bool = False
 
 
 class GuardaCredenciais:
@@ -76,7 +78,7 @@ class GuardaCredenciais:
             return None
         dados = self._cifra.decifrar(cifrado, fonte)
         if dados is None:
-            # chave trocada ou registro adulterado: a fonte recomeça pela semente do ambiente
+            # chave trocada ou registro adulterado: só uma nova autorização resolve
             log.error("credencial de %s não abre com a CHAVE_CREDENCIAIS atual", fonte)
         return dados
 
@@ -91,7 +93,8 @@ class GuardaCredenciais:
                 chave = zlib.crc32(f"credencial:{fonte}".encode())
                 await sessao.execute(text("SELECT pg_advisory_xact_lock(:chave)"), {"chave": chave})
             linha = await sessao.get(CredencialOAuth, fonte)
-            travada = Travada(self._abrir(linha.dados if linha else None, fonte))
+            atual = self._abrir(linha.dados if linha else None, fonte)
+            travada = Travada(atual, ilegivel=linha is not None and atual is None)
             yield travada
             if travada.novo is None:
                 return

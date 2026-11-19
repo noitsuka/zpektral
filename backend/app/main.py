@@ -36,11 +36,17 @@ def guarda_de_credenciais(config: Configuracoes, sessoes) -> GuardaCredenciais |
         cifra = Cifra(chave) if chave else None
     except ValueError as erro:
         log.error("credenciais OAuth desligadas: %s", erro)
-    if sessoes is not None and cifra is not None:
+    motor = sessoes.kw.get("bind") if sessoes is not None else None
+    # na Vercel só o PostgreSQL é comum a todas as instâncias
+    compartilhado = not config.vercel or (motor is not None and motor.dialect.name == "postgresql")
+    if sessoes is not None and cifra is not None and compartilhado:
         return GuardaCredenciais(sessoes, cifra)
     if config.ml_token_renovacao.get_secret_value():
-        if config.url_banco:
-            log.error("mercado livre desativado: falta uma CHAVE_CREDENCIAIS válida")
+        if config.url_banco or config.vercel:
+            log.error(
+                "mercado livre desativado: o token precisa de um PostgreSQL e de uma "
+                "CHAVE_CREDENCIAIS válida"
+            )
         else:
             log.warning("sem banco: o token renovado do mercado livre fica só nesta instância")
     return None
