@@ -1,10 +1,13 @@
 import re
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from functools import lru_cache
 
 _CENTAVO = Decimal("0.01")
 _REAIS = re.compile(r"-?\d+(?:\.\d{3})*(?:,\d{1,2})?")
 
 
+# o catálogo VTEX repete os mesmos valores de parcela em cada vendedor de cada item
+@lru_cache(maxsize=8192)
 def para_centavos(valor: float | int | str | Decimal) -> int:
     if isinstance(valor, float):
         valor = repr(valor)

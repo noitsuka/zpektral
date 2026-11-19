@@ -124,6 +124,7 @@ LETRAS_UNIDADE = frozenset("lvwkgx")
 UNIDADES = LETRAS_UNIDADE | frozenset("gb tb mb kg ml mm cm m hz ghz mah pol btu".split())
 
 
+@lru_cache(maxsize=65_536)
 def normalizar(texto: str) -> str:
     texto = unicodedata.normalize("NFKD", texto.casefold())
     texto = "".join(car for car in texto if not unicodedata.combining(car))
