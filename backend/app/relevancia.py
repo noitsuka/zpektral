@@ -16,6 +16,10 @@ _ORDINAL = re.compile(r"(\d)\s*[\u00aa\u00ba\u00b0]")
 # "12.000 BTUs" é milhar; "10,1kg" e "6,1 pol" são decimais e valem pela parte inteira
 _MILHAR = re.compile(r"(\d)\.(\d{3})(?!\d)")
 _DECIMAL = re.compile(r"(\d)[.,]\d{1,2}(?!\d)")
+# tela de 23,8" é vendida como de 24 polegadas
+_POLEGADA_DECIMAL = re.compile(r"(\d+)[.,](\d)\d?(?=\s*pol)", re.I)
+# "Galaxy S24+" é a versão Plus; "A+++" vira "a plus", sem efeito
+_MAIS = re.compile(r"(?<=[0-9A-Za-z])\++(?![0-9A-Za-z])")
 
 PALAVRAS_VAZIAS = frozenset(
     "a o as os de da do das dos e em no na nos nas com sem para por pra p um uma the".split()
@@ -28,7 +32,8 @@ PALAVRAS_ACESSORIO = frozenset(
     puxador motoventilador termostato resistencia controle pulseira tampa painel rack
     acessorio cesto cuba botao copo jarra lamina helice mangueira valvula bico vedacao
     engrenagem correia parafuso rodizio limpa limpador fusivel lampada grelha
-    amortecedor tapete assadeira pe pes bandeja forma papel
+    amortecedor tapete assadeira pe pes bandeja forma papel oculo interruptor gatilho volante
+    wheel
     jogo game midia pad control cartucho toner bateria tela broca bit ponteira lixa
     """.split()
 )
@@ -41,7 +46,7 @@ PARTES_DESCRITIVAS = frozenset(
 )
 # título dividido por " - ": "Pay Day 3 - PS5" é um jogo para o PS5, não o PS5
 _SEPARADOR = re.compile(r"\s[-\u2013|]\s")
-PALAVRAS_PARA = frozenset({"para", "pra", "p", "compativel", "compat"})
+PALAVRAS_PARA = frozenset({"para", "pra", "p", "compativel", "compat", "compatible", "for"})
 PARTE_DE = frozenset({"de", "da", "do", "das", "dos"})
 COLETIVOS = frozenset({"jogo", "kit", "conjunto", "par", "combo", "caixa", "pacote", "linha"})
 PALAVRAS_BRINQUEDO = frozenset(
@@ -80,6 +85,8 @@ EQUIVALENTES = {
     "prateada": "prata",
     "roxa": "roxo",
     "bt": "bluetooth",
+    "btus": "btu",
+    "gaming": "gamer",
     "white": "branco",
     "black": "preto",
     "silver": "prata",
@@ -97,6 +104,20 @@ CORES = frozenset(
     marrom menta grafite inox nude caramelo vinho creme cobre bronze turquesa coral chumbo
     carvalho nogueira freijo cinamomo imbuia castanho
     """.split()
+)
+# o que algumas lojas põem no campo de marca quando não há marca
+MARCAS_VAZIAS = frozenset(
+    {
+        "nao disponivel",
+        "nao informado",
+        "generico",
+        "generica",
+        "sem marca",
+        "outros",
+        "outras",
+        "diversos",
+        "n a",
+    }
 )
 PISO_ESPECIFICACAO = 72  # o site esconde abaixo de 70 e só cota frete a partir de 65
 LETRAS_UNIDADE = frozenset("lvwkgx")
@@ -133,7 +154,8 @@ def _separar_codigo(termo: str) -> list[str]:
 
 def _termos_brutos(texto: str) -> list[str]:
     saida = []
-    texto = _ORDINAL.sub(r"\1 ", _MARCA_POLEGADA.sub(r"\1 pol ", texto))
+    texto = _ORDINAL.sub(r"\1 ", _MARCA_POLEGADA.sub(r"\1 pol ", _MAIS.sub(" plus ", texto)))
+    texto = _POLEGADA_DECIMAL.sub(lambda m: str(int(m[1]) + (int(m[2]) >= 5)), texto)
     texto = _DECIMAL.sub(r"\1", _MILHAR.sub(r"\1\2", texto))
     for bruto in normalizar(texto).split():
         for peca in _separar_codigo(bruto):
@@ -272,6 +294,25 @@ def texto_para_lojas(texto: str) -> str:
     return " ".join(saida)
 
 
+def sem_unidade_por_extenso(texto: str) -> str:
+    """Tira a unidade escrita em palavra separada depois do número: "4 litros" vira "4".
+
+    Medido nas lojas VTEX: a busca delas acha mais produtos certos sem a unidade solta, e a
+    unidade colada ao número ("128gb", "9w") rende igual ou melhor como a pessoa escreveu.
+    """
+    palavras = texto.split()
+    return " ".join(
+        p
+        for i, p in enumerate(palavras)
+        if not (i and palavras[i - 1][-1].isdigit() and _unidade_solta(p))
+    )
+
+
+def _unidade_solta(palavra: str) -> bool:
+    termos = _termos_brutos(palavra)
+    return len(termos) == 1 and termos[0] in UNIDADES
+
+
 @dataclass(frozen=True, slots=True)
 class Consulta:
     texto: str
@@ -288,6 +329,8 @@ class Consulta:
     modelos: tuple[str, ...] = field(init=False)
     unidades_pedidas: tuple[str, ...] = field(init=False)
     tipo: str | None = field(init=False)
+    marcas: frozenset[str] = field(init=False)
+    linhas: tuple[tuple[str, str], ...] = field(init=False)
 
     # o que só depende da consulta sai daqui uma vez, e não a cada título pontuado
     def __post_init__(self) -> None:
@@ -318,6 +361,22 @@ class Consulta:
             (t for t, n in zip(termos, numeros, strict=True) if not n and t in _produtos()), None
         )
         object.__setattr__(self, "tipo", tipo)
+        marcas = frozenset(t for t in termos if t in _marcas())
+        object.__setattr__(self, "marcas", marcas)
+        # "flip 6", "iphone 15": o número do modelo só identifica junto do nome da linha
+        linhas = tuple(
+            (a, b)
+            for (a, b), depois in zip(pairwise(termos), (*termos[2:], ""), strict=False)
+            if b.isdigit()
+            and b in modelos
+            and (not depois or _tem_numero(depois) or depois in VERSOES_DE_MODELO)
+            and a.isalpha()
+            and a not in _produtos()
+            and a not in CORES
+            and a not in UNIDADES
+            and a not in marcas
+        )
+        object.__setattr__(self, "linhas", linhas)
 
     @property
     def esta_vazia(self) -> bool:
@@ -361,10 +420,12 @@ def interpretar_consulta(texto: str) -> Consulta:
     )
 
 
-def termos_ausentes(consulta: Consulta, titulo: str, ean: object = None) -> list[str]:
+def termos_ausentes(
+    consulta: Consulta, titulo: str, ean: object = None, marca: str | None = None
+) -> list[str]:
     if consulta.gtin and normalizar_ean(ean) == consulta.gtin:
         return []
-    achados = _acertos(consulta, termos_do_texto(titulo), titulo)
+    achados = _acertos(consulta, termos_do_texto(titulo), titulo, marca)
     trechos: list[list[str]] = []
     vazias: list[str] = []
     aberto = False
@@ -400,7 +461,9 @@ def _tem_numero(termo: str) -> bool:
     return any(c.isdigit() for c in termo)
 
 
-def _acertos(consulta: Consulta, palavras_titulo: tuple[str, ...], titulo: str) -> dict[str, int]:
+def _acertos(
+    consulta: Consulta, palavras_titulo: tuple[str, ...], titulo: str, marca: str | None = None
+) -> dict[str, int]:
     achados: dict[str, int] = {}
     posicoes: dict[str, int] = {}
     for i, t in enumerate(palavras_titulo):
@@ -433,6 +496,10 @@ def _acertos(consulta: Consulta, palavras_titulo: tuple[str, ...], titulo: str) 
     for tom, cor in TONS.items():
         if cor in consulta.cores and cor not in achados and tom in posicoes:
             achados[cor] = posicoes[tom]
+    # a marca pedida vem no campo de marca da loja, não no título ("Lavadora 11kg LES11")
+    if marca and consulta.marcas:
+        for termo in consulta.marcas.intersection(termos_do_texto(marca)):
+            achados.setdefault(termo, len(palavras_titulo))
     return achados
 
 
@@ -453,11 +520,11 @@ def _versao_nao_pedida(consulta: Consulta, seguintes: tuple[str, ...]) -> bool:
     return False
 
 
-def pontuar(consulta: Consulta, titulo: str) -> int:
+def pontuar(consulta: Consulta, titulo: str, marca: str | None = None) -> int:
     if consulta.esta_vazia:
         return 100
     palavras_titulo = termos_do_texto(titulo)
-    achados = _acertos(consulta, palavras_titulo, titulo)
+    achados = _acertos(consulta, palavras_titulo, titulo, marca)
 
     casado = 0.0
     total = sum(consulta.pesos)
@@ -492,7 +559,18 @@ def pontuar(consulta: Consulta, titulo: str) -> int:
         familias = no_titulo | {TONS[c] for c in no_titulo & TONS.keys()}
         if not consulta.cores & familias:
             resultado = min(resultado, 40)
-    if falta_numero or _quantidade_trocada(consulta.termos, palavras_titulo):
+    # outra marca: quem pediu Electrolux não procura a Midea entre os parecidos
+    if (
+        consulta.marcas
+        and not consulta.marcas & achados.keys()
+        and _tem_marca(palavras_titulo, marca)
+    ):
+        resultado = min(resultado, 40)
+    if (
+        falta_numero
+        or _quantidade_trocada(consulta.termos, palavras_titulo)
+        or any(n in achados and linha not in achados for linha, n in consulta.linhas)
+    ):
         resultado = min(resultado, 40)
     if palavras and not palavras_achadas:
         resultado = min(resultado, 15)
@@ -573,6 +651,20 @@ def eh_secundario(
     return any(t in PALAVRAS_BRINQUEDO for t in palavras_titulo)
 
 
+def _tem_marca(palavras_titulo: tuple[str, ...], marca: str | None) -> bool:
+    # a marca informada pela loja vale mesmo fora da lista ("3Green")
+    return not _marcas().isdisjoint(palavras_titulo) or bool(
+        marca and normalizar(marca) and normalizar(marca) not in MARCAS_VAZIAS
+    )
+
+
+@lru_cache(maxsize=1)
+def _marcas() -> frozenset[str]:
+    # gerada por scripts/gerar_marcas.py a partir de produtos reais
+    bruto = resources.files("app").joinpath("dados/marcas.txt").read_text("utf-8")
+    return frozenset(bruto.split()) - _produtos()
+
+
 @lru_cache(maxsize=1)
 def _produtos() -> frozenset[str]:
     return frozenset(termos_do_texto(PALAVRAS_DE_PRODUTO))
@@ -594,8 +686,10 @@ def _so_no_sufixo(titulo: str, consulta: Consulta) -> bool:
     )
 
 
-def pontuar_com_vendedor(consulta: Consulta, titulo: str, vendedor: str | None) -> int:
-    resultado = pontuar(consulta, titulo)
+def pontuar_com_vendedor(
+    consulta: Consulta, titulo: str, vendedor: str | None, marca: str | None = None
+) -> int:
+    resultado = pontuar(consulta, titulo, marca)
     if (
         vendedor
         and not consulta.pede_acessorio

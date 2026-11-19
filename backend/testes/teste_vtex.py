@@ -756,3 +756,23 @@ def teste_pecas_baratas_com_nota_alta_nao_tiram_o_produto_da_cotacao():
     notebook = oferta("notebook", 399900, 0)
     escolhidas = escolher_para_cotar([*pecas, notebook], 65, 20, lambda o: o)
     assert "notebook" in {o.id for o in escolhidas}
+
+
+@pytest.mark.parametrize(
+    ("consulta", "enviada"),
+    [
+        # medido nas lojas VTEX: com a unidade por extenso, a busca da loja acha menos
+        ("air fryer mondial 4 litros", "air fryer mondial 4"),
+        ("geladeira frost free 375 litros", "geladeira frost free 375"),
+        ("ar condicionado 12000 btus", "ar condicionado 12000"),
+        ("panela de pressao 4,5 litros", "panela de pressao 4,5"),
+        # unidade colada ao número fica, como a pessoa escreveu
+        ("iphone 15 128gb", "iphone 15 128gb"),
+        ("lampada led 9w", "lampada led 9w"),
+        ("tenis de corrida 42 masculino", "tenis de corrida 42 masculino"),
+    ],
+)
+async def teste_busca_da_loja_sem_unidade_por_extenso(simulador, http, config, consulta, enviada):
+    buscar = simulador.get(URL_IS).mock(resposta_json({"products": []}))
+    await FonteVtex(CARREFOUR, http, config).buscar(contexto(consulta))
+    assert buscar.calls.last.request.url.params["query"] == enviada

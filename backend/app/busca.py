@@ -20,6 +20,7 @@ from app.configuracao import Configuracoes
 from app.fontes.base import ContextoBusca, Fonte
 from app.modelos import Endereco, Frete, Oferta, RelatorioFonte, StatusFonte
 from app.relevancia import (
+    MARCAS_VAZIAS,
     Consulta,
     interpretar_consulta,
     normalizar,
@@ -35,10 +36,6 @@ SEGUNDOS_TRABALHO_FALHO = 15
 SEGUNDOS_GRAVACAO = 5
 PRECO_MAXIMO_CENTAVOS = 100_000_000
 TITULO_MAXIMO = 300
-# o que algumas lojas põem no campo de marca quando não há marca
-MARCAS_VAZIAS = frozenset(
-    {"nao disponivel", "generico", "generica", "sem marca", "outros", "outras", "n a"}
-)
 URL_MAXIMA = 2048
 _TAG_HTML = re.compile(r"<[^>]{0,200}>")
 CARACTERES_CONTROLE = re.compile(r"[\x00-\x1f\x7f\u200b-\u200f\u202a-\u202e\u2066-\u2069]")
@@ -189,7 +186,7 @@ def sanear(ofertas: list[Oferta]) -> list[Oferta]:
 
 def marcar_ausentes(ofertas: list[Oferta], consulta: Consulta) -> list[Oferta]:
     for o in ofertas:
-        o.termos_ausentes = termos_ausentes(consulta, o.titulo, o.ean)
+        o.termos_ausentes = termos_ausentes(consulta, o.titulo, o.ean, o.marca)
     return ofertas
 
 

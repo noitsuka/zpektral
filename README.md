@@ -43,7 +43,7 @@ O zpektral faz esse caminho em cada loja ao mesmo tempo. A pessoa digita o produ
 - Histórico do preço na própria loja, com o aviso "menor preço desta loja em N dias" quando for o caso
 - Desconto com evidência: o desconto anunciado pela loja aparece como anunciado, a queda em relação ao histórico aparece como verificada, e o preço "de" que nunca foi visto ganha um alerta
 - Página de quedas de preço observadas nas buscas, com mediana, menor preço e dias de observação
-- Ofertas parecidas separadas das que casam com a busca, dizendo o que falta em cada uma
+- Ofertas parecidas separadas das que casam com a busca, dizendo o que falta em cada uma. Quem pede uma marca não vê outras entre os parecidos, e o número do modelo só vale junto do nome da linha: "jbl flip 6" não traz a JBL Charge 6
 - Busca que entende nomes diferentes para o mesmo produto, como "máquina de lavar louça" e "lava-louças", corrige erros de digitação e acentos esquecidos, como "geladiera" e "fogao", e aceita o código de barras (EAN) do produto
 - Separação entre o produto e as peças dele: o cesto da air fryer não aparece como air fryer, e produtos de marcas ou EANs diferentes não se misturam
 - Filtros por voltagem, condição e forma de pagamento

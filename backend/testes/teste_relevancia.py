@@ -460,3 +460,111 @@ def teste_especificacao_casada_nao_some_por_palavra_generica(titulo):
 )
 def teste_especificacao_casada_nao_traz_outro_produto(consulta, titulo, teto):
     assert s(consulta, titulo) <= teto
+
+
+def teste_mais_colado_ao_modelo_e_outra_versao():
+    # caso real: "Galaxy S24+" aparecia como Galaxy S24, com nota 100
+    assert s("galaxy s24 256gb", "Smartphone Samsung Galaxy S24+ 256GB 5G") <= 40
+    assert s("galaxy s24 plus 256gb", "Smartphone Samsung Galaxy S24+ 256GB 5G") >= 90
+    assert s("galaxy s24 256gb", "Samsung Galaxy S24 256GB Preto") >= 90
+    assert s("geladeira frost free", "Geladeira Brastemp Frost Free Duplex A+++ 463 Litros") >= 90
+
+
+def teste_tela_decimal_conta_pela_polegada_arredondada():
+    # caso real: monitor de 23,8" é vendido como de 24 polegadas
+    assert s("monitor lg 24 polegadas", 'Monitor LG 23,8" Full HD IPS 24MS500') >= 90
+    assert s("monitor lg 24 polegadas", "Monitor LG 23.8 Polegadas IPS") >= 90
+    assert s("monitor lg 24 polegadas", 'Monitor LG 23,4" Full HD') <= 40
+    assert s("iphone 15", 'Apple iPhone 15 128GB Preto 6,1"') >= 90
+
+
+def teste_btus_e_btu_sao_a_mesma_unidade():
+    assert s("ar condicionado split 12000 btus", "Ar Condicionado Split LG 12000 Btu/h Frio") >= 90
+
+
+def teste_gaming_e_gamer():
+    assert s("cadeira gamer", "Cadeira Dxracer Gaming Preta") >= 90
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        # casos reais: o número do modelo sozinho casava com outra coisa
+        ("jbl flip 6", 'Arandela 6" 25w Rms Redonda Sem Trafo 6co2r Jbl'),
+        ("jbl flip 6", "JBL Charge 6, alto-falante Bluetooth portátil sem fio, preto"),
+        ("iphone 15 128gb", "Capinha Galaxy S23 15 Cores 128gb"),
+    ],
+)
+def teste_numero_do_modelo_sem_o_nome_da_linha_nao_casa(consulta, titulo):
+    assert s(consulta, titulo) <= 40
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo", "piso"),
+    [
+        ("jbl flip 6", "Caixa de Som Portátil JBL Flip 6 Bluetooth 30W Preta", 90),
+        ("iphone 15 128gb", "Apple iPhone 15 (128 GB) - Preto", 90),
+        ("perfume 212 vip", "212 VIP Men Carolina Herrera EDT 100ml", 70),
+        ("fogao 4 bocas", "Fogão 4 Bocas Atlas Mônaco Top Glass", 90),
+        ("smartphone motorola g85", "Smartphone Moto G85 5G 256GB", 70),
+        ("chinelo havaianas 39/40", "Chinelo Havaianas Top 39/40 Preto", 90),
+    ],
+)
+def teste_nome_da_linha_presente_mantem_a_nota(consulta, titulo, piso):
+    assert s(consulta, titulo) >= piso
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        # casos reais de "playstation 5" e "furadeira bosch"
+        (
+            "playstation 5",
+            "Thrustmaster T248R Racing Wheel and Pedal Set (Compatible with PS5, PS4, PC)",
+        ),
+        ("playstation 5", "Óculos de Realidade Virtual Sony Playstation 5 VR2"),
+        ("playstation 5", "Volante Gamer Racing Wheel Apex HORI para PlayStation 5"),
+        ("furadeira bosch", "Interruptor Gatilho Furadeira durante bosch GBM13RE GBM10RE"),
+    ],
+)
+def teste_peca_e_acessorio_de_outro_jeito_tambem_ficam_abaixo(consulta, titulo):
+    assert s(consulta, titulo) < 70
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        # casos reais: outras marcas apareciam entre os parecidos
+        ("maquina de lavar electrolux 11kg", "Máquina de Lavar Roupa Midea 11Kg Slim Inverter"),
+        ("smart tv samsung 55 polegadas 4k", 'Smart TV LG 55" 4K UHD NANO AI 55UN85CBPSA'),
+        ("monitor lg 24 polegadas", 'Monitor Gamer Samsung 24" FHD 100 Hz HDMI'),
+        ("air fryer mondial 4 litros", "Fritadeira Air Fryer Philco 4L Preta"),
+    ],
+)
+def teste_outra_marca_fica_escondida(consulta, titulo):
+    assert s(consulta, titulo) <= 40
+
+
+def teste_titulo_sem_marca_continua_parecido():
+    nota = s("smart tv samsung 55 polegadas 4k", 'Smart Tv 4k 55" Com Dolby Vision, Hdr10')
+    assert 70 <= nota < 90
+
+
+def teste_marca_informada_pela_loja_vale_como_a_do_titulo():
+    from app.relevancia import termos_ausentes
+
+    consulta = interpretar_consulta("maquina de lavar electrolux 11kg")
+    titulo = "Máquina de Lavar 11kg Essential Care LES11 Branca"
+    assert pontuar(consulta, titulo, "Electrolux") >= 90
+    assert termos_ausentes(consulta, titulo, marca="Electrolux") == []
+    assert pontuar(consulta, titulo, "Midea") <= 40
+    assert 70 <= pontuar(consulta, titulo) < 90
+
+
+def teste_marca_informada_diferente_esconde_mesmo_fora_da_lista():
+    # caso real: monitores 3Green e Westinghouse apareciam como parecidos em "monitor lg"
+    consulta = interpretar_consulta("monitor lg 24 polegadas")
+    titulo = "Monitor 24 Polegadas LED Full HD Widescreen 75Hz HDMI"
+    assert pontuar(consulta, titulo, "3Green") <= 40
+    assert 70 <= pontuar(consulta, titulo, "Não Informado") < 90
+    assert pontuar(consulta, titulo, "LG") >= 90

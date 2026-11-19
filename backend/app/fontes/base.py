@@ -20,10 +20,16 @@ class ContextoBusca:
     consulta: Consulta
     endereco: Endereco | None
 
-    def relevancia_de(self, titulo: str, vendedor: str | None = None, ean: object = None) -> int:
+    def relevancia_de(
+        self,
+        titulo: str,
+        vendedor: str | None = None,
+        ean: object = None,
+        marca: str | None = None,
+    ) -> int:
         if self.consulta.gtin and normalizar_ean(ean) == self.consulta.gtin:
             return 100
-        return pontuar_com_vendedor(self.consulta, titulo, vendedor)
+        return pontuar_com_vendedor(self.consulta, titulo, vendedor, marca)
 
     def frete_calculando(self) -> Frete:
         return Frete(StatusFrete.CALCULANDO if self.endereco else StatusFrete.SEM_CEP)

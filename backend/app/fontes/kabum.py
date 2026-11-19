@@ -81,6 +81,7 @@ class FonteKabum:
 
         id_produto = entrada.get("id")
         titulo = a.get("title") or ""
+        marca = (a.get("manufacturer") or {}).get("name")
         vendedor = None
         if a.get("is_marketplace"):
             vendedor = (a.get("marketplace") or {}).get("seller_name")
@@ -102,7 +103,7 @@ class FonteKabum:
             origem=Origem.MARKETPLACE if vendedor else Origem.LOJA,
             vendedor=vendedor or self.nome,
             imagem=imagens[0] if imagens else None,
-            marca=(a.get("manufacturer") or {}).get("name"),
+            marca=marca,
             preco_original=para_centavos(antigo) if antigo else None,
             preco_pix=para_centavos(pix),
             parcelamento=_parcelamento(a.get("max_installment"), para_centavos(cartao)),
@@ -110,7 +111,7 @@ class FonteKabum:
             preco_valido_ate=valido_ate,
             frete=frete,
             condicao=Condicao.RECONDICIONADO if a.get("is_openbox") else None,
-            relevancia=ctx.relevancia_de(titulo, vendedor),
+            relevancia=ctx.relevancia_de(titulo, vendedor, marca=marca),
             posicao=posicao,
         )
 

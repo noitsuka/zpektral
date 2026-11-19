@@ -338,6 +338,12 @@ def teste_sanear_tira_marca_que_nao_e_marca():
         ).consolidar()
 
     ofertas = sanear(
-        [montar("a", "Não Disponível"), montar("b", "GENÉRICO"), montar("c", "Mondial")]
+        [
+            montar("a", "Não Disponível"),
+            montar("b", "GENÉRICO"),
+            montar("c", "Mondial"),
+            montar("d", "Não Informado"),
+            montar("e", "Diversos"),
+        ]
     )
-    assert [o.marca for o in ofertas] == [None, None, "Mondial"]
+    assert [o.marca for o in ofertas] == [None, None, "Mondial", None, None]

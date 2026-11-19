@@ -35,7 +35,7 @@ from app.modelos import (
     nomes_de_promocao,
     validade_informada,
 )
-from app.relevancia import normalizar, pontuar_loja_brinquedos
+from app.relevancia import normalizar, pontuar_loja_brinquedos, sem_unidade_por_extenso
 
 log = logging.getLogger("zpektral.vtex")
 
@@ -137,6 +137,7 @@ class FonteVtex:
         return [c.oferta.consolidar() for c in candidatas]
 
     async def _produtos(self, texto: str) -> list[dict[str, Any]]:
+        texto = sem_unidade_por_extenso(texto)
         modo = self._loja.busca
         if modo == "legacy":
             return await self._busca_legada(texto)
@@ -217,7 +218,11 @@ class FonteVtex:
                                 oferta_comercial.get("PriceValidUntil"), agora
                             ),
                             relevancia=self._relevancia(
-                                ctx, titulo, vendedor.get("sellerName"), item.get("ean")
+                                ctx,
+                                titulo,
+                                vendedor.get("sellerName"),
+                                item.get("ean"),
+                                produto.get("brand"),
                             ),
                             posicao=posicao,
                         )
@@ -227,9 +232,16 @@ class FonteVtex:
         return saida
 
     def _relevancia(
-        self, ctx: ContextoBusca, titulo: str, vendedor: str | None, ean: object
+        self,
+        ctx: ContextoBusca,
+        titulo: str,
+        vendedor: str | None,
+        ean: object,
+        marca: object,
     ) -> int:
-        resultado = ctx.relevancia_de(titulo, vendedor, ean)
+        resultado = ctx.relevancia_de(
+            titulo, vendedor, ean, marca if isinstance(marca, str) else None
+        )
         if self._loja.segmento == "brinquedos":
             resultado = pontuar_loja_brinquedos(ctx.consulta, resultado)
         return resultado
