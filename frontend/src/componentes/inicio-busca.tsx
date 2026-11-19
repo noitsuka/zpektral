@@ -99,7 +99,7 @@ export function InicioBusca() {
             ) : endereco ? (
               <span className="text-tinta">Entrega em {descreverEndereco(endereco)}</span>
             ) : (
-              "O CEP é opcional. Com ele, o total inclui o frete que cada loja cobra até você."
+              "O CEP é opcional."
             )}
           </p>
           <p role="alert" className="mt-1 min-h-6 text-[0.875rem] font-medium text-falha">

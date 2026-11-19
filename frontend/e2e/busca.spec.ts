@@ -120,8 +120,9 @@ test("sem histórico, o desconto anunciado não vira economia confirmada", async
   const destaque = page.getByRole("region", { name: DESTAQUE });
   await destaque.getByRole("button", { name: "Ver a conta" }).click();
   await expect(destaque).toContainText("desconto anunciado pela loja");
-  await expect(destaque).toContainText("Histórico insuficiente para confirmar a economia");
   await expect(destaque).not.toContainText("Menor preço desta loja");
+  // a limitação é do Zpektral, não do preço: não vale um aviso na tela
+  await expect(destaque).not.toContainText("Histórico insuficiente");
 });
 
 test("Mais ofertas mostra o resto sem perder o que já estava na tela", async ({ page }) => {

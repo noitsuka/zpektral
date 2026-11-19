@@ -178,11 +178,12 @@ export function Quedas() {
 
         {estado.fase === "pronto" && (
           <>
-            <p className="numero text-[0.875rem] text-apagado">
-              {plural(filtrados.length, "queda", "quedas")}
-              {haQuanto(estado.dados.gerado_em, agora) &&
-                ` · lista montada ${haQuanto(estado.dados.gerado_em, agora)}`}
-            </p>
+            {/* sem quedas, o aviso abaixo já diz; a hora em que a lista foi montada não ajuda */}
+            {filtrados.length > 0 && (
+              <p className="numero text-[0.875rem] text-apagado">
+                {plural(filtrados.length, "queda", "quedas")}
+              </p>
+            )}
             {filtrados.length ? (
               <ul className="mt-3">
                 {filtrados.map((i, n) => (

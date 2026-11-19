@@ -19,8 +19,7 @@ export default function PaginaQuedas() {
           Quedas de preço
         </h1>
         <p className="mt-2 max-w-[60ch] text-apagado">
-          Ofertas abaixo do preço habitual da própria loja, segundo o que o Zpektral viu nas buscas
-          feitas aqui.
+          Ofertas abaixo do preço habitual da própria loja.
         </p>
         <details className="gaveta-detalhes mt-1 text-[0.9375rem]">
           <summary className="botao-texto cursor-pointer">

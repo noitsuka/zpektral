@@ -401,7 +401,8 @@ export function Resultados() {
             <StatusBusca
               fontes={transmissao.fontes}
               terminou={terminou}
-              ofertas={principais.length}
+              // só com parecidos na tela, "0 ofertas" desmentia a lista logo abaixo
+              ofertas={principais.length || parecidos.length}
               interrompida={transmissaoFalhou && !final}
               acao={
                 foraDoRanking && (
@@ -485,8 +486,7 @@ export function Resultados() {
               <EsqueletoMelhor />
             ) : cep && principais.length > 0 ? (
               <p className="text-[0.9375rem] text-apagado">
-                Nenhuma loja confirmou o frete para este CEP nas ofertas abaixo, então não há um
-                total para recomendar. Os valores mostram o preço sem frete.
+                Nenhuma loja confirmou o frete para este CEP; os valores são sem frete.
               </p>
             ) : null}
           </div>
@@ -608,13 +608,6 @@ function Seletor<T extends string>({
   );
 }
 
-function motivoDoParecido(ofertas: Oferta[]): string {
-  const termos = [...new Set(ofertas.flatMap((o) => o.termos_ausentes ?? []))];
-  return termos.length
-    ? `Sem ${termos.map((t) => `“${t}”`).join(", ")} no título`
-    : "Pode não ser o produto buscado";
-}
-
 function Parecidos({
   grupos,
   quantas,
@@ -641,12 +634,9 @@ function Parecidos({
       </summary>
       <div>
         {mostrados.map((g) => (
-          <GrupoProduto
-            key={g.chave}
-            grupo={g}
-            contexto={contexto}
-            motivo={motivoDoParecido(g.ofertas)}
-          />
+          // o título da seção já diz que não batem com tudo; repetir o motivo em cada produto
+          // ("Sem “mangá” no título") só enchia a lista
+          <GrupoProduto key={g.chave} grupo={g} contexto={contexto} />
         ))}
         {mostrados.length < grupos.length && (
           <button

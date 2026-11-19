@@ -15,12 +15,10 @@ const CONDICAO: Record<string, string> = { usado: "Usado", recondicionado: "Reco
 export function GrupoProduto({
   grupo,
   contexto,
-  motivo,
   omitir,
 }: {
   grupo: Grupo;
   contexto: Contexto;
-  motivo?: string;
   /** oferta já mostrada no destaque do menor total */
   omitir?: string;
 }) {
@@ -45,11 +43,7 @@ export function GrupoProduto({
           <h3 id={`${id}-titulo`} className="line-clamp-2 text-[1rem] leading-snug font-medium">
             {primeira.titulo}
           </h3>
-          {(condicao || motivo) && (
-            <p className="mt-0.5 text-[0.8125rem] text-alerta">
-              {[condicao, motivo].filter(Boolean).join(" · ")}
-            </p>
-          )}
+          {condicao && <p className="mt-0.5 text-[0.8125rem] text-alerta">{condicao}</p>}
         </div>
       </header>
       <ol className="divide-y divide-traco sm:pl-16 [&>li:first-child>article]:pt-2 lg:[&>li:first-child>article]:pt-1">

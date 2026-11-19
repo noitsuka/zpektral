@@ -29,7 +29,9 @@ export type Contexto = {
   tipico: (o: Oferta) => number | null;
 };
 
-function rotuloDoTotal(estado: EstadoTotal, oferta: Oferta): string {
+// Sem frete no total, o texto do frete ao lado já diz o porquê (ou o aviso da página, sem CEP);
+// "Sem frete" embaixo do preço repetia isso e ainda soava como frete grátis.
+function rotuloDoTotal(estado: EstadoTotal, oferta: Oferta): string | null {
   switch (estado) {
     case "confirmado":
       return "Com frete";
@@ -39,8 +41,13 @@ function rotuloDoTotal(estado: EstadoTotal, oferta: Oferta): string {
     case "indisponivel":
       return "Preço do produto";
     default:
-      return "Sem frete";
+      return null;
   }
+}
+
+function legendaDoTotal(rotulo: string | null, forma: string | null): string {
+  if (!rotulo) return forma ? forma[0].toUpperCase() + forma.slice(1) : "";
+  return forma ? `${rotulo}, ${forma}` : rotulo;
 }
 
 function textoDoFrete(oferta: Oferta, estado: EstadoTotal, cep: string | null): string {
@@ -56,9 +63,7 @@ function textoDoFrete(oferta: Oferta, estado: EstadoTotal, cep: string | null): 
         ? `Frete ${reais(f.valor)}, mas a loja mudou o valor entre consultas`
         : "Frete não confirmado";
     case "desconhecido":
-      return oferta.origem === "comparador"
-        ? "Frete calculado no site da loja"
-        : "A loja não informou o frete";
+      return oferta.origem === "comparador" ? "Frete no site da loja" : "Frete não informado";
     case "sem_cep":
       return "Informe o CEP para incluir o frete";
     case "nao_entrega":
@@ -77,13 +82,16 @@ function prazo(oferta: Oferta): string | null {
   return f.prazo ? `entrega ${f.prazo}` : null;
 }
 
-const ALERTAS: Record<Alerta, string> = {
-  prazo_longo: "Prazo acima de 60 dias",
-  frete_maior_que_produto: "Frete maior que o produto",
+// O prazo longo e o frete maior que o produto já se leem no prazo e no valor do frete da linha.
+const ALERTAS: Partial<Record<Alerta, string>> = {
   preco_mudou_no_checkout: "O preço mudou no carrinho",
   preco_fora_da_curva: "Bem abaixo das outras lojas, confira o anúncio",
   preco_instavel: "A loja muda o valor entre consultas",
 };
+
+function alertasVisiveis(oferta: Oferta): string[] {
+  return oferta.alertas.flatMap((a) => ALERTAS[a] ?? []);
+}
 
 const TOM: Record<Selo["tom"], string> = {
   economia: "text-exato",
@@ -95,7 +103,8 @@ const CONDICAO: Record<string, string> = { usado: "Usado", recondicionado: "Reco
 
 // Na linha cabe um sinal além do frete: o alerta da oferta, se houver, ou a queda verificada.
 function sinalDaLinha(oferta: Oferta, promocao: Promocao): { texto: string; tom: string } | null {
-  if (oferta.alertas.length) return { texto: ALERTAS[oferta.alertas[0]], tom: "text-alerta" };
+  const [alerta] = alertasVisiveis(oferta);
+  if (alerta) return { texto: alerta, tom: "text-alerta" };
   const queda = promocao.selos.find(
     (s) => s.tipo === "menor_em_dias" || s.tipo === "abaixo_do_habitual",
   );
@@ -261,8 +270,7 @@ export function LinhaOferta({
           {reais(total)}
         </p>
         <p className="mt-0.5 text-[0.8125rem] leading-snug text-apagado">
-          {rotuloDoTotal(estado, oferta)}
-          {forma && <span className="whitespace-nowrap">, {forma}</span>}
+          {legendaDoTotal(rotuloDoTotal(estado, oferta), forma)}
         </p>
       </div>
 
@@ -362,11 +370,12 @@ function Detalhes({
   const custo = oferta.parcelamento ? custoDoParcelamento(oferta.preco, oferta.parcelamento) : null;
   const serie = contexto.historico[oferta.id];
   const quando = oferta.consultado_em ? haQuanto(oferta.consultado_em, contexto.agora) : null;
-  // o desconto do Pix já aparece na conta; repetir como selo seria dizer a mesma coisa duas vezes
+  // O desconto do Pix já aparece na conta. O histórico curto fala do Zpektral, não do preço:
+  // sem histórico, o desconto anunciado só não ganha o selo de economia confirmada.
   const selos = [...seloDoTipico(contexto.tipico(oferta)), ...promocao.selos].filter(
-    (s) => s.tipo !== "pix",
+    (s) => s.tipo !== "pix" && s.tipo !== "historico_insuficiente",
   );
-  const historicoCurto = selos.some((s) => s.tipo === "historico_insuficiente");
+  const alertas = alertasVisiveis(oferta);
   // na página do anúncio, a loja costuma mostrar primeiro o próprio vendedor
   const parceiro = oferta.origem === "marketplace" ? oferta.vendedor : null;
 
@@ -401,13 +410,15 @@ function Detalhes({
       valor: reais(t.parcelado),
     });
 
+  // o vendedor parceiro já tem a frase própria, que diz também onde achá-lo no anúncio
   const fatos: [string, string][] = [];
-  if (oferta.origem === "marketplace" && oferta.vendedor)
-    fatos.push(["Vendido por", oferta.vendedor]);
   if (oferta.voltagem) fatos.push(["Voltagem", oferta.voltagem]);
   if (oferta.condicao && CONDICAO[oferta.condicao])
     fatos.push(["Condição", CONDICAO[oferta.condicao]]);
   if (quando) fatos.push(["Preço consultado", quando]);
+  const grafico = serie?.some((p) => p.dia < contexto.hoje) ?? false;
+  const sobre =
+    !!antes || alertas.length + selos.length + fatos.length > 0 || grafico || !!parceiro;
 
   return (
     <div className="mt-4 grid gap-x-12 gap-y-7 border-t border-traco pt-5 pb-2 text-[0.875rem] md:grid-cols-2">
@@ -464,49 +475,45 @@ function Detalhes({
         )}
       </section>
 
-      <section aria-label="Sobre o preço" className="min-w-0">
-        <h4 className="font-medium">Sobre o preço</h4>
-        {antes && <div className="mt-2 text-apagado">{antes}</div>}
-        {(oferta.alertas.length > 0 || selos.length > 0) && (
-          <ul className="mt-2 space-y-1.5">
-            {oferta.alertas.map((a) => (
-              <li key={a} className="text-alerta">
-                {ALERTAS[a]}.
-              </li>
-            ))}
-            {selos.map((s) => (
-              <Evidencia key={`${s.tipo}-${s.texto}`} selo={s} oferta={oferta} />
-            ))}
-          </ul>
-        )}
-        <div className="mt-4">
-          {serie?.some((p) => p.dia < contexto.hoje) ? (
-            <GraficoPreco pontos={serie} atual={oferta.preco} hoje={contexto.hoje} />
-          ) : historicoCurto ? null : (
-            <p className="text-apagado">
-              Ainda não há histórico de preço desta oferta. Ele se forma com as buscas feitas no
-              Zpektral.
+      {sobre && (
+        <section aria-label="Sobre o preço" className="min-w-0">
+          <h4 className="font-medium">Sobre o preço</h4>
+          {antes && <div className="mt-2 text-apagado">{antes}</div>}
+          {(alertas.length > 0 || selos.length > 0) && (
+            <ul className="mt-2 space-y-1.5">
+              {alertas.map((a) => (
+                <li key={a} className="text-alerta">
+                  {a}.
+                </li>
+              ))}
+              {selos.map((s) => (
+                <Evidencia key={`${s.tipo}-${s.texto}`} selo={s} oferta={oferta} />
+              ))}
+            </ul>
+          )}
+          {grafico && serie && (
+            <div className="mt-4">
+              <GraficoPreco pontos={serie} atual={oferta.preco} hoje={contexto.hoje} />
+            </div>
+          )}
+          {parceiro && (
+            <p className="mt-4 text-apagado">
+              Este preço é do vendedor {parceiro}, parceiro da {oferta.loja.nome}. No anúncio, ele
+              pode aparecer entre os outros vendedores.
             </p>
           )}
-        </div>
-        {(parceiro || oferta.origem === "comparador") && (
-          <p className="mt-4 text-apagado">
-            {parceiro
-              ? `Este preço é do vendedor ${parceiro}, parceiro da ${oferta.loja.nome}. No anúncio, ele pode aparecer entre os outros vendedores.`
-              : `O preço foi lido no Buscapé, e o botão leva para a página da oferta lá.`}
-          </p>
-        )}
-        {fatos.length > 0 && (
-          <dl className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1">
-            {fatos.map(([rotulo, valor]) => (
-              <div key={rotulo} className="contents">
-                <dt className="text-apagado">{rotulo}</dt>
-                <dd className="min-w-0 break-words">{valor}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-      </section>
+          {fatos.length > 0 && (
+            <dl className="mt-4 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1">
+              {fatos.map(([rotulo, valor]) => (
+                <div key={rotulo} className="contents">
+                  <dt className="text-apagado">{rotulo}</dt>
+                  <dd className="min-w-0 break-words">{valor}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </section>
+      )}
     </div>
   );
 }
