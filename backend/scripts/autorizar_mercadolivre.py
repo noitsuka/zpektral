@@ -66,7 +66,8 @@ def enviar_para_vercel(variaveis: dict[str, str]) -> None:
         comando += ["--environment", "production", "--sensitive", "--force"]
         feito = subprocess.run(comando, input=valor, text=True, capture_output=True, cwd=RAIZ)
         if feito.returncode != 0:
-            sys.exit(f"A Vercel recusou {nome} (código {feito.returncode}); nada foi impresso.")
+            motivo = (feito.stderr or "").replace(valor, "***").strip()[-300:] if valor else ""
+            sys.exit(f"A Vercel recusou {nome} (código {feito.returncode}): {motivo}")
         print(f"  {nome}: gravada como sensível em Production")
 
 
@@ -88,6 +89,9 @@ def main() -> None:
         help="manda as credenciais para a produção na Vercel em vez de gravar o backend/.env",
     )
     para_vercel = parser.parse_args().vercel
+    # sem o Node, a autorização seria feita e perdida: o token não aparece na tela
+    if para_vercel and shutil.which("npx") is None:
+        sys.exit("npx não encontrado: instale o Node.js antes de autorizar com --vercel.")
     atual = {} if para_vercel else ler_env()
     print("Autorização do Mercado Livre para o zpektral.")
     print("Crie um app em https://developers.mercadolivre.com.br/devcenter, com um")

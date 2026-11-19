@@ -30,18 +30,19 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 def guarda_de_credenciais(config: Configuracoes, sessoes) -> GuardaCredenciais | None:
     chave = config.chave_credenciais.get_secret_value()
-    if sessoes is None or not chave:
-        if config.ml_token_renovacao.get_secret_value():
-            log.warning(
-                "sem banco ou CHAVE_CREDENCIAIS: o token renovado do mercado livre fica só "
-                "na memória desta instância"
-            )
-        return None
+    cifra = None
     try:
-        return GuardaCredenciais(sessoes, Cifra(chave))
+        cifra = Cifra(chave) if chave else None
     except ValueError as erro:
         log.error("credenciais OAuth desligadas: %s", erro)
-        return None
+    if sessoes is not None and cifra is not None:
+        return GuardaCredenciais(sessoes, cifra)
+    if config.ml_token_renovacao.get_secret_value():
+        if config.url_banco:
+            log.error("mercado livre desativado: falta uma CHAVE_CREDENCIAIS válida")
+        else:
+            log.warning("sem banco: o token renovado do mercado livre fica só nesta instância")
+    return None
 
 
 def criar_app(config: Configuracoes | None = None) -> FastAPI:

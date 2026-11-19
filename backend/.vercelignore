@@ -7,5 +7,6 @@ __pycache__
 testes
 scripts
 .env
+.env.tmp
 *.db
 .ml-token.json

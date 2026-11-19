@@ -48,6 +48,13 @@ REAUTORIZAR = (
 )
 
 
+class AutorizacaoRecusada(ErroExterno):
+    """O Mercado Livre recusou o refresh token (invalid_grant): só uma nova autorização resolve."""
+
+    def __init__(self):
+        super().__init__(REAUTORIZAR, 401)
+
+
 def _resumo(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()[:16]
 
@@ -56,8 +63,9 @@ class CofreTokens:
     """Access token em memória; o refresh token, que o Mercado Livre troca a cada renovação,
     fica cifrado no banco para valer em todas as instâncias.
 
-    O ML_TOKEN_RENOVACAO do ambiente é a semente: enquanto o banco guarda tokens nascidos dela,
-    vale o do banco; trocar a variável (nova autorização) recomeça a partir dela."""
+    O ML_TOKEN_RENOVACAO do ambiente é a semente, e cada semente tem a própria linha no banco:
+    trocar a variável (nova autorização) começa outra cadeia, e um deploy antigo, ainda com a
+    semente anterior, continua achando a dele."""
 
     fonte = "mercadolivre"
 
@@ -77,9 +85,9 @@ class CofreTokens:
         self._expira = 0.0
         self._rejeitado: str | None = None
         self._recusados: set[str] = set()
-        semente = config.ml_token_renovacao.get_secret_value()
-        self._renovacao = semente
-        self._semente = _resumo(semente) if semente else None
+        self._semente = config.ml_token_renovacao.get_secret_value()
+        self._renovacao = self._semente
+        self.chave = f"{self.fonte}:{_resumo(self._semente)}" if self._semente else self.fonte
 
     @property
     def configurado(self) -> bool:
@@ -114,22 +122,23 @@ class CofreTokens:
         if self._guarda is None:
             self._adotar(await self._renovar(self._renovacao))
             return
-        async with self._guarda.travar(self.fonte) as travada:
-            salvo = travada.atual
-            if not salvo or salvo.get("semente") != self._semente:
-                salvo = None
-            if salvo and self._utilizavel(salvo):
-                self._adotar(salvo)
-                return
-            renovacao = (salvo or {}).get("refresh_token") or self._renovacao
-            try:
-                travada.novo = await self._renovar(renovacao)
-            except ErroExterno:
-                # o banco pode ter perdido a gravação de um token que esta instância já trocou
-                if renovacao == self._renovacao or _resumo(self._renovacao) == self._semente:
-                    raise
-                travada.novo = await self._renovar(self._renovacao)
-            self._adotar(travada.novo)
+        novo: dict[str, Any] | None = None
+        try:
+            async with self._guarda.travar(self.chave) as travada:
+                salvo = travada.atual
+                if salvo and self._utilizavel(salvo):
+                    self._adotar(salvo)
+                    return
+                renovacao = (salvo or {}).get("refresh_token") or self._semente
+                travada.novo = novo = await self._renovar(renovacao)
+                self._adotar(novo)
+        except Exception:
+            if novo is None:
+                raise
+            # o Mercado Livre já trocou o token: sem esta gravação, só autorizando de novo
+            log.error("mercado livre: o token renovado não foi gravado; tentando outra vez")
+            async with self._guarda.travar(self.chave) as travada:
+                travada.novo = novo
 
     def _utilizavel(self, salvo: dict[str, Any]) -> bool:
         acesso, expira = salvo.get("access_token"), salvo.get("expires_at")
@@ -146,7 +155,7 @@ class CofreTokens:
 
     async def _renovar(self, renovacao: str) -> dict[str, Any]:
         if _resumo(renovacao) in self._recusados:
-            raise ErroExterno(REAUTORIZAR, 401)
+            raise AutorizacaoRecusada
         resposta = await self._http.requisitar(
             "POST",
             f"{API}/oauth/token",
@@ -164,7 +173,7 @@ class CofreTokens:
         if resposta.status_code != 200:
             if corpo.get("error") == "invalid_grant":
                 self._recusados.add(_resumo(renovacao))
-                raise ErroExterno(REAUTORIZAR, 401)
+                raise AutorizacaoRecusada
             motivo = str(corpo.get("error") or "sem motivo")[:60]
             raise ErroExterno(
                 f"mercado livre: renovação do token recusada (HTTP {resposta.status_code}, "
@@ -181,7 +190,6 @@ class CofreTokens:
             "access_token": acesso,
             "refresh_token": nova if isinstance(nova, str) and nova else renovacao,
             "expires_at": self._relogio() + max(60, validade - 300),
-            "semente": self._semente,
         }
 
 
@@ -229,7 +237,7 @@ class FonteMercadoLivre:
             if nota >= self._config.relevancia_minima_cotacao
         ][:PRODUTOS_COM_OFERTAS]
         listas = await asyncio.gather(
-            *(self._itens(p["id"], token) for p in escolhidos), return_exceptions=True
+            *(self._itens(str(p["id"]), token) for p in escolhidos), return_exceptions=True
         )
         falhas = [r for r in listas if isinstance(r, BaseException)]
         if escolhidos and len(falhas) == len(escolhidos):
@@ -299,7 +307,7 @@ class FonteMercadoLivre:
         return itens[:OFERTAS_POR_PRODUTO]
 
     async def _vendedores(self, ids: set[Any], token: str) -> dict[Any, str]:
-        ids = {i for i in ids if isinstance(i, int)}
+        ids = {i for i in ids if isinstance(i, int) and not isinstance(i, bool)}
         if not ids:
             return {}
         url = f"{API}/users?ids={','.join(map(str, sorted(ids)))}"
@@ -423,4 +431,6 @@ def _opcao(bruto: dict[str, Any]) -> OpcaoFrete:
 
 
 def _numero(valor: Any) -> float:
-    return float(valor) if isinstance(valor, int | float) else 0.0
+    if isinstance(valor, bool) or not isinstance(valor, int | float):
+        return 0.0
+    return float(valor)

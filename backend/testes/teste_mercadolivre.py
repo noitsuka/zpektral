@@ -1,14 +1,14 @@
 import asyncio
 import logging
-import os
 import re
+from contextlib import asynccontextmanager
 from urllib.parse import parse_qs
 
 import httpx
 import pytest
 from pydantic import SecretStr
 
-from app.banco import Base, criar_motor, criar_sessoes
+from app.banco import Base, criar_motor, criar_sessoes, criar_tabelas_locais
 from app.cliente_http import ErroExterno
 from app.credenciais import Cifra, GuardaCredenciais, nova_chave
 from app.fontes.mercadolivre import CofreTokens, FonteMercadoLivre
@@ -131,7 +131,7 @@ async def teste_renovacao_guarda_o_token_novo_para_a_proxima_instancia(
 
     assert await cofre.obter_token() == "a0"
     assert await cofre.obter_token() == "a0"
-    assert (await guarda.ler("mercadolivre"))["refresh_token"] == "r2"
+    assert (await guarda.ler(cofre.chave))["refresh_token"] == "r2"
 
     agora[0] += 21600
     assert await cofre.obter_token() == "a1"
@@ -233,16 +233,35 @@ async def teste_busca_cancelada_no_meio_da_renovacao_ainda_guarda_o_token(
     with pytest.raises(asyncio.CancelledError):
         await busca
     for _ in range(100):
-        if await guarda.ler("mercadolivre"):
+        if await guarda.ler(cofre.chave):
             break
         await asyncio.sleep(0.01)
-    assert (await guarda.ler("mercadolivre"))["refresh_token"] == "r2"
+    assert (await guarda.ler(cofre.chave))["refresh_token"] == "r2"
     assert await cofre.obter_token() == "a0"
 
 
-async def teste_token_trocado_e_nao_gravado_segue_valendo_pela_memoria(
-    simulador, http, config, guarda
-):
+async def teste_gravacao_perdida_depois_da_renovacao_e_refeita(simulador, http, config, guarda):
+    configurado(config)
+    rota = rota_token(simulador, [])
+    original = guarda.travar
+    falhas = []
+
+    @asynccontextmanager
+    async def travar_e_cair_no_commit(chave):
+        async with original(chave) as travada:
+            yield travada
+            if travada.novo is not None and not falhas:
+                falhas.append(chave)
+                raise OSError("a conexão caiu no commit")
+
+    guarda.travar = travar_e_cair_no_commit
+    cofre = CofreTokens(http, config, guarda)
+    assert await cofre.obter_token() == "a0"
+    assert falhas and rota.call_count == 1
+    assert (await guarda.ler(cofre.chave))["refresh_token"] == "r2"
+
+
+async def teste_falha_passageira_nao_reapresenta_token_antigo(simulador, http, config, guarda):
     configurado(config)
     agora = [1000.0]
     usados: list[str] = []
@@ -250,25 +269,38 @@ async def teste_token_trocado_e_nao_gravado_segue_valendo_pela_memoria(
     def responder(requisicao: httpx.Request):
         renovacao = parse_qs(requisicao.content.decode())["refresh_token"][0]
         usados.append(renovacao)
-        if renovacao == "r2":
-            return resposta_json({"error": "invalid_grant"}, status=400)
+        if renovacao == "r3":
+            raise httpx.ReadTimeout("devagar")
         n = len(usados)
         return resposta_json(
-            {"access_token": f"a{n}", "refresh_token": f"r{n + 2}", "expires_in": 21600}
+            {"access_token": f"a{n}", "refresh_token": f"r{n + 1}", "expires_in": 21600}
         )
 
     simulador.post(URL_TOKEN).mock(side_effect=responder)
-    cofre = CofreTokens(http, config, guarda, relogio=lambda: agora[0])
-    await cofre.obter_token()
+    a = CofreTokens(http, config, guarda, relogio=lambda: agora[0])
+    b = CofreTokens(http, config, guarda, relogio=lambda: agora[0])
+    await a.obter_token()
+    await b.obter_token()
     agora[0] += 21600
-    await cofre.obter_token()
-    # o banco perde a última gravação e volta a um token que já foi trocado
-    async with guarda.travar("mercadolivre") as travada:
-        travada.novo = {**travada.atual, "refresh_token": "r2", "expires_at": 0}
+    await a.obter_token()
     agora[0] += 21600
-    assert await cofre.obter_token() == "a4"
-    assert usados == ["r1", "r3", "r2", "r4"]
-    assert (await guarda.ler("mercadolivre"))["refresh_token"] == "r6"
+    with pytest.raises(ErroExterno) as erro:
+        await b.obter_token()
+    assert "autorize de novo" not in str(erro.value)
+    assert usados == ["r1", "r2", "r3"]
+
+
+async def teste_cada_autorizacao_tem_a_propria_linha(simulador, http, config, guarda):
+    configurado(config)
+    rota_token(simulador, [])
+    antiga = CofreTokens(http, config, guarda)
+    await antiga.obter_token()
+    config.ml_token_renovacao = SecretStr("reautorizado")
+    nova = CofreTokens(http, config, guarda)
+    await nova.obter_token()
+    assert nova.chave != antiga.chave
+    assert (await guarda.ler(antiga.chave))["refresh_token"] == "r2"
+    assert (await guarda.ler(nova.chave))["refresh_token"] == "r3"
 
 
 async def teste_com_banco_e_sem_cofre_a_fonte_fica_desativada(http, config):
@@ -327,7 +359,11 @@ async def teste_cada_produto_traz_as_ofertas_novas_mais_baratas(simulador, http,
     configurado(config)
     rota_token(simulador, [])
     itens = {
-        "results": [{"item_id": f"MLB{n}", "price": 100 - n, "condition": "new"} for n in range(9)]
+        "results": [
+            *({"item_id": f"MLB{n}", "price": 100 - n, "condition": "new"} for n in range(9)),
+            {"item_id": "MLB99", "price": 1, "condition": "used"},
+            {"item_id": "MLB98", "price": True, "condition": "new"},
+        ]
     }
     catalogo(simulador, itens=itens)
     ofertas = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060", cep=None))
@@ -469,9 +505,23 @@ async def teste_frete_gratis_anunciado_sem_cep(simulador, http, config):
 
 
 @pytest.mark.live
-@pytest.mark.skipif(
-    not os.environ.get("ML_TOKEN_RENOVACAO"), reason="sem credenciais do Mercado Livre"
-)
-async def teste_ao_vivo_mercado_livre(http, config):
-    ofertas = await FonteMercadoLivre(http, config).buscar(contexto("iphone 15", "01310100"))
+async def teste_ao_vivo_mercado_livre(http):
+    from app.configuracao import Configuracoes
+    from app.main import guarda_de_credenciais
+
+    # lê o backend/.env e o banco local, como a API local: sem o cofre, a renovação gastaria
+    # a autorização sem guardar o token novo
+    config = Configuracoes()
+    if not config.ml_token_renovacao.get_secret_value():
+        pytest.skip("sem credenciais do Mercado Livre")
+    motor = criar_motor(config.url_banco or f"sqlite+aiosqlite:///{config.arquivo_historico_local}")
+    try:
+        await criar_tabelas_locais(motor)
+        guarda = guarda_de_credenciais(config, criar_sessoes(motor))
+        if guarda is None:
+            pytest.skip("sem CHAVE_CREDENCIAIS")
+        fonte = FonteMercadoLivre(http, config, guarda)
+        ofertas = await fonte.buscar(contexto("iphone 15", "01310100"))
+    finally:
+        await motor.dispose()
     assert ofertas
