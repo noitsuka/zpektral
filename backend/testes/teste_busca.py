@@ -145,18 +145,29 @@ async def teste_trabalho_com_poucas_falhas_fica_no_cache(config):
     assert _validade(svc, "tv") > 200
 
 
-async def teste_historico_e_gravado_antes_do_fim_da_busca(config):
+async def teste_busca_termina_antes_do_historico_e_avisa_quando_gravou(config):
     ordem = []
 
     async def gravar(trabalho):
-        await asyncio.sleep(0.01)
+        await asyncio.sleep(0.05)
         ordem.append("gravou")
 
     svc = ServicoBusca([FonteFalsa("a", [("tv", 1)])], config, ao_concluir=gravar)
     trabalho, _ = svc.iniciar("tv", None)
     await trabalho.aguardar()
     ordem.append("terminou")
-    assert ordem == ["gravou", "terminou"]
+    await trabalho.gravado.wait()
+    assert ordem == ["terminou", "gravou"]
+
+
+async def teste_gravado_e_avisado_mesmo_sem_historico_ou_com_falha(config):
+    async def falhar(trabalho):
+        raise RuntimeError("banco fora")
+
+    for ao_concluir in (None, falhar):
+        svc = ServicoBusca([FonteFalsa("a", [("tv", 1)])], config, ao_concluir=ao_concluir)
+        trabalho, _ = svc.iniciar("tv", None)
+        await asyncio.wait_for(trabalho.gravado.wait(), 2)
 
 
 async def teste_historico_lento_nao_segura_a_busca(config):

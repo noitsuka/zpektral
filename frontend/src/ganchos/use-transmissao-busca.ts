@@ -53,11 +53,14 @@ export function useTransmissaoBusca(q: string, cep: string | null, tentativa = 0
         if (nome === "fim") {
           terminou = true;
           clearTimeout(vigia);
-          fonte.close();
+          // O servidor fecha a conexão depois de gravar o histórico; fechar aqui cortaria a
+          // gravação na Vercel. O prazo só cobre um servidor que não feche.
+          vigia = setTimeout(() => fonte.close(), SILENCIO_MAXIMO_MS);
         }
       });
     }
-    fonte.onerror = falhar;
+    // Depois do fim, o erro é o servidor fechando: fechar evita a reconexão automática.
+    fonte.onerror = () => (terminou ? fonte.close() : falhar());
     return () => {
       clearTimeout(vigia);
       fonte.close();

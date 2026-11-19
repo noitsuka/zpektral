@@ -56,6 +56,9 @@ async def eventos_da_busca(
             "fontes": trabalho.relatorios,
         },
     )
+    # a conexão só fecha depois do histórico gravado: na Vercel, a função pode congelar assim
+    # que a resposta termina, no meio da gravação
+    await trabalho.gravado.wait()
 
 
 async def encerrando(

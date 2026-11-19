@@ -64,6 +64,7 @@ class TrabalhoBusca:
     inicio: float = field(default_factory=time.monotonic)
     tempo_decorrido_ms: int = 0
     concluido: asyncio.Event = field(default_factory=asyncio.Event)
+    gravado: asyncio.Event = field(default_factory=asyncio.Event)
     _mudou: asyncio.Event = field(default_factory=asyncio.Event)
     _versao: int = 0
     _agrupado: int = -1
@@ -250,15 +251,21 @@ class ServicoBusca:
                 self.saude.registrar(relatorio)
                 trabalho.adicionar(Lote(relatorio, [], Fase.FINAL))
         try:
-            resultados = await asyncio.gather(
-                *(self._executar_fonte(s, ctx, trabalho) for s in ativas), return_exceptions=True
-            )
-            for fonte, resultado in zip(ativas, resultados, strict=True):
-                if isinstance(resultado, Exception):
-                    log.error("execução de %s falhou: %r", fonte.id, resultado)
+            try:
+                resultados = await asyncio.gather(
+                    *(self._executar_fonte(s, ctx, trabalho) for s in ativas),
+                    return_exceptions=True,
+                )
+                for fonte, resultado in zip(ativas, resultados, strict=True):
+                    if isinstance(resultado, Exception):
+                        log.error("execução de %s falhou: %r", fonte.id, resultado)
+            finally:
+                # o fim sai antes da gravação: na produção, esperar o banco atrasava o fim de
+                # toda busca em mais de um segundo, e em até 5 s quando ele estava dormindo
+                trabalho.concluir()
             await self._gravar(trabalho)
         finally:
-            trabalho.concluir()
+            trabalho.gravado.set()
         falhas = sum(
             b.relatorio.status
             in (StatusFonte.ERRO, StatusFonte.TEMPO_ESGOTADO, StatusFonte.BLOQUEADA)

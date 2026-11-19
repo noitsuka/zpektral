@@ -1,3 +1,4 @@
+import asyncio
 from datetime import UTC, datetime, timedelta
 
 import httpx
@@ -145,9 +146,26 @@ async def teste_transmissao_avisa_a_fonte_bloqueada():
     relatorio = RelatorioFonte("barrada", "Barrada", StatusFonte.BLOQUEADA, mensagem="recusou")
     trabalho.adicionar(Lote(relatorio, [], Fase.FINAL))
     trabalho.concluir()
+    trabalho.gravado.set()
     blocos = [b async for b in eventos_da_busca(trabalho, None, [], Filtros())]
     falha = next(b for b in blocos if b.startswith(b"event: falha_fonte"))
     assert orjson.loads(falha.split(b"\ndata: ", 1)[1])["fonte"]["status"] == "bloqueada"
+
+
+async def teste_transmissao_manda_o_fim_e_so_fecha_depois_de_gravar(config):
+    ordem = []
+
+    async def gravar(trabalho):
+        await asyncio.sleep(0.05)
+        ordem.append("gravou")
+
+    svc = ServicoBusca([FonteFalsa("a", [("tv", 1)])], config, ao_concluir=gravar)
+    trabalho, _ = svc.iniciar("tv", None)
+    async for bloco in eventos_da_busca(trabalho, None, [], Filtros()):
+        if bloco.startswith(b"event: fim"):
+            ordem.append("fim")
+    ordem.append("fechou")
+    assert ordem == ["fim", "gravou", "fechou"]
 
 
 async def teste_transmissao_envia_cada_fonte_e_depois_o_fim(cliente_api):

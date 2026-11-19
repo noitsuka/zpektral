@@ -113,7 +113,7 @@ async def atualizar_precos(
     try:
         for consulta in consultas:
             trabalho, _ = servico.iniciar(consulta, None)
-            await trabalho.aguardar()
+            await trabalho.gravado.wait()  # a busca conclui antes de gravar
     finally:
         await servico.encerrar()
     return consultas
