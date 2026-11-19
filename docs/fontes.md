@@ -36,7 +36,7 @@ A entrada e a saída de `degradada` e de `bloqueada` disparam o webhook de alert
 | Amazon | página pública de busca (`/s?k=`) | preço, preço de tabela, parcelamento, imagem, frete grátis anunciado; sem frete por CEP | `ok`, 55 ofertas para "air fryer" |
 | KaBuM! | catálogo público | preço, Pix, parcelamento, frete grátis anunciado; sem frete por CEP | `ok`, 60 ofertas para "fone bluetooth" e nenhuma para "air fryer" |
 | Buscapé | página pública de busca e de produto | menor preço por loja, origem `comparador`, sem frete | `ok`, 68 ofertas para "air fryer" |
-| Mercado Livre | API oficial: catálogo (`/products/search`) e ofertas de cada produto | preço, preço anterior informado, vendedor, marca, GTIN, frete por CEP | `desativada`, sem credenciais; fora do histórico de preços |
+| Mercado Livre | API oficial: catálogo (`/products/search`) e ofertas de cada produto | preço, preço anterior informado, vendedor, marca, GTIN, frete por CEP | `desativada`, sem credenciais; os termos da API não cobrem um comparador sem autorização escrita; fora do histórico de preços |
 | Shopee | API de afiliados | preço da versão mais barata, faixa de preço por versão, loja e link de afiliado; sem frete | `desativada`, sem credenciais |
 | eBay | API Browse | preço em dólar, frete para o Brasil e imposto estimado | `desativada`, sem credenciais |
 
@@ -128,6 +128,18 @@ Medição da Fast Shop nas 77 buscas julgadas, com as mesmas respostas gravadas 
 
 Pelo Buscapé ela aparecia em 55 ofertas exibidas; direta, em 648, distribuídas por 38 das 77 buscas, quase todas do produto pedido, com frete e estoque por CEP. Nenhuma busca perdeu oferta exibida.
 
+Reconferida em 19/11/2026 a partir das mesmas execuções gravadas:
+
+- **Cobertura:** é medida sobre o conjunto de ofertas relevantes achadas pelas execuções medidas juntas. Medida separadamente, cada execução tem o próprio conjunto, e as duas dão 0,889, o que não serve para comparar. O ganho mais conservador é o de lojas com relevante, de 0,27 loja por busca. Recall@10 e recall@20 não mudaram: o topo da lista é o mesmo.
+- **Quem vende:** das 648 ofertas, 142 são da própria Fast Shop. As outras 506 são de vendedores do marketplace dela, exibidas com o nome do vendedor: Webcontinental Marketplace (104), Casas Bahia (36), Ponto (31) e outros.
+- **Precisão:** 625 das 648 são do produto pedido (0,965); pelo Buscapé eram 54 de 55. A precisão geral fica igual (0,883 para 0,884).
+- **Repetição:**
+  - 28 ofertas repetem o título dentro da Fast Shop na mesma busca, quase todas o mesmo produto vendido pela Ponto e pela Casas Bahia ao mesmo preço.
+  - 47 das 104 ofertas da Webcontinental Marketplace têm o mesmo EAN de uma oferta da WebContinental direta na mesma busca.
+  - Nenhuma oferta aparece pela Fast Shop direta e pelo Buscapé ao mesmo tempo.
+- **Custo:** 2 requisições a mais por busca (122,7 para 124,7).
+- **Julgamento:** é por regra (`testes/dados/consultas_avaliacao.json`), não por pessoas.
+
 Conferida na Vercel em 19/11/2026, num preview da API em `gru1` (sem banco, apagado depois), com CEP 01310-100: "air fryer" 32 ofertas, todas relevantes, em 11,5 s na primeira busca da instância (20 com frete calculado, 12 sem cotação no prazo); "geladeira frost free" 31 ofertas, todas com frete calculado, em 4,7 s; "smart tv 55" 30 ofertas (25 relevantes com frete) em 5,0 s, a fonte mais lenta dessa busca, cerca de 1,6 s depois da segunda; "fone bluetooth jbl" sem CEP, 30 ofertas em 2,8 s. Nenhuma recusa. Na produção, as mesmas quatro buscas não mostraram nenhuma oferta da Fast Shop pelo Buscapé. Se a loja passar a recusar a Vercel, as ofertas dela somem, porque o Buscapé descarta loja direta; o estado `bloqueada` em `/lojas` avisa. Os deslizes vistos são da régua de relevância que vale para todas as lojas: notebook "com SSD de 1 TB" em "ssd 1tb nvme" e Kindle Scribe em "kindle paperwhite", ambos com nota entre 70 e 76.
 
 A estante Multy (Artely) continua só em Amazon, Buscapé (Magazine Luiza), WebContinental, Americanas, Carrefour e Tumelero. As outras lojas que a vendem são Casas Bahia, Ponto, Extra e MadeiraMadeira, nenhuma acessível sem contornar proteção ou contrariar o robots.txt, e o Mercado Livre, que depende da autorização.
@@ -136,24 +148,68 @@ A estante Multy (Artely) continua só em Amazon, Buscapé (Magazine Luiza), WebC
 
 Lida nas páginas oficiais em novembro de 2026. Onde a página recusou leitura automatizada, a leitura foi pela cópia do Web Archive ou pelos arquivos JavaScript públicos do próprio portal, e está dito qual. O que não foi confirmado está marcado como não verificado. Nenhum conector novo foi escrito, porque todos dependem de conta, aprovação ou contrato que o projeto ainda não tem.
 
-### Mercado Livre (integrado, aguardando autorização)
+### Mercado Livre (integrado, bloqueado pelos termos)
 
 Documentação lida pelas cópias do Web Archive de developers.mercadolivre.com.br (o site responde 403 à leitura automatizada), de 2025 a agosto de 2026.
 
 - **Busca por palavra-chave:** `/sites/MLB/search?q=` saiu da documentação em 07/04/2025 ([itens e buscas](https://web.archive.org/web/20250523103622/https://developers.mercadolivre.com.br/pt_br/itens-e-buscas)) e responde 403 mesmo com token válido; há relatos públicos de desenvolvedores até outubro de 2026, sem motivo oficial. Sem token, conferido em 19/11/2026: `{"message":"forbidden","status":403}`.
 - **Caminho que o conector usa:** `/products/search?status=active&site_id=MLB&q=` (catálogo: nome, marca, GTIN e fotos, sem preço) e, para até 6 produtos que casam com a busca, `/products/{id}/items` (as ofertas que disputam a página do produto: preço, `original_price`, vendedor, condição e frete grátis). Entram as 3 ofertas novas mais baratas de cada produto. O vendedor vem de `/users?ids=`; se falhar, a oferta fica sem nome. Os dois recursos ficam sob a permissão funcional "Publicação e sincronização"; sem ela, a resposta é 403 `PA_UNAUTHORIZED_RESULT_FROM_POLICIES`, e a fonte sai como `bloqueada` com essa explicação ([permissões](https://web.archive.org/web/20260813152447/https://developers.mercadolibre.com.ar/es_ar/permisos-funcionales), [catálogo](https://web.archive.org/web/20260817170934/https://developers.mercadolibre.com.co/en_us/products-search), [ofertas do produto](https://web.archive.org/web/20250804054810/https://developers.mercadolivre.com.br/pt_br/concorrencia-em-catalogo)).
-- **Limitações:** só aparecem produtos de catálogo; anúncio fora do catálogo não é encontrado. Desde 12/05/2025 `/products/{id}` não traz mais preço, por isso as ofertas vêm de `/items` do produto. Chamadas por busca: 1 no catálogo, até 6 nas ofertas, 1 nos vendedores e até 18 no frete (6 produtos com 3 ofertas). Limite de requisições não publicado; 429 vira `bloqueada`.
+- **Cobertura que fica de fora:**
+  - anúncio que não está ligado a um produto do catálogo (a proporção não foi medida);
+  - produtos além dos 10 primeiros do catálogo para a busca, e os que não casam com ela (só 6 gastam a chamada das ofertas);
+  - ofertas além das 3 mais baratas de cada produto, com as novas primeiro;
+  - ofertas além da primeira página de `/items`. O exemplo da documentação tem limite de 100;
+  - anúncios que só aparecem na lista, sem disputar a página do produto: a documentação diz que `results` traz as publicações que competem, e isso não foi verificado;
+  - preço em outra moeda e condição fora de novo, usado e recondicionado;
+  - busca por EAN, quando o GTIN não está no produto do catálogo.
+
+  Quando a fonte está ativa, o Buscapé descarta o lojista Mercado Livre, inclusive os anúncios fora do catálogo que ele mostrava. Desde 12/05/2025 `/products/{id}` não traz mais preço, por isso as ofertas vêm de `/items` do produto, que segundo a documentação lista as publicações de todos os vendedores que disputam a página.
+
+  Chamadas por busca: 1 no catálogo, até 6 nas ofertas, 1 nos vendedores e até 18 no frete (6 produtos com 3 ofertas; o mesmo anúncio em dois produtos é cotado uma vez). O limite de requisições não é publicado, e um 429 deixa a fonte `bloqueada`.
 - **Frete:** `/items/{id}/shipping_options?zip_code=` continua documentado e é uma estimativa para uma unidade ([custos de envio](https://web.archive.org/web/20250216094738/https://developers.mercadolivre.com.br/pt_br/custos-de-envio-e-sla)). Não foi possível confirmar que responde a um app que não é o vendedor.
 - **OAuth:** `authorization_code`, access token de 6 horas, refresh token de uso único (cada renovação devolve outro), válido por 6 meses, invalidado por troca de senha, troca do Client Secret, revogação ou 4 meses sem chamadas. É preciso marcar `offline_access` no app para receber o refresh token. PKCE é opcional ([autenticação](https://web.archive.org/web/20250804064557/https://developers.mercadolivre.com.br/pt_br/autenticacao-e-autorizacao)).
-- **Como o token é guardado:** a tabela `credenciais_oauth` (migração `0004`) guarda o par de tokens cifrado com AES-GCM pela `CHAVE_CREDENCIAIS`. Uma trava consultiva do PostgreSQL faz uma instância renovar por vez, a renovação não é cancelada junto com a busca, e o `ML_TOKEN_RENOVACAO` do ambiente é a semente. Cada semente tem a própria linha (`mercadolivre:<resumo da semente>`): trocar a variável começa outra cadeia, e um deploy antigo, num rollback, continua achando a dele. Se a gravação falhar depois de o Mercado Livre trocar o token, o cofre grava de novo numa transação nova; ele nunca reapresenta um refresh token já trocado, porque o Mercado Livre pode revogar a cadeia inteira. Com banco e sem chave válida, a fonte fica desativada. Restaurar o banco a partir de um branch antigo traz um token já trocado: é preciso autorizar de novo.
-- **Termos da API** ([termos](https://web.archive.org/web/20250607191142/https://developers.mercadolivre.com.br/pt_br/termos-e-condicoes)): conteúdo exibido atualizado ao menos a cada 24 horas (6 horas para listas de anúncios), só cópias intermediárias (2.2.1.3), proibido armazenar conteúdo para serviço concorrente (7.4) e scraping (7.6). O cache de busca do zpektral é de 5 minutos, e as ofertas do Mercado Livre não entram no histórico de preços (`FONTES_SEM_HISTORICO`). Não há proibição nominal de comparador; a leitura jurídica fica com o dono.
+- **Como o token é guardado:** a tabela `credenciais_oauth` (migração `0004`) guarda o par de tokens cifrado com AES-GCM pela `CHAVE_CREDENCIAIS`.
+  - Uma trava consultiva do PostgreSQL faz uma instância renovar por vez. Quem espera desiste em 10 s sem trocar nada.
+  - A renovação não é cancelada junto com a busca, não segue redirecionamento (um 307 reenviaria o Client Secret) e espera a resposta até 25 s, abaixo dos 30 s em que o banco derruba a transação parada.
+  - O `ML_TOKEN_RENOVACAO` do ambiente é a semente. Cada semente tem a própria linha (`mercadolivre:<resumo da semente>`): trocar a variável começa outra cadeia, e um deploy antigo, num rollback, continua achando a dele.
+  - Na Vercel, a fonte só liga com o cofre num PostgreSQL, porque memória e `/tmp` são de cada instância.
+- **Quando o token se perde:**
+  - **Não se perde:**
+    - falha de rede antes da troca;
+    - queda da conexão com o banco ou commit sem confirmação depois da troca: a instância guarda o par novo, grava na busca seguinte e nunca reapresenta o token trocado. Isso foi testado com o PostgreSQL local derrubando a conexão no meio da renovação;
+    - busca cancelada;
+    - várias instâncias ao mesmo tempo.
+  - **Se a conexão de quem renova cai no meio:** outra instância pode apresentar o token que está sendo trocado. Ela recebe `invalid_grant` uma vez e acha o token novo no banco na busca seguinte. A documentação de autenticação diz que só o último refresh token vale; não diz que o reuso revoga a cadeia. Se revogasse, seria preciso autorizar de novo.
+  - **Exige autorizar de novo:**
+    - resposta perdida depois de o Mercado Livre trocar o token;
+    - instância que morre entre a troca e a gravação, inclusive com o banco fora até ela ser reciclada;
+    - restauração do banco a partir de um branch anterior;
+    - troca da `CHAVE_CREDENCIAIS`. Com uma linha que não abre, a fonte pede nova autorização em vez de reapresentar a semente.
+
+    A troca do token não é idempotente, então nenhum código evita os dois primeiros casos. Quando acontece, a fonte sai como `bloqueada` com o comando no motivo.
+- **Termos da API** (cópia de 07/06/2025 no [Web Archive](https://web.archive.org/web/20250607191142/https://developers.mercadolivre.com.br/pt_br/termos-e-condicoes), a mais recente; a página recusa leitura automatizada). Do jeito que estão escritos, os termos não cobrem um comparador:
+  - **cláusula 2:** a API e o conteúdo só podem ser usados para facilitar e melhorar o uso do site e dos serviços do Mercado Livre. É proibido usá-los para desenvolver serviço que concorra com os dele (2b) e divulgar o que vem da integração a quem não é usuário do Mercado Livre (2f);
+  - **5.2:** o conteúdo do Mercado Livre exibido no aplicativo não pode ser confundido nem combinado com conteúdo de terceiros, e o comparador põe as ofertas dele na mesma lista das outras lojas, ordenadas pelo total;
+  - **5.3:** atualizar ao menos a cada 24 horas (6 horas para listas de anúncios) e informar no aplicativo a frequência de atualização, que o site hoje não informa;
+  - **2.2.4:** o aplicativo não pode usar as palavras "mercado" e "livre" nem os logotipos no nome, no conteúdo ou no design. Se o nome da loja numa linha de oferta conta, a leitura fica em aberto;
+  - **2.2.1.3 e 7.4:** só cópias intermediárias, e nada armazenado para serviço concorrente. Isso está atendido: cache de 5 minutos, e as ofertas não entram no histórico (`FONTES_SEM_HISTORICO`). A 7.6 proíbe scraping;
+  - **5.1:** uso fora da licença exige autorização expressa e por escrito do Mercado Livre, que pode vir por e-mail. Sem ela a fonte fica bloqueada, mesmo com o conector pronto;
+  - **permissão "Publicação e sincronização":** a documentação a descreve como a permissão para o app criar, atualizar, pausar e excluir os anúncios da loja de quem autoriza ([permissões](https://web.archive.org/web/20260813152447/https://developers.mercadolibre.com.ar/es_ar/permisos-funcionales)). O zpektral a pediria só para ler o catálogo, sem publicar nada, e isso precisa constar no pedido de autorização.
 - **Programa de afiliados:** sem API nem feed de produtos, e os termos proíbem publicidade comparando produtos (5.3) e extração automatizada (4.3c). Não serve ao comparador.
-- **Passos do dono:**
-  1. Criar o app em https://developers.mercadolivre.com.br/devcenter com escopos `read` e `offline_access` (sem `write`), a permissão funcional "Publicação e sincronização" e um redirecionamento `https` que você controle.
-  2. Aplicar a migração `0004` na produção (`docs/implantacao.md`, seção 7).
-  3. Em `backend`, rodar `python -m scripts.autorizar_mercadolivre --vercel`, entrar com a conta que autoriza (administradora), colar o endereço de volta. O script grava as quatro variáveis como sensíveis só em Production; nada passa pela tela.
-  4. Fazer o deploy de produção da API e conferir uma busca.
-  5. Para uso local, criar um segundo app no devcenter e rodar o script sem `--vercel` (grava o `backend/.env`; o banco local precisa estar na `0004`). A documentação não diz se o Mercado Livre mantém duas autorizações do mesmo app e usuário ao mesmo tempo; com um app só, autorizar no computador pode derrubar a produção.
+- **Passos do dono, nesta ordem:**
+  1. Pedir ao Mercado Livre autorização escrita para o uso no comparador, pelo canal de suporte do programa de desenvolvedores. O pedido deve dizer que:
+     - as ofertas aparecem ao lado das de outras lojas;
+     - o link leva direto ao anúncio;
+     - o cache é de 5 minutos e nada vai para o histórico;
+     - a permissão "Publicação e sincronização" seria usada só para ler.
+
+     Sem resposta positiva, não seguir.
+  2. Criar dois apps em https://developers.mercadolivre.com.br/devcenter, um para a homologação e outro para a produção. Cada um com escopos `read` e `offline_access` (sem `write`), a permissão funcional "Publicação e sincronização" e um redirecionamento `https` que você controle.
+  3. Aplicar a migração `0004` no branch `homologacao` do Neon (`docs/implantacao.md`, seção 7).
+  4. Em `backend`, rodar `python -m scripts.autorizar_mercadolivre --vercel preview`, entrar com a conta que autoriza (administradora) e colar o endereço de volta. O script grava as quatro variáveis como sensíveis só em Preview de `zpektral-api`; nada passa pela tela.
+  5. Deploy de preview da API e conferência.
+  6. Repetir na produção com `--vercel production`, que pede para digitar `producao` antes de qualquer contato com o Mercado Livre.
+  7. Para uso local, um terceiro app e o script sem `--vercel`, que grava o `backend/.env`. O banco local precisa estar na `0004`.
 - Não verificado sem credenciais: se `/items/{id}/shipping_options` responde a um app que não é o vendedor, o limite de ids de `/users?ids=` e se o link `https://produto.mercadolivre.com.br/MLB-<número>-_JM` abre sem o nome do produto. O teste `pytest -m live testes/teste_mercadolivre.py` confere a busca com o cofre local.
 - **Revogar:** revogar o acesso do app na conta que autorizou ou trocar o Client Secret (os dois invalidam os tokens, pela documentação de autenticação), apagar as linhas com `delete from credenciais_oauth where fonte like 'mercadolivre:%'` e remover as quatro variáveis da Vercel.
 
@@ -243,7 +299,7 @@ Nenhum dos dois traz frete por CEP; as ofertas entrariam como origem `comparador
 
 ## O que depende do dono
 
-1. Mercado Livre: criar o app (escopos `read` e `offline_access`, permissão "Publicação e sincronização"), autorizar a migração `0004` na produção e rodar `scripts.autorizar_mercadolivre --vercel`. Se o catálogo responder 403 mesmo com a permissão, o acesso depende do próprio Mercado Livre.
+1. Mercado Livre: pedir ao Mercado Livre autorização escrita para o uso no comparador (os termos, como estão, não o cobrem). Só depois: um app por ambiente, a migração `0004` primeiro na homologação e `scripts.autorizar_mercadolivre --vercel preview`. Se o catálogo responder 403 mesmo com a permissão, o acesso depende do próprio Mercado Livre.
 2. Shopee: cadastrar o site como mídia, pedir acesso à Open API, configurar as duas variáveis e confirmar com a Shopee se os termos de afiliado aceitam um comparador.
 3. Amazon: entrar no Associados Brasil e gerar 10 vendas em 30 dias para liberar a Creators API.
 4. Casas Bahia e Extra: conta de publisher na Awin (CNPJ), entrada nos programas e conferência do feed e dos termos de cada anunciante.

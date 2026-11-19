@@ -76,11 +76,21 @@ Depois, coloque no secret a URL direta com esse papel. Limitações conhecidas: 
 
 ## 7. Mercado Livre (migração 0004 e credenciais)
 
-A migração `0004` só cria a tabela `credenciais_oauth`, então o código no ar continua funcionando com ela. Ordem:
+Antes de qualquer passo: os termos da API do Mercado Livre não autorizam, do jeito que estão escritos, o uso num comparador que mistura as ofertas dele com as de outras lojas (`docs/fontes.md`, seção Mercado Livre). Ativar depende de autorização escrita do Mercado Livre.
 
-1. Ponto de restauração e ensaio como nas seções 1 e 2, com os nomes `antes-0004` e `ensaio-0004`; `select version_num from alembic_version` deve devolver `0004`.
+A migração `0004` só cria a tabela `credenciais_oauth`, então o código no ar continua funcionando com ela. Ordem, primeiro na homologação e só depois na produção:
+
+1. Ponto de restauração e ensaio como nas seções 1 e 2, com os nomes `antes-0004` e `ensaio-0004`; `select version_num from alembic_version` deve devolver `0004`. Na homologação, a migração vai no branch `homologacao` do Neon (`docs/homologacao.md`, passo 1), que é uma cópia isolada: o `main` não muda.
 2. Não dar ao papel `zpektral_atualizador` nenhum acesso a `credenciais_oauth`: a atualização agendada não usa o Mercado Livre.
-3. Autorizar com `python -m scripts.autorizar_mercadolivre --vercel` (passos em `docs/fontes.md`). As quatro variáveis ficam só em Production. Preview e Development não recebem nenhuma delas, para que nenhum outro ambiente gaste a cadeia de tokens da produção.
-4. Deploy de produção da API e uma busca de conferência. Na primeira, a fonte renova o token e grava a linha cifrada.
+3. Autorizar com `python -m scripts.autorizar_mercadolivre --vercel preview` (homologação) ou `--vercel production` (produção, pede para digitar `producao` antes de qualquer contato com o Mercado Livre). Cada execução é uma autorização nova, com chave nova, gravada como sensível só no ambiente escolhido de `zpektral-api`. Use um app do Mercado Livre para cada ambiente: a documentação diz que só vale o último refresh token gerado, e não diz se uma autorização nova derruba a anterior do mesmo app.
+4. Deploy da API no mesmo ambiente e uma busca de conferência. Na primeira, a fonte renova o token e grava a linha cifrada.
 
-Restaurar o banco a partir de um branch anterior à última renovação traz um refresh token já trocado: depois de restaurar, rodar o passo 3 de novo.
+Na Vercel, a fonte só liga com o cofre num PostgreSQL: sem `DATABASE_URL`, ela fica desligada e o log diz o motivo.
+
+Quando é preciso autorizar de novo (a fonte aparece como `bloqueada`, com o comando no motivo):
+
+- restaurar o banco a partir de um branch anterior à última renovação, porque ele traz um refresh token já trocado;
+- trocar a `CHAVE_CREDENCIAIS`, porque a linha deixa de abrir. A fonte não reapresenta a semente;
+- perder a resposta da renovação depois de o Mercado Livre trocar o token, ou a instância morrer entre a troca e a gravação. O código não tem como evitar esses dois.
+
+Não fazer "Redeploy" na Vercel de um build anterior a esta versão com as variáveis do Mercado Livre no ambiente: o código antigo não conhece o cofre e apresentaria a semente.
