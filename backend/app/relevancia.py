@@ -38,7 +38,7 @@ PALAVRAS_ACESSORIO = frozenset(
     acessorio cesto cuba botao copo jarra lamina helice mangueira valvula bico vedacao
     engrenagem correia parafuso rodizio limpa limpador fusivel lampada grelha
     amortecedor tapete assadeira pe pes bandeja forma papel oculo interruptor gatilho volante
-    wheel
+    wheel bocal extensor
     jogo game midia pad control cartucho toner bateria tela broca bit ponteira lixa
     """.split()
 )
@@ -51,6 +51,7 @@ PARTES_DESCRITIVAS = frozenset(
 )
 # título dividido por " - ": "Pay Day 3 - PS5" é um jogo para o PS5, não o PS5
 _SEPARADOR = re.compile(r"\s[-\u2013|]\s")
+INSPIRADOS = frozenset("inspirado inspirada inspired contratipo".split())
 PALAVRAS_PARA = frozenset({"para", "pra", "p", "compativel", "compat", "compatible", "for"})
 PARTE_DE = frozenset({"de", "da", "do", "das", "dos"})
 COLETIVOS = frozenset({"jogo", "kit", "conjunto", "par", "combo", "caixa", "pacote", "linha"})
@@ -128,6 +129,8 @@ PISO_ESPECIFICACAO = 72  # o site esconde abaixo de 70 e só cota frete a partir
 # na consulta pela raridade, a palavra típica das buscas (em ~1% dos títulos) pesa perto de 1,
 # como na nota principal; o número segue com peso 2
 ESCALA_DA_RARIDADE = 5.0
+RELEVANCIA_PRINCIPAL = 90  # daqui para cima o site mostra a oferta entre as principais
+QUEDA_DE_OUTRO_PRODUTO = 8
 LETRAS_UNIDADE = frozenset("lvwkgx")
 UNIDADES = LETRAS_UNIDADE | frozenset("gb tb mb kg ml mm cm m hz ghz mah pol btu".split())
 
@@ -351,6 +354,7 @@ class Consulta:
     anos: frozenset[str] = field(init=False)
     sem: frozenset[str] = field(init=False)
     com: frozenset[str] = field(init=False)
+    cabeca_e_tipo: bool = field(init=False)
 
     # o que só depende da consulta sai daqui uma vez, e não a cada título pontuado
     def __post_init__(self) -> None:
@@ -402,6 +406,14 @@ class Consulta:
         brutos = _termos_brutos(corrigir(self.texto))
         object.__setattr__(self, "sem", frozenset(b for a, b in pairwise(brutos) if a == "sem"))
         object.__setattr__(self, "com", frozenset(b for a, b in pairwise(brutos) if a == "com"))
+        # a busca começa pelo tipo do produto ("aspirador", "controle", "notebook"), e não por
+        # marca, linha ou nome ("samsung galaxy", "rtx 4060", "kimetsu no yaiba")
+        cabeca = cabeca_do_titulo(termos)
+        object.__setattr__(
+            self,
+            "cabeca_e_tipo",
+            cabeca in _tipos() or cabeca in _produtos() or cabeca in PALAVRAS_ACESSORIO,
+        )
 
     @property
     def esta_vazia(self) -> bool:
@@ -630,6 +642,17 @@ def pontuar(consulta: Consulta, titulo: str, marca: str | None = None) -> int:
         and eh_secundario(palavras_titulo, primeira_palavra, consulta, titulo)
     ):
         resultado *= 0.3
+    # Quem começa a busca pelo tipo do produto ("controle dualsense", "notebook dell") quer
+    # esse produto: o título que abre com outro ("Capa Controle Dualsense", "Teclado Notebook
+    # Para Dell") casa todas as palavras e, mais barato, ficava em primeiro. Ele cede o lugar
+    # sem sair da lista principal; se a busca começa por marca ou nome ("samsung galaxy a55",
+    # "kimetsu no yaiba"), não há como saber qual tipo é o produto e nada muda.
+    if (
+        resultado >= RELEVANCIA_PRINCIPAL
+        and consulta.cabeca_e_tipo
+        and abre_com_outro_tipo(consulta, titulo)
+    ):
+        resultado = max(RELEVANCIA_PRINCIPAL, resultado - QUEDA_DE_OUTRO_PRODUTO)
     return round(resultado)
 
 
@@ -688,6 +711,9 @@ def eh_secundario(
     ):
         return True
     if "midia" in palavras_titulo or _so_no_sufixo(titulo, consulta):
+        return True
+    # "Inspired by La Vie Est Belle" é outro perfume, a não ser que a busca peça o inspirado
+    if not INSPIRADOS.isdisjoint(palavras_titulo) and INSPIRADOS.isdisjoint(consulta.termos):
         return True
     return any(t in PALAVRAS_BRINQUEDO for t in palavras_titulo)
 
@@ -776,7 +802,7 @@ def abre_com_outro_tipo(consulta: Consulta, titulo: str) -> bool:
     "Bola de Futebol Seleção Brasileira". Só serve onde o sinônimo não visto custa pouco: a
     sandália Havaianas é o chinelo pedido, e a lista não sabe disso."""
     cabeca = cabeca_do_titulo(termos_do_texto(titulo))
-    if cabeca not in _tipos() or cabeca in consulta.termos:
+    if cabeca in consulta.termos or (cabeca not in _tipos() and cabeca not in PALAVRAS_ACESSORIO):
         return False
     # "Livro - Boa Noite Punpun - Vol. 5": a categoria sozinha antes do separador é rótulo da
     # loja, e o produto é o que vem depois

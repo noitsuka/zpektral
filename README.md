@@ -47,7 +47,7 @@ Para testar, abra o [site](https://zpektral.vercel.app) e procure "geladeira fro
 - Cada palavra da busca é um pedido, e a coleira para gatos não aparece em "coleira antipulgas cachorro". Quando quase nenhuma loja tem o produto exato, a busca se reavalia com a palavra rara pesando mais que a comum, pela frequência em 79 mil títulos reais: "mangá punpun" traz os volumes de Boa Noite Punpun, que não repetem "mangá", e não traz camiseta de manga curta; "oyasumi punpun" acha a edição brasileira. Palavra que nenhuma loja usa, como "bonita" em "air fryer bonita", e palavra de intenção, como "barata", deixam de esconder as ofertas
 - "sem fio" não traz fone com fio, e o ano pedido ("camisa do corinthians 2024") que o anúncio não repete não esconde o produto, mas outro ano esconde
 - Busca que entende nomes diferentes para o mesmo produto, como "máquina de lavar louça" e "lava-louças", corrige erros de digitação e acentos esquecidos, como "geladiera" e "fogao", e aceita o código de barras (EAN) do produto
-- Separação entre o produto e as peças dele: o cesto da air fryer não aparece como air fryer, e produtos de marcas ou EANs diferentes não se misturam
+- Separação entre o produto e as peças dele: o cesto da air fryer não aparece como air fryer, e produtos de marcas ou EANs diferentes não se misturam. Quem começa a busca pelo tipo do produto vê o produto antes do acessório que repete as mesmas palavras: em "controle dualsense", o controle vem antes da capa, e em "notebook dell inspiron", o notebook vem antes do teclado
 - Filtros por voltagem, condição e forma de pagamento
 - Buscas recentes guardadas só no navegador
 

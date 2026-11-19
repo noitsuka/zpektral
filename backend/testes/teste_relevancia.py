@@ -667,3 +667,60 @@ def teste_titulo_que_abre_com_outro_tipo_de_produto(consulta, titulo, outro):
     from app.relevancia import abre_com_outro_tipo
 
     assert abre_com_outro_tipo(interpretar_consulta(consulta), titulo) is outro
+
+
+@pytest.mark.parametrize(
+    ("consulta", "produto", "outro"),
+    [
+        ("controle dualsense", "Controle DualSense - PlayStation 5", "Capa Controle Dualsense Ps5"),
+        (
+            "notebook dell inspiron 15",
+            "Notebook Dell Inspiron 15 Intel Core i5 8GB",
+            "Teclado Notebook, Para Dell Inspiron 15 5000, Preto",
+        ),
+        (
+            "carrinho de bebê",
+            "Carrinho de Bebê Kidino Essencial Preto Reclinável",
+            "Separador Life Carrinho de Bebê Menino em Prata 925 com Esmalte",
+        ),
+        (
+            "aspirador de pó vertical",
+            "Aspirador de Pó Vertical Britânia BAS1200",
+            "Escova Giratória Aspirador Pó Vertical Philips XC2011",
+        ),
+    ],
+)
+def teste_titulo_de_outro_produto_cede_o_lugar_sem_sair_da_lista(consulta, produto, outro):
+    assert 90 <= s(consulta, outro) < s(consulta, produto)
+
+
+@pytest.mark.parametrize(
+    ("consulta", "titulo"),
+    [
+        # a busca começa por marca ou nome: não há como saber qual tipo é o produto
+        ("samsung galaxy a55", "Smartphone Samsung Galaxy A55 5G 128GB"),
+        ("kimetsu no yaiba", "Caneca Kimetsu no Yaiba Tanjiro"),
+        # o rótulo da loja antes do separador não é o produto
+        ("livro o hobbit", "Livro - O Hobbit - Edição de Luxo"),
+    ],
+)
+def teste_sem_tipo_na_busca_o_titulo_nao_cede_o_lugar(consulta, titulo):
+    assert s(consulta, titulo) >= 95
+
+
+def teste_perfume_inspirado_nao_e_o_original():
+    assert s("perfume la vie est belle", "Twist Dolce No. 33 Inspired by La Vie Est Belle") < 40
+    assert s("perfume la vie est belle", "Perfume Feminino Inspirado La Vie Est Belle") < 40
+    assert s("perfume inspirado la vie est belle", "Perfume Inspirado La Vie Est Belle") >= 90
+
+
+@pytest.mark.parametrize(
+    "titulo",
+    [
+        "Tubo Extensor Aspirador Pó Vertical Philips XC2011",
+        "Bocal 2 em 1 Preto Aspirador Pó Vertical Philips XC2011",
+    ],
+)
+def teste_peca_do_aspirador_nao_e_o_aspirador(titulo):
+    assert s("aspirador de pó vertical", titulo) < 40
+    assert s("extensor aspirador philips", "Tubo Extensor Aspirador Philips XC2011") >= 90
