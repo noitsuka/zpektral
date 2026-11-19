@@ -147,3 +147,12 @@ def teste_conexao_tem_folga_para_a_instancia_nova():
     from app.configuracao import Configuracoes
 
     assert Configuracoes(_env_file=None).segundos_limite_conexao >= 6
+
+
+def teste_clientes_das_lojas_dividem_o_contexto_tls(config):
+    # medido: montar o contexto lê o pacote de certificados e levava 1,4 s para as ~100 lojas
+    # da primeira busca de uma instância, com o servidor parado enquanto isso
+    from app.cliente_http import criar_cliente
+
+    um, outro = criar_cliente(config), criar_cliente(config)
+    assert um._transport._pool._ssl_context is outro._transport._pool._ssl_context

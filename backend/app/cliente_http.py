@@ -2,7 +2,9 @@ import asyncio
 import ipaddress
 import random
 import socket
+import ssl
 from collections import defaultdict
+from functools import lru_cache
 from http.cookiejar import CookieJar, DefaultCookiePolicy
 from typing import Any
 
@@ -73,9 +75,17 @@ async def _exigir_destino_publico(requisicao: httpx.Request) -> None:
         raise DestinoProibido(f"destino recusado: {requisicao.url.host}", request=requisicao)
 
 
+@lru_cache(maxsize=1)
+def _contexto_tls() -> ssl.SSLContext:
+    # o mesmo que o httpx monta sozinho, uma vez só: cada contexto lê o pacote de certificados,
+    # e a primeira busca de uma instância criava ~100 em sequência, com o servidor parado
+    return httpx.create_ssl_context()
+
+
 def criar_cliente(config: Configuracoes) -> httpx.AsyncClient:
     conexoes = config.requisicoes_por_host
     return httpx.AsyncClient(
+        verify=_contexto_tls(),
         timeout=httpx.Timeout(
             config.segundos_limite_leitura, connect=config.segundos_limite_conexao
         ),
