@@ -530,3 +530,18 @@ async def teste_serie_por_produto_devolve_o_dia_e_nao_o_instante(sessoes):
         await sessao.execute(update(HistoricoPreco).values(produto="g:x"))
     pontos = (await registro.serie("g:x", None, 30))[0].pontos
     assert all(p.em.timetz().replace(tzinfo=None) == time(0) for p in pontos)
+
+
+def teste_oferta_do_mercado_livre_nao_entra_no_historico(config):
+    from app.busca import Fase, Lote, TrabalhoBusca
+    from app.modelos import Loja, Oferta, RelatorioFonte, StatusFonte
+
+    trabalho = TrabalhoBusca("tv", BH)
+    ofertas = [
+        Oferta(f"{loja}:1", "Smart TV", "x", Loja(loja, loja), 100, relevancia=100)
+        for loja in ("mercadolivre", "a")
+    ]
+    relatorio = RelatorioFonte("a", "A", StatusFonte.OK)
+    trabalho.adicionar(Lote(relatorio, [o.consolidar() for o in ofertas], Fase.FINAL))
+    precos, _, _ = RegistroHistorico(None).linhas(trabalho)
+    assert [p.oferta for p in precos] == ["a:1"]

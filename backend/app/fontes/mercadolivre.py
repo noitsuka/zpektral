@@ -7,6 +7,8 @@ from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import quote
 
+import httpx
+
 from app.cliente_http import ClienteHttp, ErroExterno, ler_json
 from app.configuracao import Configuracoes
 from app.credenciais import GuardaCredenciais
@@ -20,19 +22,24 @@ from app.fontes.base import (
     montar_ofertas,
 )
 from app.modelos import (
+    Condicao,
     Frete,
     Loja,
     Oferta,
     OpcaoFrete,
     Origem,
-    Parcelamento,
     StatusFrete,
 )
+from app.relevancia import normalizar_ean
 
 log = logging.getLogger("zpektral.mercadolivre")
 
 API = "https://api.mercadolibre.com"
-LIMITE_BUSCA = 50
+SITE = "https://produto.mercadolivre.com.br"
+PRODUTOS_DO_CATALOGO = 10
+# cada produto custa uma chamada a mais; as ofertas de cada um disputam a mesma página
+PRODUTOS_COM_OFERTAS = 6
+OFERTAS_POR_PRODUTO = 3
 
 
 REAUTORIZAR = (
@@ -195,27 +202,48 @@ class FonteMercadoLivre:
         return self._cofre.configurado
 
     async def buscar(self, ctx: ContextoBusca, previa: Previa | None = None) -> list[Oferta]:
+        # /sites/MLB/search saiu da documentação em 2025 e recusa apps novos com 403; o caminho
+        # documentado é o catálogo e, para cada produto, as ofertas que disputam a página dele
         inicio = time.monotonic()
-        url = f"{API}/sites/MLB/search?q={quote(ctx.texto)}&limit={LIMITE_BUSCA}"
         token = await self._cofre.obter_token()
-        resposta = await self._http.requisitar(
-            "GET", url, aceitos=(200, 401, 403), headers={"authorization": f"Bearer {token}"}
+        url = (
+            f"{API}/products/search?status=active&site_id=MLB&q={quote(ctx.texto)}"
+            f"&limit={PRODUTOS_DO_CATALOGO}"
         )
-        if resposta.status_code == 401:
-            self._cofre.invalidar(token)
-            token = await self._cofre.obter_token()
-            resposta = await self._http.requisitar(
-                "GET", url, aceitos=(200, 403), headers={"authorization": f"Bearer {token}"}
-            )
+        resposta, token = await self._consultar(url, token)
         if resposta.status_code == 403:
             raise ErroExterno(
-                "mercado livre: busca recusada (HTTP 403); confira se o app tem acesso à busca", 403
+                "mercado livre: catálogo recusado (HTTP 403); o app precisa da permissão "
+                "Publicação e sincronização",
+                403,
             )
         dados = ler_json(resposta)
         if not isinstance(dados, dict):
             raise ErroExterno("mercado livre: resposta de busca inesperada")
+        produtos = [p for p in dados.get("results") or [] if isinstance(p, dict) and p.get("id")]
+        # só o produto que casa com a busca gasta a chamada das ofertas
+        notas = [ctx.relevancia_de(str(p.get("name") or ""), None) for p in produtos]
+        escolhidos = [
+            p
+            for p, nota in sorted(zip(produtos, notas, strict=True), key=lambda par: -par[1])
+            if nota >= self._config.relevancia_minima_cotacao
+        ][:PRODUTOS_COM_OFERTAS]
+        listas = await asyncio.gather(
+            *(self._itens(p["id"], token) for p in escolhidos), return_exceptions=True
+        )
+        falhas = [r for r in listas if isinstance(r, BaseException)]
+        if escolhidos and len(falhas) == len(escolhidos):
+            bloqueio = next((f for f in falhas if getattr(f, "bloqueio", False)), None)
+            raise bloqueio or falhas[0]
+        pares = [
+            (produto, item)
+            for produto, itens in zip(escolhidos, listas, strict=True)
+            if not isinstance(itens, BaseException)
+            for item in itens
+        ]
+        vendedores = await self._vendedores({item.get("seller_id") for _, item in pares}, token)
         ofertas = montar_ofertas(
-            self.id, dados.get("results") or [], lambda item, p: self._oferta(item, p, ctx)
+            self.id, pares, lambda par, pos: self._oferta(*par, pos, ctx, vendedores)
         )
 
         a_cotar = escolher_para_cotar(
@@ -238,7 +266,65 @@ class FonteMercadoLivre:
                     o.frete = ctx.frete_sem_cotacao()
         return [o.consolidar() for o in ofertas]
 
-    def _oferta(self, item: dict[str, Any], posicao: int, ctx: ContextoBusca) -> Oferta | None:
+    async def _consultar(self, url: str, token: str) -> tuple[httpx.Response, str]:
+        cabecalho = {"authorization": f"Bearer {token}"}
+        resposta = await self._http.requisitar(
+            "GET", url, aceitos=(200, 401, 403), headers=cabecalho
+        )
+        if resposta.status_code == 401:
+            self._cofre.invalidar(token)
+            token = await self._cofre.obter_token()
+            resposta = await self._http.requisitar(
+                "GET", url, aceitos=(200, 403), headers={"authorization": f"Bearer {token}"}
+            )
+        return resposta, token
+
+    async def _itens(self, id_produto: str, token: str) -> list[dict[str, Any]]:
+        url = f"{API}/products/{quote(id_produto, safe='')}/items"
+        resposta = await self._http.requisitar(
+            "GET", url, aceitos=(200, 404), headers={"authorization": f"Bearer {token}"}
+        )
+        dados = ler_json(resposta) if resposta.status_code == 200 else {}
+        brutos = dados.get("results") if isinstance(dados, dict) else None
+        itens = [
+            i
+            for i in brutos or []
+            if isinstance(i, dict)
+            and i.get("item_id")
+            and i.get("currency_id", "BRL") == "BRL"
+            and _numero(i.get("price")) > 0
+        ]
+        # o filtro padrão do site mostra só novos: as mais baratas novas vêm primeiro
+        itens.sort(key=lambda i: (i.get("condition") != "new", i["price"]))
+        return itens[:OFERTAS_POR_PRODUTO]
+
+    async def _vendedores(self, ids: set[Any], token: str) -> dict[Any, str]:
+        ids = {i for i in ids if isinstance(i, int)}
+        if not ids:
+            return {}
+        url = f"{API}/users?ids={','.join(map(str, sorted(ids)))}"
+        try:
+            resposta = await self._http.requisitar(
+                "GET", url, headers={"authorization": f"Bearer {token}"}
+            )
+            dados = ler_json(resposta)
+        except ErroExterno:
+            return {}
+        nomes = {}
+        for entrada in dados if isinstance(dados, list) else []:
+            corpo = entrada.get("body", entrada) if isinstance(entrada, dict) else None
+            if isinstance(corpo, dict) and isinstance(corpo.get("nickname"), str):
+                nomes[corpo.get("id")] = corpo["nickname"]
+        return nomes
+
+    def _oferta(
+        self,
+        produto: dict[str, Any],
+        item: dict[str, Any],
+        posicao: int,
+        ctx: ContextoBusca,
+        vendedores: dict[Any, str],
+    ) -> Oferta | None:
         if not item.get("price"):
             return None
         info_frete = item.get("shipping") or {}
@@ -246,32 +332,34 @@ class FonteMercadoLivre:
             frete = Frete(StatusFrete.GRATIS_ANUNCIADO, valor=0)
         else:
             frete = ctx.frete_sem_cotacao()
-        parcela = item.get("installments") or {}
-        parcelamentos = None
-        if parcela.get("quantity") and parcela.get("amount"):
-            valor = para_centavos(parcela["amount"])
-            parcelamentos = Parcelamento(
-                parcelas=parcela["quantity"],
-                valor=valor,
-                total=valor * parcela["quantity"],
-                juros=bool(parcela.get("rate")),
-            )
-        vendedor = item.get("official_store_name") or (item.get("seller") or {}).get("nickname")
-        titulo = item.get("title") or ""
-        if item.get("condition") == "used":
+        atributos = {
+            a.get("id"): a.get("value_name")
+            for a in produto.get("attributes") or []
+            if isinstance(a, dict)
+        }
+        gtins = (g.strip() for g in str(atributos.get("GTIN") or "").split(","))
+        fotos = [f.get("url") for f in produto.get("pictures") or [] if isinstance(f, dict)]
+        foto = fotos[0] if fotos and isinstance(fotos[0], str) else ""
+        titulo = str(produto.get("name") or "")
+        usado = item.get("condition") == "used"
+        if usado:
             titulo = f"{titulo} (usado)"
+        id_item = str(item["item_id"])
+        vendedor = vendedores.get(item.get("seller_id"))
         original = item.get("original_price")
         return Oferta(
-            id=f"{self.id}:{item.get('id')}",
+            id=f"{self.id}:{id_item}",
             titulo=titulo,
-            link=item.get("permalink") or "",
+            link=f"{SITE}/{id_item[:3]}-{id_item[3:]}-_JM",
             loja=self._ref,
             preco=para_centavos(item["price"]),
             origem=Origem.MARKETPLACE,
             vendedor=vendedor,
-            imagem=(item.get("thumbnail") or "").replace("http://", "https://") or None,
+            imagem=foto.replace("http://", "https://") or None,
+            marca=atributos.get("BRAND"),
+            ean=next(filter(None, map(normalizar_ean, gtins)), None),
+            condicao=Condicao.USADO if usado else None,
             preco_original=para_centavos(original) if original else None,
-            parcelamento=parcelamentos,
             frete=frete,
             relevancia=ctx.relevancia_de(titulo, vendedor),
             posicao=posicao,
@@ -332,3 +420,7 @@ def _opcao(bruto: dict[str, Any]) -> OpcaoFrete:
         prazo_dias=dias,
         tipo="entrega",
     )
+
+
+def _numero(valor: Any) -> float:
+    return float(valor) if isinstance(valor, int | float) else 0.0

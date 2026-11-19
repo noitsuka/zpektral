@@ -23,6 +23,9 @@ CHAVES_LEMBRADAS = 200_000
 LINHAS_MAXIMAS_SERIE = 5_000
 INTERVALO_EXPURGO_S = 86_400
 RELEVANCIA_MINIMA_HISTORICO = 70
+# termos da API do Mercado Livre (2.2.1.3 e 7.4): só cópias intermediárias, apagadas quando
+# deixam de ser necessárias; o histórico guarda o preço por meses
+FONTES_SEM_HISTORICO = frozenset({"mercadolivre"})
 TAMANHO_MAXIMO_OFERTA = 160
 OFERTAS_POR_CONSULTA = 50
 HORARIO_DE_BRASILIA = timezone(timedelta(hours=-3))
@@ -385,6 +388,7 @@ class RegistroHistorico:
 def _gravavel(o: Oferta) -> bool:
     return (
         0 < len(o.id) <= TAMANHO_MAXIMO_OFERTA
+        and o.loja.id not in FONTES_SEM_HISTORICO
         and o.relevancia >= RELEVANCIA_MINIMA_HISTORICO
         and o.disponivel
         and o.frete.status is not StatusFrete.CALCULANDO

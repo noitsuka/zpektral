@@ -12,40 +12,78 @@ from app.banco import Base, criar_motor, criar_sessoes
 from app.cliente_http import ErroExterno
 from app.credenciais import Cifra, GuardaCredenciais, nova_chave
 from app.fontes.mercadolivre import CofreTokens, FonteMercadoLivre
-from app.modelos import StatusFrete
+from app.modelos import Condicao, StatusFrete
 from testes.conftest import contexto, resposta_json
 
 URL_TOKEN = "https://api.mercadolibre.com/oauth/token"
-BUSCA_ML = re.compile(r"https://api\.mercadolibre\.com/sites/MLB/search.*")
+CATALOGO = re.compile(r"https://api\.mercadolibre\.com/products/search\?.*")
+ITENS = re.compile(r"https://api\.mercadolibre\.com/products/(MLB\d+)/items.*")
+USUARIOS = re.compile(r"https://api\.mercadolibre\.com/users\?ids=.*")
 FRETE_ML = re.compile(r"https://api\.mercadolibre\.com/items/(MLB\d+)/shipping_options.*")
 
-RESULTADOS = {
+# formato de /products/search e /products/{id}/items na documentação do Mercado Livre
+PRODUTOS = {
+    "keywords": "rtx 4060",
+    "paging": {"total": 2, "limit": 10, "offset": 0},
     "results": [
         {
-            "id": "MLB1",
-            "title": "Placa de Vídeo RTX 4060 8GB",
+            "id": "MLB100",
+            "status": "active",
+            "domain_id": "MLB-GRAPHICS_CARDS",
+            "name": "Placa de Vídeo RTX 4060 8GB Gigabyte",
+            "attributes": [
+                {"id": "BRAND", "name": "Marca", "value_name": "Gigabyte"},
+                {"id": "GTIN", "name": "Código universal", "value_name": "123,7891234567895"},
+            ],
+            "pictures": [{"id": "1", "url": "http://http2.mlstatic.com/D_1.jpg"}],
+        },
+        {"id": "MLB200", "status": "active", "name": "Capa de Chuva para Moto", "attributes": []},
+    ],
+}
+ITENS_100 = {
+    "paging": {"total": 4, "offset": 0, "limit": 100},
+    "results": [
+        {
+            "item_id": "MLB1",
+            "seller_id": 11,
             "price": 1899.9,
             "original_price": 2199,
-            "permalink": "https://produto.mercadolivre.com.br/MLB-1",
-            "thumbnail": "http://http2.mlstatic.com/D_1.jpg",
+            "currency_id": "BRL",
             "condition": "new",
-            "shipping": {"free_shipping": False},
-            "seller": {"nickname": "LOJA_X"},
-            "installments": {"quantity": 10, "amount": 189.99, "rate": 0},
+            "official_store_id": None,
+            "shipping": {"free_shipping": False, "mode": "me2"},
         },
         {
-            "id": "MLB2",
-            "title": "Placa de Vídeo RTX 4060 Usada",
+            "item_id": "MLB2",
+            "seller_id": 22,
             "price": 1500,
-            "permalink": "https://produto.mercadolivre.com.br/MLB-2",
+            "original_price": None,
+            "currency_id": "BRL",
             "condition": "used",
-            "shipping": {"free_shipping": True},
-            "official_store_name": "Loja Oficial",
-            "installments": {"quantity": 12, "amount": 150.5, "rate": 19.9},
+            "shipping": {"free_shipping": True, "mode": "me2"},
         },
-        {"id": "MLB3", "title": "Sem preço", "price": None},
-    ]
+        {"item_id": "MLB3", "seller_id": 33, "price": 2500, "condition": "new"},
+        {"item_id": "MLB5", "seller_id": 55, "price": None, "condition": "new"},
+    ],
 }
+USUARIOS_RESPOSTA = [
+    {"code": 200, "body": {"id": 11, "nickname": "LOJA_X"}},
+    {"code": 200, "body": {"id": 22, "nickname": "OUTRA"}},
+    {"code": 404, "body": {"message": "not found"}},
+]
+
+
+def catalogo(simulador, itens=ITENS_100, usuarios=USUARIOS_RESPOSTA):
+    simulador.get(CATALOGO).mock(resposta_json(PRODUTOS))
+    rota_itens = simulador.get(ITENS).mock(resposta_json(itens))
+    simulador.get(USUARIOS).mock(resposta_json(usuarios))
+    return rota_itens
+
+
+def _opcoes(*custos):
+    return resposta_json(
+        {"options": [{"name": f"Op{c}", "cost": c, "estimated_delivery_time": {}} for c in custos]}
+    )
 
 
 def configurado(config):
@@ -248,47 +286,90 @@ async def teste_requisicoes_simultaneas_renovam_uma_vez(simulador, http, config,
     assert rota.call_count == 1
 
 
-async def teste_busca_com_frete_cotado(simulador, http, config):
+async def teste_busca_pelo_catalogo_com_frete_cotado(simulador, http, config):
     configurado(config)
     rota_token(simulador, [])
-    buscar = simulador.get(BUSCA_ML).mock(resposta_json(RESULTADOS))
+    rota_itens = catalogo(simulador)
 
     def frete(requisicao: httpx.Request):
         assert requisicao.headers["authorization"] == "Bearer a0"
         assert "zip_code=30130010" in str(requisicao.url)
-        return resposta_json(
-            {
-                "options": [
-                    {"name": "Normal", "cost": 25.9, "estimated_delivery_time": {}},
-                    {"name": "Expresso", "cost": 39.9, "estimated_delivery_time": {}},
-                ]
-            }
-        )
+        return _opcoes(25.9, 39.9)
 
     simulador.get(FRETE_ML).mock(side_effect=frete)
     ofertas = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060"))
 
-    assert buscar.calls[0].request.headers["authorization"] == "Bearer a0"
+    pedido = simulador.calls[1].request
+    assert pedido.headers["authorization"] == "Bearer a0"
+    assert "site_id=MLB" in str(pedido.url) and "status=active" in str(pedido.url)
+    # a capa de chuva não casa com a busca: não gasta a chamada das ofertas
+    assert [c.request.url.path for c in rota_itens.calls] == ["/products/MLB100/items"]
     por_id = {o.id: o for o in ofertas}
-    assert set(por_id) == {"mercadolivre:MLB1", "mercadolivre:MLB2"}
+    assert set(por_id) == {"mercadolivre:MLB1", "mercadolivre:MLB2", "mercadolivre:MLB3"}
 
     novo = por_id["mercadolivre:MLB1"]
+    assert novo.titulo == "Placa de Vídeo RTX 4060 8GB Gigabyte"
     assert novo.preco == 189990 and novo.preco_original == 219900
+    assert novo.marca == "Gigabyte" and novo.ean == "7891234567895"
+    assert novo.link == "https://produto.mercadolivre.com.br/MLB-1-_JM"
+    assert novo.imagem == "https://http2.mlstatic.com/D_1.jpg"
+    assert novo.vendedor == "LOJA_X"
     assert novo.frete.status is StatusFrete.CALCULADO and novo.frete.valor == 2590
     assert novo.total == 189990 + 2590 and novo.total_exato
-    assert novo.imagem.startswith("https://")
-    assert novo.parcelamento.parcelas == 10 and not novo.parcelamento.juros
 
-    usados = por_id["mercadolivre:MLB2"]
-    assert usados.titulo.endswith("(usado)")
-    assert usados.vendedor == "Loja Oficial"
-    assert usados.parcelamento.juros
+    usado = por_id["mercadolivre:MLB2"]
+    assert usado.titulo.endswith("(usado)") and usado.condicao is Condicao.USADO
+    assert usado.vendedor == "OUTRA"
+    assert por_id["mercadolivre:MLB3"].vendedor is None
+
+
+async def teste_cada_produto_traz_as_ofertas_novas_mais_baratas(simulador, http, config):
+    configurado(config)
+    rota_token(simulador, [])
+    itens = {
+        "results": [{"item_id": f"MLB{n}", "price": 100 - n, "condition": "new"} for n in range(9)]
+    }
+    catalogo(simulador, itens=itens)
+    ofertas = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060", cep=None))
+    assert [o.id for o in ofertas] == [
+        "mercadolivre:MLB8",
+        "mercadolivre:MLB7",
+        "mercadolivre:MLB6",
+    ]
+
+
+async def teste_produto_sem_ofertas_nao_derruba_a_busca(simulador, http, config):
+    configurado(config)
+    rota_token(simulador, [])
+    outro = {**PRODUTOS["results"][0], "id": "MLB300"}
+    simulador.get(CATALOGO).mock(resposta_json({"results": [PRODUTOS["results"][0], outro]}))
+
+    def itens(requisicao: httpx.Request):
+        if "MLB300" in requisicao.url.path:
+            return httpx.Response(404)
+        return resposta_json(ITENS_100)
+
+    simulador.get(ITENS).mock(side_effect=itens)
+    simulador.get(USUARIOS).mock(httpx.Response(500))
+    ofertas = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060", cep=None))
+    assert len(ofertas) == 3
+    assert all(o.vendedor is None for o in ofertas)
+
+
+async def teste_ofertas_todas_recusadas_viram_bloqueio(simulador, http, config):
+    configurado(config)
+    rota_token(simulador, [])
+    simulador.get(CATALOGO).mock(resposta_json(PRODUTOS))
+    simulador.get(ITENS).mock(httpx.Response(429))
+    with pytest.raises(ErroExterno) as erro:
+        await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060", cep=None))
+    assert erro.value.bloqueio
 
 
 async def teste_sem_opcoes_significa_sem_entrega(simulador, http, config):
     configurado(config)
     rota_token(simulador, [])
-    simulador.get(BUSCA_ML).mock(resposta_json({"results": RESULTADOS["results"][:1]}))
+    catalogo(simulador, itens={"results": ITENS_100["results"][:1]})
     simulador.get(FRETE_ML).mock(resposta_json({"options": []}))
     [oferta] = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060"))
     assert oferta.frete.status is StatusFrete.NAO_ENTREGA
@@ -297,7 +378,7 @@ async def teste_sem_opcoes_significa_sem_entrega(simulador, http, config):
 async def teste_cotacao_falha_mantem_oferta(simulador, http, config):
     configurado(config)
     rota_token(simulador, [])
-    simulador.get(BUSCA_ML).mock(resposta_json({"results": RESULTADOS["results"][:1]}))
+    catalogo(simulador, itens={"results": ITENS_100["results"][:1]})
     simulador.get(FRETE_ML).mock(httpx.Response(500))
     [oferta] = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060"))
     assert oferta.frete.status is StatusFrete.NAO_INFORMADO
@@ -308,9 +389,11 @@ async def teste_token_revogado_e_renovado_uma_vez(simulador, http, config):
     configurado(config)
     usados: list[str] = []
     rota_token(simulador, usados)
-    respostas = iter([httpx.Response(401), resposta_json(RESULTADOS)])
-    busca = simulador.get(BUSCA_ML).mock(side_effect=lambda _: next(respostas))
-    ofertas = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060"))
+    respostas = iter([httpx.Response(401), resposta_json(PRODUTOS)])
+    busca = simulador.get(CATALOGO).mock(side_effect=lambda _: next(respostas))
+    simulador.get(ITENS).mock(resposta_json(ITENS_100))
+    simulador.get(USUARIOS).mock(resposta_json(USUARIOS_RESPOSTA))
+    ofertas = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060", cep=None))
     assert ofertas
     assert busca.call_count == 2
     assert busca.calls[-1].request.headers["authorization"] == "Bearer a1"
@@ -334,7 +417,7 @@ async def teste_token_expirado_no_meio_da_cotacao_e_renovado(simulador, http, co
     configurado(config)
     usados: list[str] = []
     rota_token(simulador, usados)
-    simulador.get(BUSCA_ML).mock(resposta_json({"results": RESULTADOS["results"][:1]}))
+    catalogo(simulador, itens={"results": ITENS_100["results"][:1]})
 
     def frete(requisicao: httpx.Request):
         if requisicao.headers["authorization"] == "Bearer a0":
@@ -361,35 +444,28 @@ async def teste_token_expirado_no_meio_da_cotacao_e_renovado(simulador, http, co
     assert oferta.total_exato
 
 
-async def teste_busca_recusada_com_403_explica_o_motivo(simulador, http, config):
+@pytest.mark.parametrize("status", [403, 429])
+async def teste_catalogo_recusado_vira_bloqueio_e_explica_o_motivo(simulador, http, config, status):
     configurado(config)
     rota_token(simulador, [])
-    simulador.get(BUSCA_ML).mock(
-        resposta_json({"message": "forbidden", "error": "forbidden", "status": 403}, status=403)
+    simulador.get(CATALOGO).mock(
+        resposta_json({"blocked_by": "PolicyAgent", "status": status}, status=status)
     )
-    with pytest.raises(ErroExterno, match="403") as erro:
+    with pytest.raises(ErroExterno) as erro:
         await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060"))
     assert erro.value.bloqueio
+    if status == 403:
+        assert "Publicação e sincronização" in str(erro.value)
 
 
 async def teste_frete_gratis_anunciado_sem_cep(simulador, http, config):
     configurado(config)
     rota_token(simulador, [])
-    simulador.get(BUSCA_ML).mock(resposta_json({"results": RESULTADOS["results"][1:2]}))
+    catalogo(simulador, itens={"results": ITENS_100["results"][1:2]})
     frete = simulador.get(FRETE_ML).mock(resposta_json({"options": []}))
     [oferta] = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060 usada", cep=None))
     assert not frete.called
     assert oferta.frete.status is StatusFrete.GRATIS_ANUNCIADO and oferta.frete.valor == 0
-    assert oferta.vendedor == "Loja Oficial"
-
-
-async def teste_vendedor_pelo_apelido(simulador, http, config):
-    configurado(config)
-    rota_token(simulador, [])
-    simulador.get(BUSCA_ML).mock(resposta_json({"results": RESULTADOS["results"][:1]}))
-    simulador.get(FRETE_ML).mock(resposta_json({"options": []}))
-    [oferta] = await FonteMercadoLivre(http, config).buscar(contexto("rtx 4060", cep=None))
-    assert oferta.vendedor == "LOJA_X"
 
 
 @pytest.mark.live
