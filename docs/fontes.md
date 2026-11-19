@@ -135,7 +135,12 @@ Reconferida em 19/11/2026 a partir das mesmas execuções gravadas:
 - **Precisão:** 625 das 648 são do produto pedido (0,965); pelo Buscapé eram 54 de 55. A precisão geral fica igual (0,883 para 0,884).
 - **Repetição:**
   - 28 ofertas repetem o título dentro da Fast Shop na mesma busca, quase todas o mesmo produto vendido pela Ponto e pela Casas Bahia ao mesmo preço.
-  - 47 das 104 ofertas da Webcontinental Marketplace têm o mesmo EAN de uma oferta da WebContinental direta na mesma busca.
+  - 47 das 104 ofertas da Webcontinental Marketplace têm o mesmo EAN de uma oferta da WebContinental direta na mesma busca. Conferidas uma a uma pelas respostas gravadas, nenhuma é duplicação:
+    - 40 são de outro vendedor no marketplace da própria WebContinental (Salvador Comercial, Lojas Zema, Brand Bikes e outros), com preço e Pix diferentes;
+    - 5 são da WebCo Brasil, que pode ser a própria WebContinental, mas com preço diferente;
+    - 2 têm o mesmo preço, mas são de outro vendedor; numa delas o Pix também difere.
+
+    A diferença de preço vai de 0,2% a 21,7%, com mediana de 10,6%. Para contar como duplicação, a oferta precisa ter o mesmo produto, o mesmo vendedor e as mesmas condições (preço, Pix e, com CEP, frete e prazo). Mesmo nesse caso, um anúncio em outra loja é outro caminho de compra. Por isso nada foi tirado.
   - Nenhuma oferta aparece pela Fast Shop direta e pelo Buscapé ao mesmo tempo.
 - **Custo:** 2 requisições a mais por busca (122,7 para 124,7).
 - **Julgamento:** é por regra (`testes/dados/consultas_avaliacao.json`), não por pessoas.
@@ -187,7 +192,7 @@ Documentação lida pelas cópias do Web Archive de developers.mercadolivre.com.
     - troca da `CHAVE_CREDENCIAIS`. Com uma linha que não abre, a fonte pede nova autorização em vez de reapresentar a semente.
 
     A troca do token não é idempotente, então nenhum código evita os dois primeiros casos. Quando acontece, a fonte sai como `bloqueada` com o comando no motivo.
-- **Termos da API** (cópia de 07/06/2025 no [Web Archive](https://web.archive.org/web/20250607191142/https://developers.mercadolivre.com.br/pt_br/termos-e-condicoes), a mais recente; a página recusa leitura automatizada). Do jeito que estão escritos, os termos não cobrem um comparador:
+- **Termos da API** (cópia de 07/06/2025 no [Web Archive](https://web.archive.org/web/20250607191142/https://developers.mercadolivre.com.br/pt_br/termos-e-condicoes), a mais recente; a página recusa leitura automatizada). Antes de qualquer uso público, é preciso confirmar com o Mercado Livre qual versão está em vigor e obter a autorização escrita; até lá, a fonte fica desativada (sem credenciais, ela não liga). Do jeito que estão escritos, os termos não cobrem um comparador:
   - **cláusula 2:** a API e o conteúdo só podem ser usados para facilitar e melhorar o uso do site e dos serviços do Mercado Livre. É proibido usá-los para desenvolver serviço que concorra com os dele (2b) e divulgar o que vem da integração a quem não é usuário do Mercado Livre (2f);
   - **5.2:** o conteúdo do Mercado Livre exibido no aplicativo não pode ser confundido nem combinado com conteúdo de terceiros, e o comparador põe as ofertas dele na mesma lista das outras lojas, ordenadas pelo total;
   - **5.3:** atualizar ao menos a cada 24 horas (6 horas para listas de anúncios) e informar no aplicativo a frequência de atualização, que o site hoje não informa;
@@ -253,12 +258,14 @@ Documentação lida pelas cópias do Web Archive de developers.mercadolivre.com.
 - Não verificado: feed ou API de produtos. A página de Product Search da Rakuten não carregou o conteúdo.
 - Passo do dono: cadastro de publisher na Rakuten Advertising (signup.linkshare.com) e pedido de entrada no programa.
 
-### Shopee (integrada, aguardando acesso)
+### Shopee (integrada, desativada até a aprovação)
+
+Fica desativada (sem `SHOPEE_ID_APP` e `SHOPEE_SEGREDO`, ela não liga) até a Shopee aprovar o acesso à Open API e confirmar que os termos de afiliado aceitam um comparador.
 
 Documentação lida em 19/11/2026 nos arquivos JavaScript públicos do portal de afiliados brasileiro (a página só carrega com JavaScript) e em cópias de terceiros.
 
 - **Conector conferido:** endpoint `https://open-api.affiliate.shopee.com.br/graphql`, cabeçalho `SHA256 Credential=..., Timestamp=..., Signature=...` com SHA-256 de App ID, instante, corpo e segredo (o exemplo oficial bate), instante com tolerância de 10 minutos. Todos os campos pedidos em `productOfferV2` existem; `priceMin` e `priceMax` são texto e `priceDiscountRate` é inteiro em porcentagem.
-- **Preço:** a API dá o preço mínimo e o máximo do anúncio, sem dizer a qual versão cada um pertence, sem preço antigo e sem cupom. Quando o máximo passa do mínimo, a oferta mostra o mínimo com o aviso "Preço da versão mais barata" e o total deixa de contar como exato. A porcentagem de desconto não vira mais preço "de".
+- **Preço:** a API dá o preço mínimo e o máximo do anúncio, sem dizer a qual versão cada um pertence, sem preço antigo e sem cupom. Quando o máximo passa do mínimo, a oferta mostra o mínimo com o aviso "Preço da versão mais barata" e o total deixa de contar como exato. A porcentagem de desconto não vira mais preço "de". Nas ordens por preço e por total, preço não confirmado (versão mais barata ou preço que o checkout de uma loja VTEX devolveu diferente em duas consultas) continua na lista, depois dos confirmados, do mesmo jeito que total sem frete fica depois de total confirmado; no custo-benefício, conta como estimado.
 - **Erros:** chegam com HTTP 200 em `errors[].extensions.code`. Assinatura recusada (10020), conta sem acesso, congelada ou na lista negra (10031 a 10035) e limite estourado (10030) deixam a fonte `bloqueada`; no 10030 ela fica 15 minutos sem chamar a API. O limite no Brasil é de 2.000 consultas por hora; cada busca usa até `SHOPEE_PAGINAS` (2).
 - **Frete:** não há API de frete para afiliados. As ofertas entram sem frete e, no menor total, ficam abaixo das que têm total confirmado. O frete pelo navegador (`SHOPEE_FRETE_NAVEGADOR`) continua desligado e não deve ser ligado em produção: os termos de afiliado proíbem scraping (4.3d) e a página da Shopee tem verificação de robô.
 - **Product Feed** (`listItemFeeds` e `getItemFeedData`, desde 05/03/2026): catálogos diários completos e de alterações, até 500 linhas por chamada. Serviria para sincronizar sem gastar a cota, mas as colunas não estão documentadas; fica para depois do acesso.
