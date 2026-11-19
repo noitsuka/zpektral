@@ -93,7 +93,15 @@ class FonteBuscape:
                 "GET", url_de_busca(" ".join(palavras[:tamanho])), aceitos=(200, 404)
             )
             if resposta.status_code == 200:
-                return ler_resultados(resposta.content)
+                if resultados := ler_resultados(resposta.content):
+                    return resultados
+                # busca exata: o Buscapé abre direto a página do produto, sem lista de resultados
+                nome, ofertas = ler_pagina_do_produto(resposta.content)
+                if not ofertas:
+                    return []
+                caminho = resposta.request.url.path
+                self._produtos.guardar(caminho, ofertas)
+                return [_resultado_da_pagina(caminho, nome, ofertas)]
         return []
 
     async def _ler_produto(self, caminho: str) -> list[dict[str, Any]]:
@@ -195,7 +203,31 @@ def ler_resultados(html: bytes) -> list[dict[str, Any]]:
 
 
 def ler_ofertas_do_produto(html: bytes) -> list[dict[str, Any]]:
-    ofertas = _dados_da_pagina(html).get("offers") or {}
+    return _ofertas_do_estado(_dados_da_pagina(html))
+
+
+def ler_pagina_do_produto(html: bytes) -> tuple[str, list[dict[str, Any]]]:
+    estado = _dados_da_pagina(html)
+    produto = ((estado.get("products") or {}).get("product") or {}).get("product") or {}
+    nome = produto.get("name") if isinstance(produto, dict) else None
+    return (nome if isinstance(nome, str) else ""), _ofertas_do_estado(estado)
+
+
+def _resultado_da_pagina(caminho: str, nome: str, ofertas: list[dict[str, Any]]) -> dict[str, Any]:
+    com_preco = [o for o in ofertas if isinstance(o.get("price"), int | float) and o["price"] > 0]
+    melhor = min(com_preco, key=lambda o: o["price"], default={})
+    return {
+        "url": caminho,
+        "name": nome or melhor.get("name") or "",
+        "objectId": melhor.get("productID") or caminho,
+        "price": melhor.get("price"),
+        "bestOffer": {"merchantName": melhor.get("sellerName")},
+        "storeCount": len({o.get("sellerName") for o in ofertas}),
+    }
+
+
+def _ofertas_do_estado(estado: dict[str, Any]) -> list[dict[str, Any]]:
+    ofertas = estado.get("offers") or {}
     if not isinstance(ofertas, dict):
         return []
     unicas: dict[str, dict[str, Any]] = {}

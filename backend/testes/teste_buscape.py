@@ -111,6 +111,20 @@ async def teste_frase_sem_pagina_de_busca_tenta_menos_palavras(simulador, http, 
     assert tentativas == ["/busca/geladeira+frost+free", "/busca/geladeira+frost"]
 
 
+async def teste_busca_exata_que_abre_a_pagina_do_produto_traz_as_lojas_dela(
+    simulador, http, config
+):
+    # caso real: "iphone 15 128gb" leva direto à página do produto, sem lista de resultados
+    busca = simulador.get(BUSCA).mock(httpx.Response(302, headers={"Location": PRODUTO}))
+    produto = simulador.get(PRODUTO).mock(
+        httpx.Response(200, content=gravacao_bytes("buscape_produto.html"))
+    )
+    ofertas = await FonteBuscape(http, config).buscar(contexto("air fryer mondial afn 40 fb"))
+    assert busca.call_count == 1 and produto.call_count == 1
+    assert {o.loja.nome for o in ofertas} == {"Amazon", "Magazine Luiza"}
+    assert all(o.link == PRODUTO and o.relevancia >= 70 for o in ofertas)
+
+
 async def teste_nenhuma_pagina_de_busca_devolve_vazio(simulador, http, config):
     rota = simulador.get(BUSCA).mock(httpx.Response(404))
     ofertas = await FonteBuscape(http, config).buscar(
