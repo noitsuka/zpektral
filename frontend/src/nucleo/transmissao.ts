@@ -125,9 +125,17 @@ export function todasOfertas(estado: EstadoTransmissao): Oferta[] {
 
 const SEM_DIAS = Number.POSITIVE_INFINITY;
 
+// preço que não é o do item que a pessoa compra (versão mais barata) ou que o checkout não
+// confirmou: conta como preço estimado, do mesmo jeito que frete estimado ou desconhecido
+const PRECO_NAO_CONFIRMADO: Oferta["alertas"] = ["preco_varia_por_versao", "preco_instavel"];
+
+function precoConfirmado(o: Oferta): boolean {
+  return !o.alertas.some((a) => PRECO_NAO_CONFIRMADO.includes(a));
+}
+
 function certeza(o: Oferta): number {
   if (o.total_exato) return 0;
-  return o.frete.status === "gratis_anunciado" ? 1 : 2;
+  return o.frete.status === "gratis_anunciado" && precoConfirmado(o) ? 1 : 2;
 }
 
 export function rankingAoVivo(
@@ -142,8 +150,17 @@ export function rankingAoVivo(
     // total sem frete não compete com total confirmado
     menor_total: (o) => [certeza(o) > 1 ? 1 : 0, total(o), -o.relevancia],
     custo_beneficio: (o) => [certeza(o) > 1 ? 1 : 0, total(o), -o.relevancia],
-    menor_preco: (o) => [total(o) - (o.frete.valor ?? 0), -o.relevancia],
-    maior_preco: (o) => [-(total(o) - (o.frete.valor ?? 0)), -o.relevancia],
+    // preço não confirmado continua na lista, depois dos confirmados
+    menor_preco: (o) => [
+      precoConfirmado(o) ? 0 : 1,
+      total(o) - (o.frete.valor ?? 0),
+      -o.relevancia,
+    ],
+    maior_preco: (o) => [
+      precoConfirmado(o) ? 0 : 1,
+      -(total(o) - (o.frete.valor ?? 0)),
+      -o.relevancia,
+    ],
     entrega_rapida: (o) => [o.frete.prazo_dias ?? SEM_DIAS, total(o)],
     economia_verificada: (o) => [-economia(o), total(o)],
   };

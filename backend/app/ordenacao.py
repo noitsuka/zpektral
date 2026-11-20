@@ -4,7 +4,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-from app.modelos import Condicao, Oferta, Origem, Pagamento, StatusFrete
+from app.modelos import Alerta, Condicao, Oferta, Origem, Pagamento, StatusFrete
 
 SEM_DIAS = float("inf")
 DIAS_DESCONHECIDOS = 30
@@ -75,17 +75,36 @@ def compravel(oferta: Oferta) -> bool:
     return oferta.disponivel and oferta.frete.status is not StatusFrete.NAO_ENTREGA
 
 
+# preço que não é o do item que a pessoa compra (versão mais barata) ou que o checkout não
+# confirmou: conta como preço estimado, do mesmo jeito que frete estimado ou desconhecido
+PRECO_NAO_CONFIRMADO = frozenset({Alerta.PRECO_VARIA_POR_VERSAO, Alerta.PRECO_INSTAVEL})
+
+
+def preco_confirmado(oferta: Oferta) -> bool:
+    return PRECO_NAO_CONFIRMADO.isdisjoint(oferta.alertas)
+
+
 def certeza(oferta: Oferta) -> int:
     if oferta.total_exato:
         return 0
-    if oferta.frete.status is StatusFrete.GRATIS_ANUNCIADO:
+    frete = oferta.frete.status
+    if not preco_confirmado(oferta):
+        conhecido = frete in (
+            StatusFrete.CALCULADO,
+            StatusFrete.GRATIS_ANUNCIADO,
+            StatusFrete.ESTIMADO,
+        )
+        return 2 if conhecido else 3
+    if frete is StatusFrete.GRATIS_ANUNCIADO:
         return 1
-    if oferta.frete.status is StatusFrete.ESTIMADO:
+    if frete is StatusFrete.ESTIMADO:
         return 2
     return 3
 
 
 def confianca_da_cotacao(oferta: Oferta) -> float:
+    if not preco_confirmado(oferta):
+        return 0.5
     if oferta.frete.status is StatusFrete.CALCULADO:
         return 1.0
     if oferta.frete.status is StatusFrete.GRATIS_ANUNCIADO:
@@ -129,9 +148,18 @@ def _chave_ordenacao(f: Filtros, conjunto: list[Oferta]) -> Callable[[Oferta], t
             notas = notas_custo_beneficio(conjunto, pag, f.pesos)
             return lambda o: (-notas[o.id], o.total_para(pag))
         case Ordem.MENOR_PRECO:
-            return lambda o: (o.total_para(pag) - (o.frete.valor or 0), -o.relevancia)
+            # preço não confirmado continua na lista, depois dos confirmados
+            return lambda o: (
+                not preco_confirmado(o),
+                o.total_para(pag) - (o.frete.valor or 0),
+                -o.relevancia,
+            )
         case Ordem.MAIOR_PRECO:
-            return lambda o: (-(o.total_para(pag) - (o.frete.valor or 0)), -o.relevancia)
+            return lambda o: (
+                not preco_confirmado(o),
+                -(o.total_para(pag) - (o.frete.valor or 0)),
+                -o.relevancia,
+            )
         case Ordem.ENTREGA_RAPIDA:
             return lambda o: (
                 o.frete.prazo_dias if o.frete.prazo_dias is not None else SEM_DIAS,

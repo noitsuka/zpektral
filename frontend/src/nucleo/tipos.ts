@@ -32,7 +32,8 @@ export type Alerta =
   | "frete_maior_que_produto"
   | "preco_mudou_no_checkout"
   | "preco_fora_da_curva"
-  | "preco_instavel";
+  | "preco_instavel"
+  | "preco_varia_por_versao";
 
 type Loja = { id: string; nome: string };
 

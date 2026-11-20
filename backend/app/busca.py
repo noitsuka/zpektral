@@ -4,7 +4,7 @@ import logging
 import re
 import time
 from collections.abc import AsyncIterator, Awaitable, Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
 from urllib.parse import urlsplit
 
@@ -19,7 +19,7 @@ from app.agrupamento import (
 from app.cache import CacheComValidade
 from app.cliente_http import ErroExterno
 from app.configuracao import Configuracoes
-from app.fontes.base import ContextoBusca, Fonte
+from app.fontes.base import ContextoBusca, Fonte, chave_da_loja
 from app.modelos import Endereco, Frete, Oferta, RelatorioFonte, StatusFonte
 from app.relevancia import (
     MARCAS_VAZIAS,
@@ -35,7 +35,10 @@ from app.saude import PainelSaude
 log = logging.getLogger("zpektral.busca")
 
 SEGUNDOS_TRABALHO_FALHO = 15
-SEGUNDOS_GRAVACAO = 5
+# roda depois do fim: cobre o banco acordando (até 10 s só para conectar) e fica abaixo dos
+# 30 s que o site espera o servidor fechar depois do fim
+SEGUNDOS_GRAVACAO = 20
+FALHAS = frozenset({StatusFonte.ERRO, StatusFonte.TEMPO_ESGOTADO, StatusFonte.BLOQUEADA})
 PRECO_MAXIMO_CENTAVOS = 100_000_000
 TITULO_MAXIMO = 300
 URL_MAXIMA = 2048
@@ -67,6 +70,8 @@ class TrabalhoBusca:
     tempo_decorrido_ms: int = 0
     concluido: asyncio.Event = field(default_factory=asyncio.Event)
     gravado: asyncio.Event = field(default_factory=asyncio.Event)
+    # as linhas do histórico já estão confirmadas no banco (a limpeza depois delas pode falhar)
+    historico_gravado: bool = False
     _mudou: asyncio.Event = field(default_factory=asyncio.Event)
     parciais: set[str] = field(default_factory=set)
     _versao: int = 0
@@ -274,11 +279,7 @@ class ServicoBusca:
             await self._gravar(trabalho)
         finally:
             trabalho.gravado.set()
-        falhas = sum(
-            b.relatorio.status
-            in (StatusFonte.ERRO, StatusFonte.TEMPO_ESGOTADO, StatusFonte.BLOQUEADA)
-            for b in trabalho.definitivo.values()
-        )
+        falhas = sum(b.relatorio.status in FALHAS for b in trabalho.definitivo.values())
         if ativas and falhas * 2 >= len(ativas):
             self._trabalhos.guardar(chave, trabalho, validade=SEGUNDOS_TRABALHO_FALHO)
 
@@ -288,7 +289,10 @@ class ServicoBusca:
         try:
             await asyncio.wait_for(self._ao_concluir(trabalho), SEGUNDOS_GRAVACAO)
         except Exception as excecao:
-            log.warning("histórico da busca não gravado: %r", excecao)
+            if trabalho.historico_gravado:
+                log.warning("histórico gravado; a limpeza depois dele não terminou: %r", excecao)
+            else:
+                log.warning("histórico da busca não gravado: %r", excecao)
 
     async def _executar_fonte(
         self, fonte: Fonte, ctx: ContextoBusca, trabalho: TrabalhoBusca
@@ -321,3 +325,24 @@ class ServicoBusca:
         relatorio = RelatorioFonte(fonte.id, fonte.nome, status, decorrido, len(ofertas), mensagem)
         self.saude.registrar(relatorio)
         trabalho.adicionar(Lote(relatorio, ofertas, Fase.FINAL))
+        soltar_reservadas(ctx, trabalho)
+
+
+def soltar_reservadas(ctx: ContextoBusca, trabalho: TrabalhoBusca) -> None:
+    """A oferta que um comparador guardou porque a loja tem fonte direta entra quando essa fonte
+    falha nesta busca: sem isso, a loja bloqueada sumia das duas. O lote do comparador sai de
+    novo, com elas."""
+    falharam = {
+        chave_da_loja(b.relatorio.nome)
+        for b in trabalho.definitivo.values()
+        if b.relatorio.status in FALHAS
+    }
+    for fonte, por_loja in ctx.reservadas.items():
+        lote = trabalho.definitivo.get(fonte)
+        if lote is None or lote.relatorio.status is not StatusFonte.OK:
+            continue
+        soltas = [o for loja in por_loja.keys() & falharam for o in por_loja.pop(loja)]
+        if soltas:
+            ofertas = lote.ofertas + marcar_ausentes(sanear(soltas), ctx.consulta)
+            relatorio = replace(lote.relatorio, ofertas=len(ofertas))
+            trabalho.adicionar(Lote(relatorio, ofertas, Fase.FINAL))

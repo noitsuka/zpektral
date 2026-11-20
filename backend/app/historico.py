@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 import statistics
@@ -12,7 +13,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from app.banco import HistoricoPreco, SaudeLoja
 from app.busca import TrabalhoBusca, chave_cache
 from app.cache import CacheComValidade
-from app.modelos import Loja, Oferta, StatusFonte, StatusFrete, instante_iso
+from app.modelos import Alerta, Loja, Oferta, StatusFonte, StatusFrete, instante_iso
 from app.relevancia import normalizar_ean
 
 log = logging.getLogger("zpektral.historico")
@@ -22,7 +23,12 @@ TAMANHO_MAXIMO_PRODUTO = 80
 CHAVES_LEMBRADAS = 200_000
 LINHAS_MAXIMAS_SERIE = 5_000
 INTERVALO_EXPURGO_S = 86_400
+# a limpeza roda depois da gravação, na mesma espera da busca; não pode tomar o prazo dela
+SEGUNDOS_EXPURGO = 5
 RELEVANCIA_MINIMA_HISTORICO = 70
+# termos da API do Mercado Livre (2.2.1.3 e 7.4): só cópias intermediárias, apagadas quando
+# deixam de ser necessárias; o histórico guarda o preço por meses
+FONTES_SEM_HISTORICO = frozenset({"mercadolivre"})
 TAMANHO_MAXIMO_OFERTA = 160
 OFERTAS_POR_CONSULTA = 50
 HORARIO_DE_BRASILIA = timezone(timedelta(hours=-3))
@@ -161,6 +167,7 @@ class RegistroHistorico:
         except Exception:
             log.exception("falha ao gravar histórico")
             return
+        trabalho.historico_gravado = True
         for chave, total in chaves.items():
             self._gravados.guardar(chave, total)
         await self.expurgar_se_preciso()
@@ -208,7 +215,7 @@ class RegistroHistorico:
             return
         self._ultimo_expurgo = agora
         try:
-            apagadas = await self.expurgar()
+            apagadas = await asyncio.wait_for(self.expurgar(), SEGUNDOS_EXPURGO)
         except Exception:
             log.exception("falha ao apagar histórico antigo")
             return
@@ -385,6 +392,8 @@ class RegistroHistorico:
 def _gravavel(o: Oferta) -> bool:
     return (
         0 < len(o.id) <= TAMANHO_MAXIMO_OFERTA
+        and o.loja.id not in FONTES_SEM_HISTORICO
+        and Alerta.PRECO_VARIA_POR_VERSAO not in o.alertas
         and o.relevancia >= RELEVANCIA_MINIMA_HISTORICO
         and o.disponivel
         and o.frete.status is not StatusFrete.CALCULANDO

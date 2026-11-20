@@ -10,9 +10,15 @@ from app.cache import CacheComValidade
 from app.cliente_http import ClienteHttp, ErroExterno
 from app.configuracao import Configuracoes
 from app.dinheiro import para_centavos
-from app.fontes.base import ContextoBusca, Previa, executar_no_prazo, montar_ofertas
+from app.fontes.base import (
+    ContextoBusca,
+    Previa,
+    chave_da_loja,
+    executar_no_prazo,
+    montar_ofertas,
+)
 from app.modelos import Loja, Oferta, Origem, Parcelamento
-from app.relevancia import normalizar, nucleo_da_busca
+from app.relevancia import nucleo_da_busca
 
 SITE = "https://www.buscape.com.br"
 PAGINAS_DE_PRODUTO = 8
@@ -28,7 +34,7 @@ class FonteBuscape:
     def __init__(self, http: ClienteHttp, config: Configuracoes, lojas_diretas: Iterable[str] = ()):
         self._http = http
         self._config = config
-        self._diretas = {_chave_lojista(nome) for nome in lojas_diretas}
+        self._diretas = {chave_da_loja(nome) for nome in lojas_diretas}
         self._produtos: CacheComValidade[str, list[dict[str, Any]]] = CacheComValidade(
             SEGUNDOS_CACHE_PRODUTO, 2_000
         )
@@ -49,8 +55,10 @@ class FonteBuscape:
                 extras = []
             resultados += [r for r in extras if _caminho(r) and _caminho(r) not in vistos]
         vitrine = montar_ofertas(self.id, resultados, lambda r, p: self._da_vitrine(r, p, ctx))
-        if previa is not None and vitrine:
-            previa(vitrine)
+        if previa is not None and (
+            de_fora := [o for o in vitrine if not self._direta(o.vendedor or "")]
+        ):
+            previa(de_fora)
 
         piso = self._config.relevancia_minima_cotacao
         detalhar = [
@@ -80,10 +88,17 @@ class FonteBuscape:
 
         saida: list[Oferta] = []
         for posicao, resultado in enumerate(resultados):
-            if detalhadas.get(posicao):
-                saida.extend(detalhadas[posicao])
-                continue
-            saida.extend(o for o in vitrine if o.id == _id_vitrine(resultado))
+            pagina = detalhadas.get(posicao, [])
+            mostradas = [o for o in pagina if not self._direta(o.vendedor or "")]
+            guardadas = [o for o in pagina if self._direta(o.vendedor or "")]
+            if not mostradas:
+                da_vitrine = [o for o in vitrine if o.id == _id_vitrine(resultado)]
+                mostradas = [o for o in da_vitrine if not self._direta(o.vendedor or "")]
+                guardadas = guardadas or [o for o in da_vitrine if self._direta(o.vendedor or "")]
+            saida.extend(mostradas)
+            # a loja tem fonte direta: a oferta daqui só aparece se ela falhar nesta busca
+            for o in guardadas:
+                ctx.reservar(self.id, chave_da_loja(o.vendedor or ""), o)
         return saida
 
     async def _resultados(self, texto: str) -> list[dict[str, Any]]:
@@ -113,7 +128,7 @@ class FonteBuscape:
     ) -> Oferta | None:
         preco = resultado.get("price")
         lojista = (resultado.get("bestOffer") or {}).get("merchantName")
-        if not preco or not isinstance(lojista, str) or not lojista or self._direta(lojista):
+        if not preco or not isinstance(lojista, str) or not lojista:
             return None
         titulo = _titulo(resultado)
         return Oferta(
@@ -140,7 +155,7 @@ class FonteBuscape:
     ) -> Oferta | None:
         preco = oferta.get("price")
         lojista = oferta.get("sellerName")
-        if not preco or not isinstance(lojista, str) or not lojista or self._direta(lojista):
+        if not preco or not isinstance(lojista, str) or not lojista:
             return None
         if oferta.get("stock") == 0:
             return None
@@ -168,10 +183,10 @@ class FonteBuscape:
         )
 
     def _direta(self, lojista: str) -> bool:
-        return _chave_lojista(lojista) in self._diretas
+        return chave_da_loja(lojista) in self._diretas
 
     def _loja(self, lojista: str) -> Loja:
-        return Loja(f"{self.id}:{_chave_lojista(lojista)}", lojista)
+        return Loja(f"{self.id}:{chave_da_loja(lojista)}", lojista)
 
 
 # abaixo disso, uma segunda busca só com o que distingue a frase (nucleo_da_busca)
@@ -263,7 +278,3 @@ def _titulo(resultado: dict[str, Any]) -> str:
 
 def _id_vitrine(resultado: dict[str, Any]) -> str:
     return f"buscape:{resultado.get('objectId') or resultado.get('sourceId')}"
-
-
-def _chave_lojista(nome: str) -> str:
-    return normalizar(nome).replace(" ", "")

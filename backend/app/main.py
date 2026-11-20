@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from sqlalchemy.exc import OperationalError
 
 from app.api import erros
 from app.api.erros import CapturaErros
@@ -17,6 +18,7 @@ from app.busca import ServicoBusca
 from app.cep import ServicoCep
 from app.cliente_http import ClienteHttp
 from app.configuracao import Configuracoes, obter_configuracoes
+from app.credenciais import Cifra, GuardaCredenciais
 from app.fontes import criar_fontes
 from app.historico import RegistroHistorico
 from app.limites import CabecalhosSeguranca, Guarda
@@ -25,6 +27,29 @@ from app.saude import PainelSaude
 
 log = logging.getLogger("zpektral")
 logging.getLogger("httpx").setLevel(logging.WARNING)
+
+
+def guarda_de_credenciais(config: Configuracoes, sessoes) -> GuardaCredenciais | None:
+    chave = config.chave_credenciais.get_secret_value()
+    cifra = None
+    try:
+        cifra = Cifra(chave) if chave else None
+    except ValueError as erro:
+        log.error("credenciais OAuth desligadas: %s", erro)
+    motor = sessoes.kw.get("bind") if sessoes is not None else None
+    # na Vercel só o PostgreSQL é comum a todas as instâncias
+    compartilhado = not config.vercel or (motor is not None and motor.dialect.name == "postgresql")
+    if sessoes is not None and cifra is not None and compartilhado:
+        return GuardaCredenciais(sessoes, cifra)
+    if config.ml_token_renovacao.get_secret_value():
+        if config.url_banco or config.vercel:
+            log.error(
+                "mercado livre desativado: o token precisa de um PostgreSQL e de uma "
+                "CHAVE_CREDENCIAIS válida"
+            )
+        else:
+            log.warning("sem banco: o token renovado do mercado livre fica só nesta instância")
+    return None
 
 
 def criar_app(config: Configuracoes | None = None) -> FastAPI:
@@ -49,17 +74,22 @@ def criar_app(config: Configuracoes | None = None) -> FastAPI:
         )
         motor = criar_motor(url_banco) if url_banco else None
         if motor is not None:
-            await criar_tabelas_locais(motor)
+            try:
+                await criar_tabelas_locais(motor)
+            except OperationalError as erro:
+                # num preview da Vercel sem banco, o arquivo local cai numa pasta somente leitura
+                log.warning("histórico local desligado: %s", erro.orig)
+                await motor.dispose()
+                motor = None
+        sessoes = criar_sessoes(motor) if motor is not None else None
         historico = (
-            RegistroHistorico(criar_sessoes(motor), dias_retencao=config.dias_historico)
-            if motor
-            else None
+            RegistroHistorico(sessoes, dias_retencao=config.dias_historico) if sessoes else None
         )
         app.state.ceps = ServicoCep(http, config.segundos_cache_cep, config.entradas_cache_cep)
         app.state.historico = historico
         app.state.guarda = Guarda.das_configuracoes(config)
         buscas = app.state.buscas = ServicoBusca(
-            criar_fontes(http, config, navegador),
+            criar_fontes(http, config, navegador, guarda_de_credenciais(config, sessoes)),
             config,
             PainelSaude(http, config.url_webhook_alerta.get_secret_value()),
             ao_concluir=historico.registrar if historico else None,

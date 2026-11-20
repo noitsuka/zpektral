@@ -17,7 +17,7 @@ import {
   progresso,
   reduzir,
 } from "@/nucleo/transmissao";
-import type { Oferta, RelatorioFonte } from "@/nucleo/tipos";
+import type { Filtros, Oferta, RelatorioFonte } from "@/nucleo/tipos";
 
 function oferta(id: string, total: number, extra: Partial<Oferta> = {}): Oferta {
   return {
@@ -202,6 +202,24 @@ describe("ranking ao vivo", () => {
       ordem: "menor_total",
     });
     expect(ordenadas.map((o) => o.id)).toEqual(["b:1", "a:1", "x:1", "c:1"]);
+  });
+
+  it("deixa preço não confirmado depois dos confirmados, sem tirar da lista", () => {
+    const versao = oferta("s:1", 10, { total_exato: false, alertas: ["preco_varia_por_versao"] });
+    const instavel = oferta("i:1", 20, { total_exato: false, alertas: ["preco_instavel"] });
+    const gratis = { ...ofertas[0].frete, status: "gratis_anunciado" as const, valor: 0 };
+    const versaoGratis = oferta("g:1", 5, {
+      total_exato: false,
+      alertas: ["preco_varia_por_versao"],
+      frete: gratis,
+    });
+    const todas = [versao, instavel, versaoGratis, ...ofertas];
+    const ordem = (o: Filtros["ordem"]) =>
+      rankingAoVivo(todas, { ...FILTROS_PADRAO, ordem: o }).map((x) => x.id);
+    expect(ordem("menor_preco")).toEqual(["b:1", "c:1", "a:1", "g:1", "s:1", "i:1"]);
+    expect(ordem("maior_preco")).toEqual(["a:1", "c:1", "b:1", "i:1", "s:1", "g:1"]);
+    expect(ordem("menor_total").slice(0, 2)).toEqual(["b:1", "a:1"]);
+    expect(ordem("menor_total").indexOf("g:1")).toBeGreaterThan(1);
   });
 
   it("ordena pela maior economia verificada e desempata pelo total", () => {

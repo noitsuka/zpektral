@@ -7,8 +7,8 @@ import pytest
 from pydantic import SecretStr
 
 from app.cliente_http import ErroExterno
-from app.fontes.shopee import API, FonteShopee, assinatura
-from app.modelos import Origem, StatusFrete
+from app.fontes.shopee import API, FonteShopee, assinatura, url_do_produto
+from app.modelos import Alerta, Origem, StatusFrete
 from testes.conftest import contexto, resposta_json
 
 NOS = {
@@ -65,13 +65,41 @@ async def teste_corpo_assinado_e_o_corpo_enviado(simulador, http, config):
     assert o.link == "https://s.shopee.com.br/abc"
 
 
+def _erro(codigo, mensagem):
+    return {"errors": [{"message": mensagem, "extensions": {"code": codigo, "message": mensagem}}]}
+
+
 async def teste_erros_do_graphql_sao_levantados(simulador, http, config):
     habilitar(config)
-    simulador.post(API).mock(
-        resposta_json({"errors": [{"message": "error [10020]: Invalid Signature"}]})
-    )
-    with pytest.raises(ErroExterno, match="Invalid Signature"):
+    simulador.post(API).mock(resposta_json({"errors": [{"message": "System error"}]}))
+    with pytest.raises(ErroExterno, match="System error") as erro:
         await FonteShopee(http, config).buscar(contexto("fone"))
+    assert not erro.value.bloqueio
+
+
+@pytest.mark.parametrize("codigo", [10020, 10031, 10032, 10033, 10034, 10035])
+async def teste_acesso_negado_pela_shopee_vira_bloqueio(simulador, http, config, codigo):
+    habilitar(config)
+    simulador.post(API).mock(resposta_json(_erro(codigo, "Invalid Signature")))
+    with pytest.raises(ErroExterno) as erro:
+        await FonteShopee(http, config).buscar(contexto("fone"))
+    assert erro.value.bloqueio
+
+
+async def teste_limite_de_consultas_pausa_a_fonte(simulador, http, config):
+    habilitar(config)
+    agora = [1000.0]
+    rota = simulador.post(API).mock(resposta_json(_erro(10030, "Rate limit exceeded")))
+    fonte = FonteShopee(http, config, relogio=lambda: agora[0])
+    for _ in range(2):
+        with pytest.raises(ErroExterno) as erro:
+            await fonte.buscar(contexto("fone"))
+        assert erro.value.bloqueio
+    assert rota.call_count == 1
+
+    agora[0] += 15 * 60
+    rota.mock(resposta_json(_pagina([_no(1)], continua=False)))
+    assert len(await fonte.buscar(contexto("fone"))) == 1
 
 
 def _pagina(nos, continua):
@@ -120,16 +148,73 @@ async def teste_pagina_ate_o_limite_configurado_e_para_sem_proxima(simulador, ht
     assert [o.posicao for o in ofertas] == [0, 1]
 
 
-async def teste_campos_do_produto_e_desconto(simulador, http, config):
+async def teste_limite_na_segunda_pagina_mantem_a_primeira(simulador, http, config):
     habilitar(config)
+    config.shopee_paginas = 2
+    agora = [1000.0]
     simulador.post(API).mock(
-        resposta_json(_pagina([_no(5, preco="80.00", priceDiscountRate=20)], continua=False))
+        side_effect=[
+            resposta_json(_pagina([_no(1)], continua=True)),
+            resposta_json(_erro(10030, "Rate limit exceeded")),
+        ]
     )
+    fonte = FonteShopee(http, config, relogio=lambda: agora[0])
+    assert [o.id for o in await fonte.buscar(contexto("fone jbl"))] == ["shopee:1"]
+    with pytest.raises(ErroExterno):
+        await fonte.buscar(contexto("fone jbl"))
+
+
+async def teste_link_de_fora_da_shopee_nao_entra(simulador, http, config):
+    habilitar(config)
+    nos = [
+        _no(1, offerLink="https://golpe.example/1"),
+        _no(2, offerLink="https://golpe.example/2", productLink="http://shopee.com.br/x"),
+        _no(3, offerLink="https://shopee.com.br.golpe.example/3"),
+    ]
+    simulador.post(API).mock(resposta_json(_pagina(nos, continua=False)))
+    ofertas = await FonteShopee(http, config).buscar(contexto("fone jbl"))
+    assert [o.link for o in ofertas] == [
+        "https://shopee.com.br/product/77/1",
+        url_do_produto(77, 2),
+        "https://shopee.com.br/product/77/3",
+    ]
+
+
+async def teste_campos_do_produto(simulador, http, config):
+    habilitar(config)
+    simulador.post(API).mock(resposta_json(_pagina([_no(5, preco="80.00")], continua=False)))
     [o] = await FonteShopee(http, config).buscar(contexto("fone jbl"))
-    assert o.preco == 8000 and o.preco_original == 10000
+    assert o.preco == 8000
     assert o.vendedor == "JBL Oficial"
     assert o.imagem == "https://cf.shopee.com.br/file/5"
     assert o.link == "https://s.shopee.com.br/5"
+    assert o.alertas == []
+
+
+async def teste_porcentagem_de_desconto_nao_inventa_preco_antigo(simulador, http, config):
+    habilitar(config)
+    no = _no(5, preco="80.00", priceDiscountRate=20)
+    simulador.post(API).mock(resposta_json(_pagina([no], continua=False)))
+    [o] = await FonteShopee(http, config).buscar(contexto("fone jbl"))
+    assert o.preco == 8000 and o.preco_original is None and o.desconto == 0
+
+
+async def teste_preco_que_muda_com_a_versao_vem_marcado(simulador, http, config):
+    habilitar(config)
+    no = _no(5, preco="80.00", priceMax="120.00")
+    simulador.post(API).mock(resposta_json(_pagina([no], continua=False)))
+    [o] = await FonteShopee(http, config).buscar(contexto("fone jbl"))
+    assert o.preco == 8000
+    assert o.alertas == [Alerta.PRECO_VARIA_POR_VERSAO]
+    assert not o.total_exato
+
+
+async def teste_mesmo_item_em_duas_paginas_vira_uma_oferta(simulador, http, config):
+    habilitar(config)
+    paginas = iter([_pagina([_no(1), _no(2)], True), _pagina([_no(2), _no(3)], False)])
+    simulador.post(API).mock(side_effect=lambda _: resposta_json(next(paginas)))
+    ofertas = await FonteShopee(http, config).buscar(contexto("fone jbl"))
+    assert [o.id for o in ofertas] == ["shopee:1", "shopee:2", "shopee:3"]
 
 
 class FreteFalso:

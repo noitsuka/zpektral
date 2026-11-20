@@ -50,7 +50,10 @@ class Configuracoes(BaseSettings):
     ml_id_cliente: str = ""
     ml_segredo_cliente: SecretStr = SecretStr("")
     ml_token_renovacao: SecretStr = SecretStr("")
-    ml_arquivo_token: str = ".ml-token.json"
+    # AES-GCM de 32 bytes em base64 urlsafe; cifra no banco os tokens OAuth renovados
+    chave_credenciais: SecretStr = SecretStr("")
+    # a Vercel define VERCEL=1; lá cada instância tem memória e /tmp próprios
+    vercel: bool = False
 
     url_webhook_alerta: SecretStr = SecretStr("")
 

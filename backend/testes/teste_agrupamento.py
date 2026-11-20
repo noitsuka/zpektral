@@ -275,6 +275,35 @@ def teste_fora_da_curva_so_com_lojas_suficientes():
     assert not par[1].alertas
 
 
+def teste_preco_de_versao_nao_puxa_a_mediana_do_fora_da_curva():
+    lojas = [
+        oferta("a", "TV X", 300000, "a", "1"),
+        oferta("b", "TV X", 310000, "b", "1"),
+        oferta("c", "TV X", 90000, "c", "1"),
+    ]
+    versoes = [oferta(f"s{i}", "TV X", 110000 + i, f"s{i}", "1") for i in range(4)]
+    for o in versoes:
+        o.alertar(Alerta.PRECO_VARIA_POR_VERSAO)
+    atribuir_grupos([*lojas, *versoes])
+    marcar_fora_da_curva([*lojas, *versoes])
+    assert Alerta.PRECO_FORA_DA_CURVA in lojas[2].alertas
+    assert all(Alerta.PRECO_FORA_DA_CURVA not in o.alertas for o in lojas[:2])
+
+
+def teste_preco_de_versao_nao_entra_no_nivel_de_preco():
+    from app.agrupamento import rebaixar_muito_abaixo
+
+    geladeiras = [oferta(f"g{i}", "Geladeira Frost Free", 300000 + i * 1000) for i in range(10)]
+    versoes = [oferta(f"s{i}", "Geladeira Frost Free", 2500 + i) for i in range(10)]
+    for o in versoes:
+        o.alertar(Alerta.PRECO_VARIA_POR_VERSAO)
+    lampada = oferta("lamp", "Lâmpada Tubular Geladeira", 3000)
+    for o in [*geladeiras, *versoes, lampada]:
+        o.relevancia = 100
+    rebaixar_muito_abaixo([*geladeiras, *versoes, lampada])
+    assert lampada.relevancia == 50
+
+
 def teste_muito_abaixo_do_nivel_de_preco_e_rebaixado_e_alertado():
     from app.agrupamento import rebaixar_muito_abaixo
 

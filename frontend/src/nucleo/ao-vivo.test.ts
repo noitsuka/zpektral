@@ -41,6 +41,14 @@ describe("rebaixamento de preço muito abaixo do nível", () => {
     expect(pizza.relevancia).toBe(100);
   });
 
+  it("não usa o preço da versão mais barata para medir o nível", () => {
+    const versoes = Array.from({ length: 12 }, (_, i) =>
+      oferta(`s:${i}`, 1300 + i, { alertas: ["preco_varia_por_versao"] }),
+    );
+    const saida = rebaixarMuitoAbaixo([...fritadeiras, ...versoes, oferta("a:pizza", 1376)]);
+    expect(saida.find((o) => o.id === "a:pizza")!.relevancia).toBe(50);
+  });
+
   it("não mexe em conjuntos pequenos", () => {
     const poucas = [...fritadeiras.slice(0, 5), oferta("a:pizza", 1376)];
     expect(rebaixarMuitoAbaixo(poucas).every((o) => o.relevancia === 100)).toBe(true);

@@ -2,6 +2,7 @@ import html
 import re
 import time
 from dataclasses import dataclass
+from itertools import pairwise
 from urllib.parse import quote_plus
 
 from app.cliente_http import ClienteHttp, ErroExterno
@@ -97,7 +98,7 @@ def ler_resultados(pagina: bytes) -> list[Resultado]:
     if any(marca in texto for marca in _VERIFICACAO):
         raise ErroExterno("amazon: página de verificação de robô; não é contornada", bloqueio=True)
     inicios = [texto.rfind("<div", 0, m.start()) for m in _BLOCO.finditer(texto)]
-    blocos = [texto[a:b] for a, b in zip(inicios, [*inicios[1:], len(texto)], strict=True)]
+    blocos = [texto[a:b] for a, b in pairwise([*inicios, len(texto)])]
     por_asin: dict[str, Resultado] = {}
     for bloco in blocos:
         resultado = _ler_bloco(bloco)
@@ -134,9 +135,13 @@ class FonteAmazon:
             "GET",
             url_de_busca(ctx.texto),
             tentativas=0,
+            aceitos=(200, 503),
             headers={"accept-language": "pt-BR,pt;q=0.9"},
         )
+        # a Amazon recusa robôs com 503 e a mesma página de verificação do 200
         resultados = ler_resultados(resposta.content)
+        if (status := resposta.status_code) != 200:
+            raise ErroExterno(f"www.amazon.com.br: HTTP {status}", status)
         ofertas = montar_ofertas(self.id, resultados, lambda r, p: self._oferta(r, p, ctx))
         if self._frete is None or ctx.endereco is None:
             return ofertas

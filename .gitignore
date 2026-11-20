@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .env
+.env.tmp
 *.db
 .ml-token.json
 node_modules/

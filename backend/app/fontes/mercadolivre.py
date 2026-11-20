@@ -1,16 +1,18 @@
 import asyncio
-import json
+import hashlib
 import logging
 import math
-import os
+import re
 import time
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any
 from urllib.parse import quote
 
+import httpx
+
 from app.cliente_http import ClienteHttp, ErroExterno, ler_json
 from app.configuracao import Configuracoes
+from app.credenciais import GuardaCredenciais
 from app.dinheiro import para_centavos
 from app.fontes.base import (
     ContextoBusca,
@@ -21,108 +23,221 @@ from app.fontes.base import (
     montar_ofertas,
 )
 from app.modelos import (
+    Condicao,
     Frete,
     Loja,
     Oferta,
     OpcaoFrete,
     Origem,
-    Parcelamento,
     StatusFrete,
 )
+from app.relevancia import normalizar_ean
 
 log = logging.getLogger("zpektral.mercadolivre")
 
 API = "https://api.mercadolibre.com"
-LIMITE_BUSCA = 50
+SITE = "https://produto.mercadolivre.com.br"
+PRODUTOS_DO_CATALOGO = 10
+# cada produto custa uma chamada a mais; as ofertas de cada um disputam a mesma página
+PRODUTOS_COM_OFERTAS = 6
+OFERTAS_POR_PRODUTO = 3
+# resposta perdida depois da troca queima o refresh token: espera mais que nas lojas, mas
+# no total menos que os 30 s em que o banco derruba a transação parada com a trava
+SEGUNDOS_RESPOSTA_TOKEN = 25
+_ID_ITEM = re.compile(r"MLB\d+")
+CONDICOES = {"new": Condicao.NOVO, "used": Condicao.USADO, "refurbished": Condicao.RECONDICIONADO}
+
+
+REAUTORIZAR = (
+    "mercado livre: a autorização expirou ou foi revogada; autorize de novo com "
+    "python -m scripts.autorizar_mercadolivre"
+)
+
+
+class AutorizacaoRecusada(ErroExterno):
+    """O Mercado Livre recusou o refresh token (invalid_grant): só uma nova autorização resolve."""
+
+    def __init__(self):
+        super().__init__(REAUTORIZAR, 401)
+
+
+def _resumo(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()[:16]
 
 
 class CofreTokens:
-    def __init__(self, http: ClienteHttp, config: Configuracoes, relogio=time.time):
+    """Access token em memória; o refresh token, que o Mercado Livre troca a cada renovação,
+    fica cifrado no banco para valer em todas as instâncias.
+
+    O ML_TOKEN_RENOVACAO do ambiente é a semente, e cada semente tem a própria linha no banco:
+    trocar a variável (nova autorização) começa outra cadeia, e um deploy antigo, ainda com a
+    semente anterior, continua achando a dele."""
+
+    fonte = "mercadolivre"
+
+    def __init__(
+        self,
+        http: ClienteHttp,
+        config: Configuracoes,
+        guarda: GuardaCredenciais | None = None,
+        relogio=time.time,
+    ):
         self._http = http
         self._config = config
+        self._guarda = guarda
         self._relogio = relogio
-        self._caminho = Path(config.ml_arquivo_token)
-        self._trava = asyncio.Lock()
+        self._tarefa: asyncio.Future[None] | None = None
         self._acesso: str | None = None
         self._expira = 0.0
-        self._renovacao = config.ml_token_renovacao.get_secret_value()
-        salvo = self._ler()
-        if isinstance(salvo.get("refresh_token"), str) and salvo["refresh_token"]:
-            self._renovacao = salvo["refresh_token"]
-            acesso, expira = salvo.get("access_token"), salvo.get("expires_at")
-            if isinstance(acesso, str) and isinstance(expira, int | float):
-                self._acesso, self._expira = acesso, float(expira)
+        self._rejeitado: str | None = None
+        self._recusados: set[str] = set()
+        # (resumo do token trocado, par novo) que o banco não recebeu: só esta instância o tem
+        self._pendente: tuple[str, dict[str, Any]] | None = None
+        self._semente = config.ml_token_renovacao.get_secret_value()
+        self._renovacao = self._semente
+        self.chave = f"{self.fonte}:{_resumo(self._semente)}" if self._semente else self.fonte
 
     @property
     def configurado(self) -> bool:
         s = self._config
-        return bool(s.ml_id_cliente and s.ml_segredo_cliente.get_secret_value() and self._renovacao)
+        # com várias instâncias e sem o cofre, a primeira renovação queimaria a semente das outras
+        return bool(
+            s.ml_id_cliente
+            and s.ml_segredo_cliente.get_secret_value()
+            and self._semente
+            and (self._guarda is not None or not (s.url_banco or s.vercel))
+        )
 
     def invalidar(self, rejeitado: str) -> None:
+        self._rejeitado = rejeitado
         if self._acesso == rejeitado:
             self._acesso, self._expira = None, 0.0
 
     async def obter_token(self) -> str:
-        if self._acesso and self._relogio() < self._expira:
+        if self._pendente is None and self._acesso and self._relogio() < self._expira:
             return self._acesso
-        async with self._trava:
-            if self._acesso and self._relogio() < self._expira:
-                return self._acesso
-            resposta = await self._http.requisitar(
-                "POST",
-                f"{API}/oauth/token",
-                tentativas=0,
-                data={
-                    "grant_type": "refresh_token",
-                    "client_id": self._config.ml_id_cliente,
-                    "client_secret": self._config.ml_segredo_cliente.get_secret_value(),
-                    "refresh_token": self._renovacao,
-                },
+        if self._tarefa is None or self._tarefa.done():
+            self._tarefa = asyncio.ensure_future(self._atualizar())
+            self._tarefa.add_done_callback(lambda t: t.cancelled() or t.exception())
+        # quando o Mercado Livre responde, o token antigo já morreu: a busca cancelada no meio
+        # não pode impedir que o novo seja guardado
+        await asyncio.shield(self._tarefa)
+        return self._acesso
+
+    async def _atualizar(self) -> None:
+        if self._pendente is not None:
+            await self._gravar_pendente()
+        if self._acesso and self._relogio() < self._expira:
+            return
+        if self._guarda is None:
+            self._adotar(await self._renovar(self._renovacao))
+            return
+        novo: dict[str, Any] | None = None
+        try:
+            async with self._guarda.travar(self.chave) as travada:
+                # a semente já foi trocada quando a linha existe: apresentá-la de novo é inútil
+                if travada.ilegivel:
+                    raise AutorizacaoRecusada
+                salvo = travada.atual
+                if salvo and self._utilizavel(salvo):
+                    self._adotar(salvo)
+                    return
+                renovacao = (salvo or {}).get("refresh_token") or self._semente
+                travada.novo = novo = await self._renovar(renovacao)
+                self._adotar(novo)
+        except Exception:
+            if novo is None:
+                raise
+            # o Mercado Livre já trocou o token: sem esta gravação, só autorizando de novo
+            self._pendente = (_resumo(renovacao), novo)
+            await self._gravar_pendente()
+
+    async def _gravar_pendente(self) -> None:
+        origem, par = self._pendente
+        try:
+            async with self._guarda.travar(self.chave) as travada:
+                salvo = (travada.atual or {}).get("refresh_token") or self._semente
+                # se o banco já tem outro token, o commit tinha passado e só a confirmação se perdeu
+                if not travada.ilegivel and _resumo(salvo) == origem:
+                    travada.novo = par
+        except Exception:
+            log.error(
+                "mercado livre: o token renovado não foi gravado; fica nesta instância e "
+                "a gravação é refeita na próxima busca"
             )
-            corpo = ler_json(resposta)
-            acesso = corpo.get("access_token") if isinstance(corpo, dict) else None
-            if not isinstance(acesso, str) or not acesso:
-                raise ErroExterno("mercado livre: resposta de token sem access_token")
-            renovacao = corpo.get("refresh_token")
-            if isinstance(renovacao, str) and renovacao:
-                self._renovacao = renovacao
-            validade = corpo.get("expires_in")
-            validade = validade if isinstance(validade, int) and validade > 0 else 21600
-            self._acesso = acesso
-            self._expira = self._relogio() + max(60, validade - 300)
-            self._escrever()
-            return acesso
+            return
+        self._pendente = None
 
-    def _ler(self) -> dict[str, Any]:
+    def _utilizavel(self, salvo: dict[str, Any]) -> bool:
+        acesso, expira = salvo.get("access_token"), salvo.get("expires_at")
+        return (
+            isinstance(acesso, str)
+            and acesso != self._rejeitado
+            and isinstance(expira, int | float)
+            and self._relogio() < expira
+        )
+
+    def _adotar(self, dados: dict[str, Any]) -> None:
+        self._acesso, self._expira = dados["access_token"], float(dados["expires_at"])
+        self._renovacao = dados["refresh_token"]
+
+    async def _renovar(self, renovacao: str) -> dict[str, Any]:
+        if _resumo(renovacao) in self._recusados:
+            raise AutorizacaoRecusada
         try:
-            return json.loads(self._caminho.read_text("utf-8"))
-        except (OSError, ValueError):
-            return {}
-
-    def _escrever(self) -> None:
-        corpo = {
-            "access_token": self._acesso,
-            "refresh_token": self._renovacao,
-            "expires_at": self._expira,
+            async with asyncio.timeout(SEGUNDOS_RESPOSTA_TOKEN):
+                resposta = await self._http.requisitar(
+                    "POST",
+                    f"{API}/oauth/token",
+                    tentativas=0,
+                    aceitos=(200, 400, 401),
+                    timeout=SEGUNDOS_RESPOSTA_TOKEN,
+                    # um 307 reenviaria o Client Secret e o refresh token a outro endereço
+                    follow_redirects=False,
+                    data={
+                        "grant_type": "refresh_token",
+                        "client_id": self._config.ml_id_cliente,
+                        "client_secret": self._config.ml_segredo_cliente.get_secret_value(),
+                        "refresh_token": renovacao,
+                    },
+                )
+        except TimeoutError:
+            raise ErroExterno("mercado livre: renovação do token sem resposta") from None
+        corpo = ler_json(resposta)
+        corpo = corpo if isinstance(corpo, dict) else {}
+        if resposta.status_code != 200:
+            if corpo.get("error") == "invalid_grant":
+                self._recusados.add(_resumo(renovacao))
+                raise AutorizacaoRecusada
+            motivo = str(corpo.get("error") or "sem motivo")[:60]
+            raise ErroExterno(
+                f"mercado livre: renovação do token recusada (HTTP {resposta.status_code}, "
+                f"{motivo}); confira ML_ID_CLIENTE e ML_SEGREDO_CLIENTE",
+                resposta.status_code,
+            )
+        acesso = corpo.get("access_token")
+        if not isinstance(acesso, str) or not acesso:
+            raise ErroExterno("mercado livre: resposta de token sem access_token")
+        nova = corpo.get("refresh_token")
+        validade = corpo.get("expires_in")
+        validade = validade if isinstance(validade, int) and validade > 0 else 21600
+        return {
+            "access_token": acesso,
+            "refresh_token": nova if isinstance(nova, str) and nova else renovacao,
+            "expires_at": self._relogio() + max(60, validade - 300),
         }
-        temporario = self._caminho.with_name(self._caminho.name + ".tmp")
-        try:
-            descritor = os.open(temporario, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
-            with os.fdopen(descritor, "w", encoding="utf-8") as arquivo:
-                json.dump(corpo, arquivo)
-            os.replace(temporario, self._caminho)
-        except OSError as excecao:
-            log.warning("não foi possível salvar o token do mercado livre: %s", excecao)
 
 
 class FonteMercadoLivre:
     id = "mercadolivre"
     nome = "Mercado Livre"
 
-    def __init__(self, http: ClienteHttp, config: Configuracoes, cofre: CofreTokens | None = None):
+    def __init__(
+        self, http: ClienteHttp, config: Configuracoes, credenciais: GuardaCredenciais | None = None
+    ):
         self._http = http
         self._config = config
-        self._cofre = cofre if cofre is not None else CofreTokens(http, config)
+        self._cofre = CofreTokens(http, config, credenciais)
         self._ref = Loja(self.id, self.nome)
 
     @property
@@ -130,27 +245,55 @@ class FonteMercadoLivre:
         return self._cofre.configurado
 
     async def buscar(self, ctx: ContextoBusca, previa: Previa | None = None) -> list[Oferta]:
+        # /sites/MLB/search saiu da documentação em 2025 e recusa apps novos com 403; o caminho
+        # documentado é o catálogo e, para cada produto, as ofertas que disputam a página dele
         inicio = time.monotonic()
-        url = f"{API}/sites/MLB/search?q={quote(ctx.texto)}&limit={LIMITE_BUSCA}"
         token = await self._cofre.obter_token()
-        resposta = await self._http.requisitar(
-            "GET", url, aceitos=(200, 401, 403), headers={"authorization": f"Bearer {token}"}
+        url = (
+            f"{API}/products/search?status=active&site_id=MLB&q={quote(ctx.texto)}"
+            f"&limit={PRODUTOS_DO_CATALOGO}"
         )
-        if resposta.status_code == 401:
-            self._cofre.invalidar(token)
-            token = await self._cofre.obter_token()
-            resposta = await self._http.requisitar(
-                "GET", url, aceitos=(200, 403), headers={"authorization": f"Bearer {token}"}
-            )
+        resposta, token = await self._consultar(url, token)
         if resposta.status_code == 403:
             raise ErroExterno(
-                "mercado livre: busca recusada (HTTP 403); confira se o app tem acesso à busca", 403
+                "mercado livre: catálogo recusado (HTTP 403); o app precisa da permissão "
+                "Publicação e sincronização",
+                403,
             )
         dados = ler_json(resposta)
         if not isinstance(dados, dict):
             raise ErroExterno("mercado livre: resposta de busca inesperada")
+        produtos = [p for p in dados.get("results") or [] if isinstance(p, dict) and p.get("id")]
+        # só o produto que casa com a busca gasta a chamada das ofertas
+        notas = [_nota(ctx, p) for p in produtos]
+        escolhidos = [
+            p
+            for p, nota in sorted(zip(produtos, notas, strict=True), key=lambda par: -par[1])
+            if nota >= self._config.relevancia_minima_cotacao
+        ][:PRODUTOS_COM_OFERTAS]
+        listas = await asyncio.gather(
+            *(self._itens(str(p["id"]), token) for p in escolhidos), return_exceptions=True
+        )
+        falhas = [r for r in listas if isinstance(r, BaseException)]
+        if escolhidos and len(falhas) == len(escolhidos):
+            bloqueio = next((f for f in falhas if getattr(f, "bloqueio", False)), None)
+            raise bloqueio or falhas[0]
+        if falhas:
+            log.warning(
+                "mercado livre: %d de %d produtos sem ofertas (%s)",
+                len(falhas),
+                len(escolhidos),
+                falhas[0],
+            )
+        # o mesmo anúncio pode disputar duas páginas de produto
+        por_item: dict[str, tuple[dict[str, Any], dict[str, Any]]] = {}
+        for produto, itens in zip(escolhidos, listas, strict=True):
+            for item in [] if isinstance(itens, BaseException) else itens:
+                por_item.setdefault(str(item["item_id"]), (produto, item))
+        pares = list(por_item.values())
+        vendedores = await self._vendedores({item.get("seller_id") for _, item in pares}, token)
         ofertas = montar_ofertas(
-            self.id, dados.get("results") or [], lambda item, p: self._oferta(item, p, ctx)
+            self.id, pares, lambda par, pos: self._oferta(*par, pos, ctx, vendedores)
         )
 
         a_cotar = escolher_para_cotar(
@@ -160,6 +303,7 @@ class FonteMercadoLivre:
             lambda o: o,
         )
         if ctx.endereco is not None:
+            anunciados = {o.id: o.frete for o in a_cotar}
             if previa is not None and a_cotar:
                 for o in a_cotar:
                     o.frete = ctx.frete_calculando()
@@ -170,45 +314,101 @@ class FonteMercadoLivre:
             )
             for o in a_cotar:
                 if o.frete.status is StatusFrete.CALCULANDO:
-                    o.frete = ctx.frete_sem_cotacao()
+                    # sem cotação no prazo, volta o que o anúncio diz (frete grátis, se diz)
+                    o.frete = anunciados[o.id]
         return [o.consolidar() for o in ofertas]
 
-    def _oferta(self, item: dict[str, Any], posicao: int, ctx: ContextoBusca) -> Oferta | None:
-        if not item.get("price"):
+    async def _consultar(self, url: str, token: str) -> tuple[httpx.Response, str]:
+        cabecalho = {"authorization": f"Bearer {token}"}
+        resposta = await self._http.requisitar(
+            "GET", url, aceitos=(200, 401, 403), headers=cabecalho
+        )
+        if resposta.status_code == 401:
+            self._cofre.invalidar(token)
+            token = await self._cofre.obter_token()
+            resposta = await self._http.requisitar(
+                "GET", url, aceitos=(200, 403), headers={"authorization": f"Bearer {token}"}
+            )
+        return resposta, token
+
+    async def _itens(self, id_produto: str, token: str) -> list[dict[str, Any]]:
+        url = f"{API}/products/{quote(id_produto, safe='')}/items"
+        resposta = await self._http.requisitar(
+            "GET", url, aceitos=(200, 404), headers={"authorization": f"Bearer {token}"}
+        )
+        dados = ler_json(resposta) if resposta.status_code == 200 else {}
+        brutos = dados.get("results") if isinstance(dados, dict) else None
+        itens = [
+            i
+            for i in brutos or []
+            if isinstance(i, dict)
+            and i.get("item_id")
+            and i.get("currency_id", "BRL") == "BRL"
+            and _numero(i.get("price")) > 0
+        ]
+        # o filtro padrão do site mostra só novos: as mais baratas novas vêm primeiro
+        itens.sort(key=lambda i: (i.get("condition") != "new", i["price"]))
+        return itens[:OFERTAS_POR_PRODUTO]
+
+    async def _vendedores(self, ids: set[Any], token: str) -> dict[Any, str]:
+        ids = {i for i in ids if isinstance(i, int) and not isinstance(i, bool)}
+        if not ids:
+            return {}
+        url = f"{API}/users?ids={','.join(map(str, sorted(ids)))}"
+        try:
+            resposta = await self._http.requisitar(
+                "GET", url, headers={"authorization": f"Bearer {token}"}
+            )
+            dados = ler_json(resposta)
+        except ErroExterno:
+            return {}
+        nomes = {}
+        for entrada in dados if isinstance(dados, list) else []:
+            corpo = entrada.get("body", entrada) if isinstance(entrada, dict) else None
+            if isinstance(corpo, dict) and isinstance(corpo.get("nickname"), str):
+                nomes[corpo.get("id")] = corpo["nickname"]
+        return nomes
+
+    def _oferta(
+        self,
+        produto: dict[str, Any],
+        item: dict[str, Any],
+        posicao: int,
+        ctx: ContextoBusca,
+        vendedores: dict[Any, str],
+    ) -> Oferta | None:
+        id_item = str(item["item_id"])
+        condicao = CONDICOES.get(item.get("condition"))
+        if not item.get("price") or not _ID_ITEM.fullmatch(id_item) or condicao is None:
             return None
         info_frete = item.get("shipping") or {}
         if info_frete.get("free_shipping"):
             frete = Frete(StatusFrete.GRATIS_ANUNCIADO, valor=0)
         else:
             frete = ctx.frete_sem_cotacao()
-        parcela = item.get("installments") or {}
-        parcelamentos = None
-        if parcela.get("quantity") and parcela.get("amount"):
-            valor = para_centavos(parcela["amount"])
-            parcelamentos = Parcelamento(
-                parcelas=parcela["quantity"],
-                valor=valor,
-                total=valor * parcela["quantity"],
-                juros=bool(parcela.get("rate")),
-            )
-        vendedor = item.get("official_store_name") or (item.get("seller") or {}).get("nickname")
-        titulo = item.get("title") or ""
-        if item.get("condition") == "used":
-            titulo = f"{titulo} (usado)"
+        marca, ean = _marca_e_ean(produto)
+        fotos = [f.get("url") for f in produto.get("pictures") or [] if isinstance(f, dict)]
+        foto = fotos[0] if fotos and isinstance(fotos[0], str) else ""
+        titulo = str(produto.get("name") or "")
+        if condicao is not Condicao.NOVO:
+            titulo = f"{titulo} ({condicao.value})"
+        vendedor = vendedores.get(item.get("seller_id"))
         original = item.get("original_price")
         return Oferta(
-            id=f"{self.id}:{item.get('id')}",
+            id=f"{self.id}:{id_item}",
             titulo=titulo,
-            link=item.get("permalink") or "",
+            link=f"{SITE}/{id_item[:3]}-{id_item[3:]}-_JM",
             loja=self._ref,
             preco=para_centavos(item["price"]),
             origem=Origem.MARKETPLACE,
             vendedor=vendedor,
-            imagem=(item.get("thumbnail") or "").replace("http://", "https://") or None,
+            imagem=foto.replace("http://", "https://") or None,
+            marca=marca,
+            ean=ean,
+            condicao=condicao,
             preco_original=para_centavos(original) if original else None,
-            parcelamento=parcelamentos,
             frete=frete,
-            relevancia=ctx.relevancia_de(titulo, vendedor),
+            relevancia=ctx.relevancia_de(titulo, vendedor, ean, marca),
             posicao=posicao,
         )
 
@@ -248,6 +448,21 @@ class FonteMercadoLivre:
         oferta.consolidar()
 
 
+def _marca_e_ean(produto: dict[str, Any]) -> tuple[str | None, str | None]:
+    atributos = {
+        a.get("id"): a.get("value_name")
+        for a in produto.get("attributes") or []
+        if isinstance(a, dict)
+    }
+    gtins = (g.strip() for g in str(atributos.get("GTIN") or "").split(","))
+    return atributos.get("BRAND"), next(filter(None, map(normalizar_ean, gtins)), None)
+
+
+def _nota(ctx: ContextoBusca, produto: dict[str, Any]) -> int:
+    marca, ean = _marca_e_ean(produto)
+    return ctx.relevancia_de(str(produto.get("name") or ""), None, ean, marca)
+
+
 def _opcao(bruto: dict[str, Any]) -> OpcaoFrete:
     dias = None
     eta = bruto.get("estimated_delivery_time") or {}
@@ -267,3 +482,9 @@ def _opcao(bruto: dict[str, Any]) -> OpcaoFrete:
         prazo_dias=dias,
         tipo="entrega",
     )
+
+
+def _numero(valor: Any) -> float:
+    if isinstance(valor, bool) or not isinstance(valor, int | float):
+        return 0.0
+    return float(valor)

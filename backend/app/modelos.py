@@ -119,6 +119,8 @@ class Alerta(StrEnum):
     PRECO_MUDOU_NO_CHECKOUT = "preco_mudou_no_checkout"
     PRECO_FORA_DA_CURVA = "preco_fora_da_curva"
     PRECO_INSTAVEL = "preco_instavel"
+    # o anúncio tem versões com preços diferentes e o preço é o da mais barata
+    PRECO_VARIA_POR_VERSAO = "preco_varia_por_versao"
 
 
 DIAS_PRAZO_LONGO = 60
@@ -218,8 +220,8 @@ class Oferta:
         frete = (self.frete.valor or 0) + (self.importacao.impostos if self.importacao else 0)
         self.melhor_preco = melhor
         self.total = melhor + frete
-        self.total_exato = (
-            self.frete.status is StatusFrete.CALCULADO and Alerta.PRECO_INSTAVEL not in self.alertas
+        self.total_exato = self.frete.status is StatusFrete.CALCULADO and not (
+            {Alerta.PRECO_INSTAVEL, Alerta.PRECO_VARIA_POR_VERSAO} & set(self.alertas)
         )
         self.totais = Totais(
             pix=self.preco_pix + frete if self.preco_pix else None,

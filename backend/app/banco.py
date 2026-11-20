@@ -7,6 +7,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    Text,
     false,
     func,
     make_url,
@@ -87,6 +88,16 @@ class SaudeLoja(Base):
     __table_args__ = (Index("ix_saude_lojas_loja_momento", "loja", "observado_em"),)
 
 
+class CredencialOAuth(Base):
+    __tablename__ = "credenciais_oauth"
+
+    fonte: Mapped[str] = mapped_column(String(40), primary_key=True)
+    dados: Mapped[str] = mapped_column(Text)
+    atualizado_em: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
 def criar_motor(url: str) -> AsyncEngine:
     url = url_assincrona(url)
     if url.startswith("sqlite"):
@@ -97,7 +108,8 @@ def criar_motor(url: str) -> AsyncEngine:
         pool_size=5,
         max_overflow=5,
         pool_timeout=5,
-        connect_args={"timeout": 5, "command_timeout": 10},
+        # o compute do Neon parado acorda na primeira conexão; o Neon recomenda esperar 10 s
+        connect_args={"timeout": 10, "command_timeout": 10},
     )
 
 

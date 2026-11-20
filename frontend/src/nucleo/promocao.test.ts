@@ -11,6 +11,7 @@ function oferta(extra: Partial<Oferta> = {}): Oferta {
     preco: 26000,
     preco_original: null,
     preco_pix: null,
+    alertas: [],
     ...extra,
   } as Oferta;
 }
@@ -32,6 +33,11 @@ const tipos = (o: Oferta, s?: PontoHistorico[]) =>
   avaliarPromocao(o, s, HOJE).selos.map((x) => x.tipo);
 
 describe("selos de promoção com evidência", () => {
+  it("preço da versão mais barata não vira menor preço do histórico", () => {
+    const versao = oferta({ alertas: ["preco_varia_por_versao"] });
+    expect(tipos(versao, HABITUAL)).toEqual([]);
+  });
+
   it("mostra o desconto anunciado como da loja e o confirma pelo histórico", () => {
     const p = avaliarPromocao(oferta({ preco_original: 30500 }), HABITUAL, HOJE);
     expect(p.selos.map((s) => s.tipo)).toEqual(["menor_em_dias", "anunciado"]);

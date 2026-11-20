@@ -18,7 +18,6 @@ from app.busca import ServicoBusca
 from app.cliente_http import ClienteHttp, DestinoProibido
 from app.configuracao import Configuracoes
 from app.fontes import criar_fontes
-from app.fontes.vtex import carregar_lojas
 from app.ordenacao import Filtros, aplicar
 
 CONSULTAS = Path(__file__).resolve().parents[1] / "testes" / "dados" / "consultas_avaliacao.json"
@@ -153,15 +152,16 @@ async def rodar(
     lojas: frozenset[str] | None = None,
 ) -> list[dict]:
     # prazo folgado: a primeira passada grava as respostas que as outras versões vão reler
-    config = Configuracoes(_env_file=None, segundos_limite_fonte=30)
-    vtex = {loja.id for loja in carregar_lojas()}
+    # o cache guarda as respostas sem prazo: nada do Mercado Livre (os termos só permitem cópia
+    # intermediária, e o POST do token ficaria gravado), mesmo com ML_* exportado no terminal
+    config = Configuracoes(_env_file=None, segundos_limite_fonte=30, ml_token_renovacao="")
     saida = []
     async with ClienteGravado(config, banco, somente_cache) as http:
-        fontes = [
-            f
-            for f in criar_fontes(http, config)
-            if f.id not in FORA_POR_ROBOTS and (lojas is None or f.id not in vtex or f.id in lojas)
-        ]
+        # o filtro entra antes de o Buscapé saber quais lojas são diretas: loja fora do cadastro
+        # medido continua aparecendo por ele, como na versão que não a tem; versões anteriores
+        # do app não conhecem o argumento
+        extra = {} if lojas is None else {"ids_vtex": lojas}
+        fontes = [f for f in criar_fontes(http, config, **extra) if f.id not in FORA_POR_ROBOTS]
         servico = ServicoBusca(fontes, config)
         for consulta in consultas:
             antes, inicio = http.requisicoes, time.monotonic()
