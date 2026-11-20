@@ -35,7 +35,9 @@ from app.saude import PainelSaude
 log = logging.getLogger("zpektral.busca")
 
 SEGUNDOS_TRABALHO_FALHO = 15
-SEGUNDOS_GRAVACAO = 5
+# roda depois do fim: cobre o banco acordando (até 10 s só para conectar) e fica abaixo dos
+# 30 s que o site espera o servidor fechar depois do fim
+SEGUNDOS_GRAVACAO = 20
 FALHAS = frozenset({StatusFonte.ERRO, StatusFonte.TEMPO_ESGOTADO, StatusFonte.BLOQUEADA})
 PRECO_MAXIMO_CENTAVOS = 100_000_000
 TITULO_MAXIMO = 300

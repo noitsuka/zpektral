@@ -108,7 +108,8 @@ def criar_motor(url: str) -> AsyncEngine:
         pool_size=5,
         max_overflow=5,
         pool_timeout=5,
-        connect_args={"timeout": 5, "command_timeout": 10},
+        # o compute do Neon parado acorda na primeira conexão; o Neon recomenda esperar 10 s
+        connect_args={"timeout": 10, "command_timeout": 10},
     )
 
 

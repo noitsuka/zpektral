@@ -244,6 +244,21 @@ async def teste_historico_lento_nao_segura_a_busca(config):
     assert await trabalho.aguardar(8)
 
 
+async def teste_banco_acordando_nao_perde_o_historico(config):
+    # o Neon dorme depois de 5 min parado; acordar, conectar e gravar passou de 5 s na produção
+    gravou = asyncio.Event()
+
+    async def gravar(trabalho):
+        await asyncio.sleep(6)
+        gravou.set()
+
+    svc = ServicoBusca([FonteFalsa("a", [("tv", 1)])], config, ao_concluir=gravar)
+    trabalho, _ = svc.iniciar("tv", None)
+    assert await trabalho.aguardar(1)
+    await trabalho.gravado.wait()
+    assert gravou.is_set()
+
+
 async def teste_acompanhar_repete_e_depois_transmite_ao_vivo(config):
     rapida = FonteFalsa("fast", [("tv", 1)])
     lenta = FonteFalsa("slow", [("tv", 2)], atraso=0.1)
