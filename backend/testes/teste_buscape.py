@@ -76,13 +76,18 @@ async def teste_vitrine_chega_antes_das_paginas(buscape, http, config):
     assert len(previas) == 1 and previas[0]
 
 
-async def teste_lojistas_consultados_direto_sao_pulados(buscape, http, config):
+async def teste_lojistas_consultados_direto_ficam_guardados(buscape, http, config):
     tudo = await FonteBuscape(http, config).buscar(contexto("air fryer mondial"))
-    assert "Magazine Luiza" in {o.loja.nome for o in tudo}
+    do_magalu = {o.id for o in tudo if o.loja.nome == "Magazine Luiza"}
+    assert do_magalu
+    ctx, previas = contexto("air fryer mondial"), []
     filtradas = await FonteBuscape(http, config, lojas_diretas=["Magazine Luiza"]).buscar(
-        contexto("air fryer mondial")
+        ctx, previas.append
     )
     assert "Magazine Luiza" not in {o.loja.nome for o in filtradas}
+    assert "Magazine Luiza" not in {o.loja.nome for previa in previas for o in previa}
+    # guardadas para o caso de a fonte direta da loja falhar nesta busca
+    assert {o.id for o in ctx.reservadas["buscape"]["magazineluiza"]} == do_magalu
 
 
 async def teste_pagina_de_produto_fora_do_ar_mantem_a_vitrine(simulador, http, config):

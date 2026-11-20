@@ -2,7 +2,7 @@ import asyncio
 
 from app.busca import ServicoBusca, chave_cache
 from app.cliente_http import ErroExterno
-from app.modelos import Endereco, StatusFonte
+from app.modelos import Endereco, Frete, StatusFonte, StatusFrete
 from app.saude import EstadoSaude
 from testes.falsos import FonteFalsa
 
@@ -15,6 +15,71 @@ def servico(config, *fontes):
 
 def status(trabalho):
     return {r.id: r.status for r in trabalho.relatorios}
+
+
+class ComparadorFalso(FonteFalsa):
+    """Guarda as ofertas das lojas que têm fonte direta, como o Buscapé."""
+
+    def __init__(self, id: str, guardadas: dict[str, list[tuple]], **kw):
+        super().__init__(id, [("Smart TV 55 do comparador", 900)], **kw)
+        self._guardadas = guardadas
+
+    async def buscar(self, ctx, previa=None):
+        for loja, itens in self._guardadas.items():
+            sem_cotacao = Frete(StatusFrete.NAO_INFORMADO)
+            for oferta in FonteFalsa(f"{self.id}-{loja}", itens)._montar(ctx, sem_cotacao):
+                ctx.reservar(self.id, loja, oferta)
+        return await super().buscar(ctx, previa)
+
+
+async def teste_loja_direta_que_falha_volta_pelo_comparador(config):
+    svc = servico(
+        config,
+        FonteFalsa("lojax", erro=ErroExterno("loja: HTTP 403", status=403)),
+        FonteFalsa("lojay", [("Smart TV 55 da Y", 1000)]),
+        ComparadorFalso(
+            "comparador",
+            {"lojax": [("Smart TV 55 da X", 800)], "lojay": [("Smart TV 55 da Y", 990)]},
+            atraso=0.05,
+        ),
+    )
+    trabalho, _ = svc.iniciar("smart tv 55", BH)
+    await asyncio.wait_for(trabalho.aguardar(), 1)
+    ids = {o.id for o in trabalho.ofertas}
+    # a X falhou: a oferta dela pelo comparador entra; a Y respondeu: a do comparador fica de fora
+    assert "comparador-lojax:0" in ids
+    assert "comparador-lojay:0" not in ids
+    assert {"comparador:0", "lojay:0"} <= ids
+    lote = trabalho.definitivo["comparador"]
+    assert lote.relatorio.status is StatusFonte.OK
+    assert lote.relatorio.ofertas == len(lote.ofertas) == 2
+
+
+async def teste_comparador_que_termina_antes_manda_o_lote_de_novo_quando_a_loja_falha(config):
+    svc = servico(
+        config,
+        FonteFalsa("lojax", erro=ErroExterno("loja: HTTP 503", status=503), atraso=0.05),
+        ComparadorFalso("comparador", {"lojax": [("Smart TV 55 da X", 800)]}),
+    )
+    trabalho, _ = svc.iniciar("smart tv 55", BH)
+    vistos = [
+        (lote.relatorio.id, [o.id for o in lote.ofertas]) async for lote in trabalho.acompanhar()
+    ]
+    assert vistos[0] == ("comparador", ["comparador:0"])
+    assert vistos[-1] == ("comparador", ["comparador:0", "comparador-lojax:0"])
+
+
+async def teste_comparador_que_falha_nao_solta_o_que_guardou(config):
+    svc = servico(
+        config,
+        FonteFalsa("lojax", erro=ErroExterno("loja: HTTP 403", status=403)),
+        ComparadorFalso(
+            "comparador", {"lojax": [("Smart TV 55 da X", 800)]}, erro=ErroExterno("fora")
+        ),
+    )
+    trabalho, _ = svc.iniciar("smart tv 55", BH)
+    await asyncio.wait_for(trabalho.aguardar(), 1)
+    assert trabalho.ofertas == []
 
 
 async def teste_executa_toda_fonte_e_relata_cada_uma(config):

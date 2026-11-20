@@ -2,16 +2,20 @@ import asyncio
 import logging
 import re
 from collections.abc import Callable, Coroutine, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 from app.modelos import Endereco, Frete, Oferta, OpcaoFrete, StatusFrete
 from app.navegador.base import CotacaoNavegador, StatusCotacao
-from app.relevancia import Consulta, normalizar_ean, pontuar_com_vendedor
+from app.relevancia import Consulta, normalizar, normalizar_ean, pontuar_com_vendedor
 
 log = logging.getLogger("zpektral.fontes")
 
 _PRAZO = re.compile(r"^(\d+)\s*(bd|d|h|m)$")
+
+
+def chave_da_loja(nome: str) -> str:
+    return normalizar(nome).replace(" ", "")
 
 
 @dataclass(slots=True)
@@ -19,6 +23,12 @@ class ContextoBusca:
     texto: str
     consulta: Consulta
     endereco: Endereco | None
+    # ofertas que um comparador achou de lojas com fonte direta (fonte -> loja -> ofertas):
+    # só entram se a fonte direta da loja falhar nesta busca
+    reservadas: dict[str, dict[str, list[Oferta]]] = field(default_factory=dict)
+
+    def reservar(self, fonte: str, loja: str, oferta: Oferta) -> None:
+        self.reservadas.setdefault(fonte, {}).setdefault(loja, []).append(oferta)
 
     def relevancia_de(
         self,
