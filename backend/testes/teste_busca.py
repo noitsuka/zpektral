@@ -1,5 +1,7 @@
 import asyncio
+import logging
 
+from app import busca
 from app.busca import ServicoBusca, chave_cache
 from app.cliente_http import ErroExterno
 from app.modelos import Endereco, Frete, StatusFonte, StatusFrete
@@ -242,6 +244,38 @@ async def teste_historico_lento_nao_segura_a_busca(config):
     svc = ServicoBusca([FonteFalsa("a", [("tv", 1)])], config, ao_concluir=gravar)
     trabalho, _ = svc.iniciar("tv", None)
     assert await trabalho.aguardar(8)
+
+
+async def teste_prazo_que_corta_a_gravacao_avisa_que_o_historico_nao_foi_gravado(
+    config, monkeypatch, caplog
+):
+    monkeypatch.setattr(busca, "SEGUNDOS_GRAVACAO", 0.05)
+
+    async def gravar(trabalho):
+        await asyncio.sleep(1)
+
+    svc = ServicoBusca([FonteFalsa("a", [("tv", 1)])], config, ao_concluir=gravar)
+    with caplog.at_level(logging.WARNING, logger="zpektral.busca"):
+        trabalho, _ = svc.iniciar("tv", None)
+        await asyncio.wait_for(trabalho.gravado.wait(), 2)
+    assert "histórico da busca não gravado" in caplog.text
+
+
+async def teste_prazo_que_corta_a_manutencao_depois_da_gravacao_nao_acusa_perda(
+    config, monkeypatch, caplog
+):
+    monkeypatch.setattr(busca, "SEGUNDOS_GRAVACAO", 0.05)
+
+    async def gravar_e_manter(trabalho):
+        trabalho.historico_gravado = True  # as linhas já estão no banco
+        await asyncio.sleep(1)  # a limpeza do histórico antigo é que demora
+
+    svc = ServicoBusca([FonteFalsa("a", [("tv", 1)])], config, ao_concluir=gravar_e_manter)
+    with caplog.at_level(logging.WARNING, logger="zpektral.busca"):
+        trabalho, _ = svc.iniciar("tv", None)
+        await asyncio.wait_for(trabalho.gravado.wait(), 2)
+    assert "não gravado" not in caplog.text
+    assert "histórico gravado" in caplog.text
 
 
 async def teste_banco_acordando_nao_perde_o_historico(config):

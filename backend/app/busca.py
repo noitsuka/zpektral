@@ -70,6 +70,8 @@ class TrabalhoBusca:
     tempo_decorrido_ms: int = 0
     concluido: asyncio.Event = field(default_factory=asyncio.Event)
     gravado: asyncio.Event = field(default_factory=asyncio.Event)
+    # as linhas do histórico já estão confirmadas no banco (a limpeza depois delas pode falhar)
+    historico_gravado: bool = False
     _mudou: asyncio.Event = field(default_factory=asyncio.Event)
     parciais: set[str] = field(default_factory=set)
     _versao: int = 0
@@ -287,7 +289,10 @@ class ServicoBusca:
         try:
             await asyncio.wait_for(self._ao_concluir(trabalho), SEGUNDOS_GRAVACAO)
         except Exception as excecao:
-            log.warning("histórico da busca não gravado: %r", excecao)
+            if trabalho.historico_gravado:
+                log.warning("histórico gravado; a limpeza depois dele não terminou: %r", excecao)
+            else:
+                log.warning("histórico da busca não gravado: %r", excecao)
 
     async def _executar_fonte(
         self, fonte: Fonte, ctx: ContextoBusca, trabalho: TrabalhoBusca

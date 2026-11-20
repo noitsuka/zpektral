@@ -1,10 +1,15 @@
+import asyncio
+import logging
 import os
+import time
 from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
+from sqlalchemy import func, select
 
-from app.banco import Base, criar_motor, criar_sessoes, url_assincrona
+from app import historico
+from app.banco import Base, HistoricoPreco, criar_motor, criar_sessoes, url_assincrona
 from app.busca import ServicoBusca
 from app.historico import SEGUNDOS_MESMO_PRECO, RegistroHistorico
 from app.modelos import Endereco, Frete, StatusFrete
@@ -218,6 +223,160 @@ async def teste_historico_antigo_e_apagado_e_o_recente_fica(config, sessoes):
     async with sessoes() as sessao:
         assert await sessao.scalar(select(func.count()).select_from(HistoricoPreco)) == 1
         assert await sessao.scalar(select(func.count()).select_from(SaudeLoja)) == 1
+
+
+async def _linhas(sessoes) -> int:
+    async with sessoes() as sessao:
+        return await sessao.scalar(select(func.count()).select_from(HistoricoPreco))
+
+
+async def teste_expurgo_que_falha_depois_da_gravacao_nao_vira_historico_perdido(
+    config, sessoes, caplog
+):
+    registro = RegistroHistorico(sessoes)
+
+    async def expurgar():
+        raise RuntimeError("conexão caiu no expurgo")
+
+    registro.expurgar = expurgar  # type: ignore[method-assign]
+    with caplog.at_level(logging.INFO, logger="zpektral"):
+        trabalho = await executar(
+            config, registro, BH, [FonteFalsa("a", [("Smart TV 55", 1, "7891234567895")])]
+        )
+    assert trabalho.historico_gravado
+    assert await _linhas(sessoes) == 1
+    assert "falha ao apagar histórico antigo" in caplog.text
+    assert "falha ao gravar histórico" not in caplog.text
+    assert "não gravado" not in caplog.text
+
+
+async def teste_expurgo_lento_tem_prazo_proprio(config, sessoes, monkeypatch, caplog):
+    monkeypatch.setattr(historico, "SEGUNDOS_EXPURGO", 0.05)
+    registro = RegistroHistorico(sessoes)
+
+    async def expurgar():
+        await asyncio.sleep(5)
+        return 0
+
+    registro.expurgar = expurgar  # type: ignore[method-assign]
+    inicio = time.monotonic()
+    with caplog.at_level(logging.INFO, logger="zpektral"):
+        trabalho = await executar(
+            config, registro, BH, [FonteFalsa("a", [("Smart TV 55", 1, "7891234567895")])]
+        )
+    assert time.monotonic() - inicio < 2
+    assert trabalho.historico_gravado and await _linhas(sessoes) == 1
+    assert "falha ao apagar histórico antigo" in caplog.text
+
+
+async def teste_falha_na_gravacao_e_avisada_e_nao_marca_o_historico(config, tmp_path, caplog):
+    motor = criar_motor(f"sqlite+aiosqlite:///{tmp_path / 'sem_tabelas.db'}")
+    registro = RegistroHistorico(criar_sessoes(motor))
+    with caplog.at_level(logging.INFO, logger="zpektral"):
+        trabalho = await executar(
+            config, registro, BH, [FonteFalsa("a", [("Smart TV 55", 1, "7891234567895")])]
+        )
+    assert trabalho.terminou and not trabalho.historico_gravado
+    assert "falha ao gravar histórico" in caplog.text
+    await motor.dispose()
+
+
+TV = ("Smart TV 55", 1, "7891234567895")
+URL_PG = os.environ.get("URL_BANCO_TESTE")
+so_postgres = pytest.mark.skipif(not URL_PG, reason="queda e atraso de conexão do PostgreSQL")
+
+
+async def teste_banco_fora_do_ar_nao_segura_a_busca_e_avisa(config, caplog):
+    motor = criar_motor("postgresql://ninguem@127.0.0.1:9/zpektral")  # porta fechada
+    registro = RegistroHistorico(criar_sessoes(motor))
+    with caplog.at_level(logging.INFO, logger="zpektral"):
+        trabalho = await executar(config, registro, BH, [FonteFalsa("a", [TV])])
+    assert trabalho.terminou and not trabalho.historico_gravado
+    assert "falha ao gravar histórico" in caplog.text
+    await motor.dispose()
+
+
+async def teste_transmissao_fechada_logo_no_fim_nao_cancela_a_gravacao(config, sessoes):
+    from app.api.eventos import eventos_da_busca
+    from app.ordenacao import Filtros
+
+    registro = RegistroHistorico(sessoes)
+
+    async def gravar_devagar(trabalho):
+        await asyncio.sleep(0.2)  # ainda gravando quando o cliente fecha
+        await registro.registrar(trabalho)
+
+    svc = ServicoBusca([FonteFalsa("a", [TV])], config, ao_concluir=gravar_devagar)
+    trabalho, _ = svc.iniciar("smart tv 55", BH)
+    eventos = eventos_da_busca(trabalho, BH, [], Filtros())
+    async for bloco in eventos:
+        if bloco.startswith(b"event: fim"):
+            break
+    await eventos.aclose()  # o cliente fechou a conexão assim que recebeu o fim
+    assert not trabalho.gravado.is_set()
+    await asyncio.wait_for(trabalho.gravado.wait(), 5)
+    assert trabalho.historico_gravado and await _linhas(sessoes) == 1
+
+
+@so_postgres
+async def teste_gravacao_reconecta_depois_que_o_banco_derruba_a_conexao(config, sessoes):
+    from sqlalchemy import text
+
+    registro = RegistroHistorico(sessoes)
+    await executar(config, registro, BH, [FonteFalsa("a", [TV])])
+    # o Neon fecha as conexões quando suspende o compute: a do pool fica morta
+    motor = criar_motor(URL_PG)
+    async with motor.connect() as conexao:
+        derrubadas = await conexao.scalar(
+            text(
+                "select count(pg_terminate_backend(pid)) from pg_stat_activity "
+                "where datname = current_database() and pid <> pg_backend_pid()"
+            )
+        )
+    await motor.dispose()
+    assert derrubadas >= 1
+    trabalho = await executar(config, registro, RB, [FonteFalsa("a", [TV])])
+    assert trabalho.historico_gravado and await _linhas(sessoes) == 2
+
+
+@so_postgres
+async def teste_conexao_que_demora_a_abrir_ainda_grava(config, sessoes):
+    from sqlalchemy import make_url
+
+    destino = make_url(URL_PG)
+
+    async def segurar(cliente_r, cliente_w):
+        # como o Neon parado: a conexão nova só anda depois de o compute acordar
+        await asyncio.sleep(6)
+        banco_r, banco_w = await asyncio.open_connection(destino.host, destino.port or 5432)
+
+        async def bombear(origem, alvo):
+            try:
+                while dados := await origem.read(65536):
+                    alvo.write(dados)
+                    await alvo.drain()
+            finally:
+                alvo.close()
+
+        await asyncio.gather(
+            bombear(cliente_r, banco_w), bombear(banco_r, cliente_w), return_exceptions=True
+        )
+
+    proxy = await asyncio.start_server(segurar, "127.0.0.1", 0)
+    porta = proxy.sockets[0].getsockname()[1]
+    motor = criar_motor(
+        destino.set(host="127.0.0.1", port=porta).render_as_string(hide_password=False)
+    )
+    try:
+        inicio = time.monotonic()
+        trabalho = await executar(
+            config, RegistroHistorico(criar_sessoes(motor)), BH, [FonteFalsa("a", [TV])]
+        )
+        assert time.monotonic() - inicio > 6
+        assert trabalho.historico_gravado and await _linhas(sessoes) == 1
+    finally:
+        await motor.dispose()
+        proxy.close()
 
 
 async def teste_expurgo_roda_no_maximo_uma_vez_por_dia(config, sessoes):

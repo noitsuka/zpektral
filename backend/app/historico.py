@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import re
 import statistics
@@ -22,6 +23,8 @@ TAMANHO_MAXIMO_PRODUTO = 80
 CHAVES_LEMBRADAS = 200_000
 LINHAS_MAXIMAS_SERIE = 5_000
 INTERVALO_EXPURGO_S = 86_400
+# a limpeza roda depois da gravação, na mesma espera da busca; não pode tomar o prazo dela
+SEGUNDOS_EXPURGO = 5
 RELEVANCIA_MINIMA_HISTORICO = 70
 # termos da API do Mercado Livre (2.2.1.3 e 7.4): só cópias intermediárias, apagadas quando
 # deixam de ser necessárias; o histórico guarda o preço por meses
@@ -164,6 +167,7 @@ class RegistroHistorico:
         except Exception:
             log.exception("falha ao gravar histórico")
             return
+        trabalho.historico_gravado = True
         for chave, total in chaves.items():
             self._gravados.guardar(chave, total)
         await self.expurgar_se_preciso()
@@ -211,7 +215,7 @@ class RegistroHistorico:
             return
         self._ultimo_expurgo = agora
         try:
-            apagadas = await self.expurgar()
+            apagadas = await asyncio.wait_for(self.expurgar(), SEGUNDOS_EXPURGO)
         except Exception:
             log.exception("falha ao apagar histórico antigo")
             return
